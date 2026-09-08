@@ -3,10 +3,12 @@
 import { useCallback, useState } from 'react';
 import { useProfile } from '@/app/(app)/_hooks/use-profile';
 import { useStats } from '@/app/(app)/_hooks/use-stats';
+import { aimById, defaultAim } from '@/domain/island/aim';
 import type { QuizResult as QuizResultData } from '@/domain/types';
 import { useElapsed } from '../_hooks/use-elapsed';
 import { useFocusFlag } from '../_hooks/use-focus-flag';
 import { useFocusSession } from '../_hooks/use-focus-session';
+import { useSessionPreferences } from '../_hooks/use-session-preferences';
 import { IdleView } from './idle-view';
 import { LoadingView } from './loading-view';
 import { QuizResult } from './quiz-result';
@@ -24,11 +26,19 @@ export const FocusTimer = () => {
     useFocusSession();
   const { data } = useStats();
   const { data: profile } = useProfile();
+  const prefs = useSessionPreferences();
   const isFocused = useFocusFlag();
   const [phase, setPhase] = useState<Phase>('timer');
   const [quizResult, setQuizResult] = useState<QuizResultData | null>(null);
   const active = status === 'running' || status === 'ending';
   const elapsedMs = useElapsed(session?.startedAt ?? null, active);
+
+  const level = data?.stats.level ?? 1;
+  const focusBalance = data?.stats.focusBalance ?? 0;
+  const aim =
+    (prefs.aimAssetId ? aimById(prefs.aimAssetId, level) : null) ??
+    defaultAim(level, focusBalance);
+  const lengthMs = prefs.length === null ? null : prefs.length * 60_000;
 
   const finish = useCallback(() => {
     setPhase('timer');
@@ -54,8 +64,15 @@ export const FocusTimer = () => {
     return (
       <IdleView
         creditedTodayMs={data?.today.creditedMs ?? 0}
+        todaySessions={data?.today.sessions ?? []}
         streakDays={data?.stats.streakDays ?? 0}
         firstVisit={data?.stats.lastSessionDate === null}
+        focusBalance={focusBalance}
+        level={level}
+        aim={aim}
+        onAimChange={prefs.setAim}
+        length={prefs.length}
+        onLengthChange={prefs.setLength}
         starting={status === 'starting'}
         error={error}
         onStart={() => void start()}
@@ -87,6 +104,10 @@ export const FocusTimer = () => {
       elapsedMs={elapsedMs}
       focusedMs={focusedMs}
       isFocused={isFocused}
+      lengthMs={lengthMs}
+      aim={aim}
+      focusBalance={focusBalance}
+      level={level}
       ending={status === 'ending'}
       error={error}
       breakReminderMs={profile?.breakReminderMs ?? undefined}

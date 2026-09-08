@@ -27,7 +27,7 @@ const snapshot = {
     streakFreezes: 2,
     lastSessionDate: null,
   },
-  today: { creditedMs: 0, sessionsStarted: 0 },
+  today: { creditedMs: 0, sessionsStarted: 0, sessions: [] },
 };
 
 describe('AppLayout', () => {

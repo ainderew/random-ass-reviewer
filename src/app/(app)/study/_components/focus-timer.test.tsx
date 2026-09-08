@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { act, render, screen } from '@testing-library/react';
+import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { ReactNode } from 'react';
 import { statsQueryKey } from '@/lib/query-keys';
@@ -16,7 +16,11 @@ const snapshot = {
     streakFreezes: 2,
     lastSessionDate: '2026-09-07',
   },
-  today: { creditedMs: 25 * 60_000, sessionsStarted: 1 },
+  today: {
+    creditedMs: 25 * 60_000,
+    sessionsStarted: 1,
+    sessions: [{ creditedMs: 25 * 60_000 }],
+  },
 };
 
 const activeSession = {
@@ -125,8 +129,12 @@ describe('FocusTimer', () => {
       await screen.findByRole('button', { name: 'Start focusing' }),
     ).toBeInTheDocument();
     expect(
-      screen.getByText('25 min credited today. 3-day streak.'),
+      screen.getByText('25 min credited today across 1 session.'),
     ).toBeInTheDocument();
+    expect(
+      screen.getByRole('radiogroup', { name: 'Session length' }),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/Saving for/)).toBeInTheDocument();
   });
 
   it('clicking Start shows a running timer and sends the first heartbeat', async () => {
@@ -281,5 +289,62 @@ describe('FocusTimer quiz step', () => {
       cardId: 'c1',
       optionIndex: 0,
     });
+  });
+});
+
+describe('FocusTimer session shape', () => {
+  beforeEach(() => localStorage.clear());
+
+  it('shows the ring, the courtesy earnings, and the next rung while running', async () => {
+    routes['/api/session/beat'] = () => ({ data: { focusedMs: 6 * 60_000 } });
+    render(<FocusTimer />, { wrapper });
+    await userEvent.click(
+      await screen.findByRole('button', { name: 'Start focusing' }),
+    );
+
+    expect(
+      await screen.findByRole('progressbar', { name: 'Session progress' }),
+    ).toBeInTheDocument();
+    expect(await screen.findByText('6 min focused of 25')).toBeInTheDocument();
+    expect(screen.getByText('60')).toBeInTheDocument();
+    expect(screen.getByText('so far')).toBeInTheDocument();
+    expect(screen.getByRole('status')).toHaveTextContent('chest secured at 15');
+    expect(
+      screen.getByRole('img', { name: 'Lantern lit' }),
+    ).toBeInTheDocument();
+  });
+
+  it('opens a door at the chosen length instead of a wall', async () => {
+    routes['/api/session/beat'] = () => ({ data: { focusedMs: 25 * 60_000 } });
+    render(<FocusTimer />, { wrapper });
+    await userEvent.click(
+      await screen.findByRole('button', { name: 'Start focusing' }),
+    );
+
+    expect(await screen.findByText(/That is your 25/)).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'End and collect' }),
+    ).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: 'Keep going' }));
+    expect(
+      screen.getByRole('button', { name: 'End session' }),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/That is your 25/)).not.toBeInTheDocument();
+  });
+
+  it('remembers an open length and fills toward the next rung', async () => {
+    localStorage.setItem('aloft:session-length', 'open');
+    routes['/api/session/beat'] = () => ({ data: { focusedMs: 2.5 * 60_000 } });
+    render(<FocusTimer />, { wrapper });
+    expect(
+      await screen.findByRole('radio', { name: 'Open', checked: true }),
+    ).toBeInTheDocument();
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Start focusing' }),
+    );
+    const ring = await screen.findByRole('progressbar', {
+      name: 'Progress to the next rung',
+    });
+    await waitFor(() => expect(ring).toHaveAttribute('aria-valuenow', '50'));
   });
 });

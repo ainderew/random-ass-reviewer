@@ -257,3 +257,14 @@ p {
     visibility: hidden;
   }
 }
+
+/* The lantern's flame while a session is focused. Still under reduced motion. */
+.lantern-flame {
+  animation: breathe 3.2s ease-in-out infinite;
+  transform-origin: 14px 23px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .lantern-flame {
+    animation: none;
+  }
+}

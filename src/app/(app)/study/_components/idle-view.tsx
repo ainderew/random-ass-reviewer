@@ -1,33 +1,39 @@
 import Link from 'next/link';
 import { OnboardingSteps } from '@/app/(app)/_components/onboarding-steps';
+import type { Aim } from '@/domain/island/aim';
+import type { SessionLength } from '@/domain/session/rungs';
 import { Button } from '@/components/ui/button';
-import { formatMinutes } from '@/lib/format-time';
+import { AimLine } from './aim-line';
+import { LengthPicker } from './length-picker';
 import { TimerFrame } from './timer-frame';
+import { TodayLanterns } from './today-lanterns';
 import { WeeklySummaryCard } from './weekly-summary';
-
-function todayLine(creditedTodayMs: number, streakDays: number): string {
-  const credited =
-    creditedTodayMs >= 60_000
-      ? `${formatMinutes(creditedTodayMs)} credited today`
-      : 'Nothing credited yet today';
-  const streak =
-    streakDays > 0
-      ? `${streakDays}-day streak`
-      : 'A streak starts with one session';
-  return `${credited}. ${streak}.`;
-}
 
 export const IdleView = ({
   creditedTodayMs,
+  todaySessions,
   streakDays,
   firstVisit = false,
+  focusBalance,
+  level,
+  aim,
+  onAimChange,
+  length,
+  onLengthChange,
   starting,
   error,
   onStart,
 }: {
   creditedTodayMs: number;
+  todaySessions: Array<{ creditedMs: number }>;
   streakDays: number;
   firstVisit?: boolean;
+  focusBalance: number;
+  level: number;
+  aim: Aim | null;
+  onAimChange: (assetId: string) => void;
+  length: SessionLength;
+  onLengthChange: (length: SessionLength) => void;
   starting: boolean;
   error: string | null;
   onStart: () => void;
@@ -73,11 +79,21 @@ export const IdleView = ({
             How rewards work
           </Link>
         </p>
-      ) : (
-        <p className="max-w-[40ch] text-lg leading-relaxed text-ink-2">
-          {todayLine(creditedTodayMs, streakDays)}
+      ) : null}
+      <AimLine
+        aim={aim}
+        focusBalance={focusBalance}
+        level={level}
+        onChange={onAimChange}
+      />
+      <LengthPicker value={length} onChange={onLengthChange} />
+      {todaySessions.length > 0 ? (
+        <TodayLanterns sessions={todaySessions} creditedMs={creditedTodayMs} />
+      ) : streakDays > 0 && !firstVisit ? (
+        <p className="text-sm text-muted">
+          {streakDays}-day streak. Nothing credited yet today.
         </p>
-      )}
+      ) : null}
     </div>
   </TimerFrame>
 );

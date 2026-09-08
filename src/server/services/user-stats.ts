@@ -8,6 +8,7 @@ import { db } from '@/server/db';
 import { AppError } from '@/server/errors';
 import {
   countSessionsSince,
+  listCompletedSince,
   sumCreditedSince,
 } from '@/server/repositories/focus-session';
 import { findUserStats } from '@/server/repositories/user-stats';
@@ -21,11 +22,15 @@ export async function getUserStats(userId: string): Promise<UserStats> {
 
 export async function getDailySummary(userId: string): Promise<DailySummary> {
   const dayStart = await startOfUserDay(db, userId);
-  const [creditedMs, sessionsStarted] = await Promise.all([
+  const [creditedMs, sessionsStarted, completed] = await Promise.all([
     sumCreditedSince(db, userId, dayStart),
     countSessionsSince(db, userId, dayStart),
+    listCompletedSince(db, userId, dayStart),
   ]);
-  return { creditedMs, sessionsStarted };
+  const sessions = completed
+    .sort((a, b) => a.startedAt.getTime() - b.startedAt.getTime())
+    .map((s) => ({ creditedMs: s.creditedMs }));
+  return { creditedMs, sessionsStarted, sessions };
 }
 
 // The pity counter never leaves the server. Exposing it would let a user

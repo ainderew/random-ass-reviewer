@@ -87,4 +87,6 @@ export interface SessionResult {
 export interface DailySummary {
   creditedMs: number;
   sessionsStarted: number;
+  // Completed today, oldest first. One lantern each on the idle screen.
+  sessions: Array<{ creditedMs: number }>;
 }
