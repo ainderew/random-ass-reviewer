@@ -34,13 +34,17 @@ ENV PORT=3000
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV HOME=/root
 ENV DISABLE_AUTOUPDATER=1
-COPY --from=build /app/.next/standalone ./
+# The whole dependency tree, not the traced subset: the Agent SDK spawns its
+# platform binary (claude-agent-sdk-linux-x64) by name at runtime, which no
+# tracer can follow. It has to be the only node_modules in the image: pnpm's
+# tree is symlinks, and copying it over the standalone's real directories
+# fails on the first collision. So take just the server from the standalone.
+COPY --from=build /app/node_modules ./node_modules
+COPY --from=build /app/.next/standalone/server.js ./server.js
+COPY --from=build /app/.next/standalone/package.json ./package.json
+COPY --from=build /app/.next/standalone/.next ./.next
 COPY --from=build /app/.next/static ./.next/static
 COPY --from=build /app/public ./public
-# The whole tree, not just the traced subset: the Agent SDK spawns its
-# platform binary (claude-agent-sdk-linux-x64) by name at runtime, which no
-# tracer can follow. Same call the tracker made; image size is not a concern.
-COPY --from=build /app/node_modules ./node_modules
 COPY --from=build /app/drizzle ./drizzle
 COPY scripts/migrate.mjs ./scripts/migrate.mjs
 COPY docker-entrypoint.sh ./
