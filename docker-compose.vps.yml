@@ -1,0 +1,29 @@
+# Deployment compose for the shared VPS where host nginx already owns 80/443
+# and terminates TLS via certbot. The app is published on a loopback port that
+# an nginx `server` block proxies to (see deploy/studydash.nginx.conf).
+# Postgres runs on the host; the container reaches it through host-gateway.
+#
+#   docker compose -f docker-compose.vps.yml up -d --build
+services:
+  web:
+    build: .
+    container_name: studydash-web
+    env_file: .env.production
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
+    # Loopback-only: reachable by host nginx, never exposed to the internet.
+    ports:
+      - '127.0.0.1:3004:3000'
+    restart: unless-stopped
+    healthcheck:
+      test:
+        [
+          'CMD',
+          'node',
+          '-e',
+          "fetch('http://localhost:3000/api/healthz').then((r) => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s

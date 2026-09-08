@@ -1,0 +1,147 @@
+name: CI and deploy
+
+on:
+  push:
+  pull_request:
+
+env:
+  # Placeholders. Auth is exercised through the seeded session, never Google.
+  AUTH_SECRET: ci-only-auth-secret-material-0000000000000000
+  AUTH_GOOGLE_ID: placeholder
+  AUTH_GOOGLE_SECRET: placeholder
+  ENCRYPTION_KEY: ci-only-encryption-key-material-000000000000
+  DATABASE_URL: postgres://aloft:aloft@localhost:5432/aloft_test
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: aloft
+          POSTGRES_PASSWORD: aloft
+          POSTGRES_DB: aloft
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U aloft -d aloft"
+          --health-interval 5s --health-timeout 3s --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+
+      - name: Layer boundaries
+        run: |
+          ! grep -rq "from '@/server" src/game src/domain
+          ! grep -rq --include='*.ts' --include='*.tsx' --exclude='env.ts' --exclude='*.test.*' "process\.env\.[A-Z]" src/app src/server src/domain --exclude-dir=dev
+
+      - run: pnpm lint
+      - run: pnpm typecheck
+
+      # Fast first, so the common failure fails in seconds.
+      - run: pnpm test:unit
+
+      - name: Create the test database
+        run: PGPASSWORD=aloft psql -h localhost -U aloft -d aloft -c "CREATE DATABASE aloft_test"
+      - run: pnpm test:integration
+      - run: pnpm test:coverage -- --selectProjects domain server
+
+      - run: pnpm build
+      - run: pnpm check:bundle
+
+  # Browser tests against the built app. They gate nothing yet: one shared
+  # seeded user makes them the flakiest layer, so a red run here is a signal
+  # to look at, not a reason to hold a release.
+  e2e:
+    needs: checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: aloft
+          POSTGRES_PASSWORD: aloft
+          POSTGRES_DB: aloft
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U aloft -d aloft"
+          --health-interval 5s --health-timeout 3s --health-retries 10
+    env:
+      CI: 'true'
+      LLM_PROVIDER: fake
+      MIN_SESSION_MS_OVERRIDE: '10000'
+      AUTH_URL: http://localhost:3000
+      AUTH_TRUST_HOST: 'true'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: PGPASSWORD=aloft psql -h localhost -U aloft -d aloft -c "CREATE DATABASE aloft_test"
+      - run: pnpm db:migrate:test
+      - run: pnpm seed:smoke
+      - run: pnpm build
+      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm test:e2e
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-results
+          path: test-results
+          retention-days: 7
+
+  # Every push to main that passes the checks goes to production: rsync the
+  # source to the VPS and build there, the same steps as a manual deploy.
+  deploy:
+    needs: checks
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment:
+      name: production
+      url: https://studydash.workdash.site
+    concurrency:
+      group: deploy-production
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+      - name: SSH key
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' "${{ secrets.VPS_SSH_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          printf '%s\n' "${{ secrets.VPS_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
+      - name: Sync source
+        run: |
+          rsync -az --delete \
+            --exclude-from=.dockerignore --exclude .git --exclude .next --exclude node_modules \
+            -e "ssh -i ~/.ssh/deploy_key -o IdentitiesOnly=yes -o BatchMode=yes" \
+            ./ "${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/root/studydash/"
+      - name: Build and restart on the VPS
+        run: |
+          ssh -i ~/.ssh/deploy_key -o IdentitiesOnly=yes -o BatchMode=yes \
+            "${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}" \
+            'bash /root/studydash/deploy/vps-deploy.sh'
+      - name: Smoke the public URL
+        run: |
+          for i in $(seq 1 12); do
+            code=$(curl -s -o /dev/null -w '%{http_code}' https://studydash.workdash.site/api/healthz || true)
+            [ "$code" = "200" ] && { echo "healthz 200"; exit 0; }
+            sleep 5
+          done
+          echo "healthz never returned 200" >&2
+          exit 1
