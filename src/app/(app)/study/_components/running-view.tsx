@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { BREAK_PROMPT_MS } from '@/domain/economy/constants';
+import type { CareerProgress } from '@/domain/career/milestones';
 import type { Aim } from '@/domain/island/aim';
 import {
   currentRungNote,
@@ -11,6 +12,7 @@ import { Button } from '@/components/ui/button';
 import { formatClock, formatMinutes } from '@/lib/format-time';
 import { useRungTone } from '../_hooks/use-rung-tone';
 import { AimLine } from './aim-line';
+import { CareerScene } from './career-scene';
 import { Lantern, lanternStage } from './lantern';
 import { SessionRing } from './session-ring';
 import { TimerFrame } from './timer-frame';
@@ -24,6 +26,7 @@ export const RunningView = ({
   isFocused,
   lengthMs,
   aim,
+  career,
   focusBalance,
   level,
   ending,
@@ -36,6 +39,7 @@ export const RunningView = ({
   isFocused: boolean;
   lengthMs: number | null;
   aim: Aim | null;
+  career: CareerProgress;
   focusBalance: number;
   level: number;
   ending: boolean;
@@ -136,6 +140,11 @@ export const RunningView = ({
       }
     >
       <div className="space-y-5">
+        <CareerScene
+          progress={career}
+          mood={isFocused ? 'studying' : 'away'}
+          compact
+        />
         <SessionRing focusedMs={focusedMs} lengthMs={lengthMs}>
           <p
             data-testid="elapsed"

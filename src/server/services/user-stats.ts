@@ -6,9 +6,13 @@ import type {
 } from '@/domain/types';
 import { db } from '@/server/db';
 import { AppError } from '@/server/errors';
+import type { CareerProgress } from '@/domain/career/milestones';
+import { countRecalled } from '@/server/repositories/card';
 import {
+  countHighGradeQuizzes,
   countSessionsSince,
   listCompletedSince,
+  sumCreditedAllTime,
   sumCreditedSince,
 } from '@/server/repositories/focus-session';
 import { findUserStats } from '@/server/repositories/user-stats';
@@ -41,11 +45,23 @@ export function toPublicStats(stats: UserStats): PublicUserStats {
   return publicStats;
 }
 
+export async function getCareerProgress(
+  userId: string,
+): Promise<CareerProgress> {
+  const [focusMs, highGrades, cardsRecalled] = await Promise.all([
+    sumCreditedAllTime(db, userId),
+    countHighGradeQuizzes(db, userId),
+    countRecalled(db, userId),
+  ]);
+  return { focusMs, highGrades, cardsRecalled };
+}
+
 // Everything the HUD and the idle timer screen need, in one fetch.
 export async function getStatsSnapshot(userId: string): Promise<StatsSnapshot> {
-  const [stats, today] = await Promise.all([
+  const [stats, today, career] = await Promise.all([
     getUserStats(userId),
     getDailySummary(userId),
+    getCareerProgress(userId),
   ]);
-  return { stats: toPublicStats(stats), today };
+  return { stats: toPublicStats(stats), today, career };
 }

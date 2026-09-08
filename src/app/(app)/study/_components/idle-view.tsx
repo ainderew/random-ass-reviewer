@@ -1,9 +1,12 @@
 import Link from 'next/link';
 import { OnboardingSteps } from '@/app/(app)/_components/onboarding-steps';
+import type { CareerProgress } from '@/domain/career/milestones';
 import type { Aim } from '@/domain/island/aim';
 import type { SessionLength } from '@/domain/session/rungs';
 import { Button } from '@/components/ui/button';
 import { AimLine } from './aim-line';
+import { CareerNext } from './career-next';
+import { CareerScene } from './career-scene';
 import { LengthPicker } from './length-picker';
 import { TimerFrame } from './timer-frame';
 import { TodayLanterns } from './today-lanterns';
@@ -12,6 +15,7 @@ import { WeeklySummaryCard } from './weekly-summary';
 export const IdleView = ({
   creditedTodayMs,
   todaySessions,
+  career,
   streakDays,
   firstVisit = false,
   focusBalance,
@@ -26,6 +30,7 @@ export const IdleView = ({
 }: {
   creditedTodayMs: number;
   todaySessions: Array<{ creditedMs: number }>;
+  career: CareerProgress;
   streakDays: number;
   firstVisit?: boolean;
   focusBalance: number;
@@ -65,6 +70,10 @@ export const IdleView = ({
     <div className="space-y-6">
       <WeeklySummaryCard />
       <OnboardingSteps />
+      <div className="space-y-3">
+        <CareerScene progress={career} mood="resting" />
+        <CareerNext progress={career} />
+      </div>
       <h1 className="font-serif text-4xl leading-tight tracking-[-0.01em] text-ink md:text-5xl">
         {firstVisit ? 'Your first session.' : 'Ready when you are.'}
       </h1>

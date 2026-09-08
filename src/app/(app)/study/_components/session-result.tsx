@@ -9,7 +9,9 @@ import { BoltGlyph } from '@/components/icons';
 import { Button } from '@/components/ui/button';
 import { formatMinutes } from '@/lib/format-time';
 import { useCountUp } from '../_hooks/use-count-up';
+import type { Milestone } from '@/domain/career/milestones';
 import { CacheReveal } from './cache-reveal';
+import { MilestoneReveal } from './milestone-reveal';
 import { LevelUpBanner } from './level-up-banner';
 import { StreakNotice } from './streak-notice';
 import { TimerFrame } from './timer-frame';
@@ -26,11 +28,13 @@ function creditedLine(result: SessionResultData): string {
 export const SessionResult = ({
   result,
   quiz = null,
+  milestones = [],
   onDone,
   children,
 }: {
   result: SessionResultData;
   quiz?: QuizResult | null;
+  milestones?: Milestone[];
   onDone: () => void;
   children?: ReactNode;
 }) => {
@@ -108,6 +112,7 @@ export const SessionResult = ({
         {afterReveal && result.streak ? (
           <StreakNotice streak={result.streak} />
         ) : null}
+        {afterReveal ? <MilestoneReveal milestones={milestones} /> : null}
 
         {children}
       </div>

@@ -348,3 +348,16 @@ export async function findNextDueAt(
   });
   return row?.nextDueAt ?? null;
 }
+
+// Reviews rated Good or Easy, lifetime. Cards remembered, for the shelves.
+export async function countRecalled(
+  tx: DbOrTx,
+  userId: string,
+): Promise<number> {
+  const [row] = await tx
+    .select({ value: count() })
+    .from(cardReviews)
+    .innerJoin(cards, eq(cards.id, cardReviews.cardId))
+    .where(and(eq(cards.userId, userId), gte(cardReviews.rating, 3)));
+  return row?.value ?? 0;
+}

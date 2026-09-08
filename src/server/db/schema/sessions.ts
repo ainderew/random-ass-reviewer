@@ -41,6 +41,9 @@ export const focusSessions = pgTable(
     // Set once by the quiz. The multiplier alone cannot mark 'taken': 6 of 8
     // earns exactly 1.00, the same as never trying.
     quizSubmittedAt: timestamp('quiz_submitted_at', { withTimezone: true }),
+    // The score behind the multiplier. A high grade is 75% or better.
+    quizCorrect: integer('quiz_correct'),
+    quizTotal: integer('quiz_total'),
   },
   (t) => [
     index('focus_sessions_user_started_idx').on(t.userId, t.startedAt.desc()),

@@ -31,6 +31,8 @@ export interface UserStats {
 export interface StatsSnapshot {
   stats: PublicUserStats;
   today: import('./session').DailySummary;
+  // Lifetime work the career scene draws from.
+  career: import('../career/milestones').CareerProgress;
 }
 
 export const MAX_DAILY_CAP_MS = 8 * 60 * 60 * 1000;

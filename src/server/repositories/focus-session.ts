@@ -215,13 +215,21 @@ export async function listCompletedSince(
 // quizzed can take a multiplier, and only once. Concurrent submits lose here.
 export async function claimQuizMultiplier(
   tx: DbOrTx,
-  input: { sessionId: string; userId: string; multiplier: number },
+  input: {
+    sessionId: string;
+    userId: string;
+    multiplier: number;
+    correct: number;
+    total: number;
+  },
 ): Promise<FocusSession | null> {
   const [row] = await tx
     .update(focusSessions)
     .set({
       quizMultiplier: input.multiplier.toFixed(2),
       quizSubmittedAt: new Date(),
+      quizCorrect: input.correct,
+      quizTotal: input.total,
     })
     .where(
       and(
@@ -233,4 +241,22 @@ export async function claimQuizMultiplier(
     )
     .returning();
   return row ? toFocusSession(row) : null;
+}
+
+// Quizzes finished at a high grade, lifetime. The career ladder counts these.
+export async function countHighGradeQuizzes(
+  tx: DbOrTx,
+  userId: string,
+): Promise<number> {
+  const [row] = await tx
+    .select({ value: count() })
+    .from(focusSessions)
+    .where(
+      and(
+        eq(focusSessions.userId, userId),
+        sql`${focusSessions.quizTotal} > 0`,
+        sql`${focusSessions.quizCorrect} * 4 >= ${focusSessions.quizTotal} * 3`,
+      ),
+    );
+  return row?.value ?? 0;
 }

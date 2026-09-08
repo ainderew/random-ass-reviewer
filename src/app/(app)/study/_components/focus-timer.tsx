@@ -3,6 +3,7 @@
 import { useCallback, useState } from 'react';
 import { useProfile } from '@/app/(app)/_hooks/use-profile';
 import { useStats } from '@/app/(app)/_hooks/use-stats';
+import { newlyEarned, type CareerProgress } from '@/domain/career/milestones';
 import { aimById, defaultAim } from '@/domain/island/aim';
 import type { QuizResult as QuizResultData } from '@/domain/types';
 import { useElapsed } from '../_hooks/use-elapsed';
@@ -30,9 +31,15 @@ export const FocusTimer = () => {
   const isFocused = useFocusFlag();
   const [phase, setPhase] = useState<Phase>('timer');
   const [quizResult, setQuizResult] = useState<QuizResultData | null>(null);
+  const [careerBefore, setCareerBefore] = useState<CareerProgress | null>(null);
   const active = status === 'running' || status === 'ending';
   const elapsedMs = useElapsed(session?.startedAt ?? null, active);
 
+  const career = data?.career ?? {
+    focusMs: 0,
+    highGrades: 0,
+    cardsRecalled: 0,
+  };
   const level = data?.stats.level ?? 1;
   const focusBalance = data?.stats.focusBalance ?? 0;
   const aim =
@@ -52,8 +59,10 @@ export const FocusTimer = () => {
       <SessionResult
         result={result}
         quiz={quizResult}
+        milestones={careerBefore ? newlyEarned(careerBefore, career) : []}
         onDone={() => {
           setQuizResult(null);
+          setCareerBefore(null);
           reset();
         }}
       />
@@ -65,6 +74,7 @@ export const FocusTimer = () => {
       <IdleView
         creditedTodayMs={data?.today.creditedMs ?? 0}
         todaySessions={data?.today.sessions ?? []}
+        career={career}
         streakDays={data?.stats.streakDays ?? 0}
         firstVisit={data?.stats.lastSessionDate === null}
         focusBalance={focusBalance}
@@ -75,7 +85,10 @@ export const FocusTimer = () => {
         onLengthChange={prefs.setLength}
         starting={status === 'starting'}
         error={error}
-        onStart={() => void start()}
+        onStart={() => {
+          setCareerBefore(career);
+          void start();
+        }}
       />
     );
   }
@@ -106,6 +119,7 @@ export const FocusTimer = () => {
       isFocused={isFocused}
       lengthMs={lengthMs}
       aim={aim}
+      career={career}
       focusBalance={focusBalance}
       level={level}
       ending={status === 'ending'}

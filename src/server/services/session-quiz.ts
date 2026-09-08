@@ -191,6 +191,8 @@ export async function finishSessionQuiz(input: {
       sessionId: session.id,
       userId: input.userId,
       multiplier,
+      correct,
+      total: quiz.length,
     });
     if (!claimed) throw new AppError('INVALID_STATE', 'Quiz already submitted');
 

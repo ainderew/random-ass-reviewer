@@ -85,14 +85,14 @@ async function seedSession(userId: string, spanMs: number): Promise<string> {
   return session!.id;
 }
 
+const created: string[] = [];
+
+afterAll(async () => {
+  for (const id of created) await db.delete(users).where(eq(users.id, id));
+  await closeDb();
+});
+
 describe('review service', () => {
-  const created: string[] = [];
-
-  afterAll(async () => {
-    for (const id of created) await db.delete(users).where(eq(users.id, id));
-    await closeDb();
-  });
-
   it('queues due cards, schedules on answer, records the review, and pays Insight atomically', async () => {
     const userId = await makeUser('review');
     created.push(userId);
@@ -331,4 +331,37 @@ describe('review service', () => {
 // Exhaustive on purpose: the error class shape is what the routes map to HTTP.
 it('review errors are AppErrors', () => {
   expect(new AppError('NOT_FOUND', 'x').status).toBe(404);
+});
+
+describe('career progress', () => {
+  it('counts a finished quiz at 75 percent as a high grade, and recalled cards', async () => {
+    const userId = await makeUser('career');
+    created.push(userId);
+    const deck = await seedDeck(userId, 8);
+    for (const card of deck)
+      await submitAnswer({ userId, cardId: card.id, rating: 3, elapsedMs: 1 });
+    const { getCareerProgress } = await import('./user-stats');
+    const before = await getCareerProgress(userId);
+    expect(before).toMatchObject({ highGrades: 0, cardsRecalled: 8 });
+
+    const sessionId = await seedSession(userId, minutes(20));
+    const quiz = await getSessionQuiz({ userId, sessionId });
+    const byId = new Map(deck.map((c) => [c.id, c.answer]));
+    for (const [i, q] of quiz.questions.entries()) {
+      const correctIndex = q.options.indexOf(byId.get(q.cardId)!);
+      // Six of eight right: exactly the pass line.
+      await answerQuizQuestion({
+        userId,
+        sessionId,
+        cardId: q.cardId,
+        optionIndex: i < 6 ? correctIndex : (correctIndex + 1) % 4,
+      });
+    }
+    await finishSessionQuiz({ userId, sessionId });
+    await endSession({ userId, sessionId });
+
+    const after = await getCareerProgress(userId);
+    expect(after.highGrades).toBe(1);
+    expect(after.focusMs).toBeGreaterThanOrEqual(minutes(19));
+  });
 });

@@ -28,6 +28,7 @@ const snapshot = {
     lastSessionDate: null,
   },
   today: { creditedMs: 0, sessionsStarted: 0, sessions: [] },
+  career: { focusMs: 0, highGrades: 0, cardsRecalled: 0 },
 };
 
 describe('AppLayout', () => {

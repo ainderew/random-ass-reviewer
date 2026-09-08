@@ -2,6 +2,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { ReactNode } from 'react';
+import { MILESTONES } from '@/domain/career/milestones';
 import { statsQueryKey } from '@/lib/query-keys';
 import { FocusTimer } from './focus-timer';
 
@@ -21,6 +22,7 @@ const snapshot = {
     sessionsStarted: 1,
     sessions: [{ creditedMs: 25 * 60_000 }],
   },
+  career: { focusMs: 0, highGrades: 0, cardsRecalled: 0 },
 };
 
 const activeSession = {
@@ -346,5 +348,47 @@ describe('FocusTimer session shape', () => {
       name: 'Progress to the next rung',
     });
     await waitFor(() => expect(ring).toHaveAttribute('aria-valuenow', '50'));
+  });
+});
+
+describe('FocusTimer career scene', () => {
+  const label = (id: string) => MILESTONES.find((m) => m.id === id)!.label;
+
+  it('draws her studying while the session runs and looking up when the tab is away', async () => {
+    render(<FocusTimer />, { wrapper });
+    await userEvent.click(
+      await screen.findByRole('button', { name: 'Start focusing' }),
+    );
+    expect(
+      await screen.findByRole('img', {
+        name: /at a bedroom desk\. Studying\.$/,
+      }),
+    ).toBeInTheDocument();
+    setVisibility('hidden');
+    expect(
+      await screen.findByRole('img', { name: /Looking up\.$/ }),
+    ).toBeInTheDocument();
+  });
+
+  it('reveals what the session added to the wall', async () => {
+    render(<FocusTimer />, { wrapper });
+    await userEvent.click(
+      await screen.findByRole('button', { name: 'Start focusing' }),
+    );
+    // The refetch after the session ends reports an hour of focus.
+    routes['/api/stats'] = () => ({
+      data: {
+        ...snapshot,
+        career: { focusMs: 3_600_000, highGrades: 0, cardsRecalled: 0 },
+      },
+    });
+    await userEvent.click(
+      await screen.findByRole('button', { name: 'End session' }),
+    );
+    expect(
+      await screen.findByRole('heading', { name: '2 new on the wall' }),
+    ).toBeInTheDocument();
+    expect(screen.getByText(label('lamp'))).toBeInTheDocument();
+    expect(screen.getByText(label('stethoscope'))).toBeInTheDocument();
   });
 });
