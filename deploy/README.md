@@ -1,5 +1,7 @@
 # Deploying StudyDash (Aloft) to the shared VPS
 
+Repo: `ainderew/random-ass-reviewer`. Every push to `main` that passes the checks deploys.
+
 Host: `194.233.79.158` (Contabo), Ubuntu 24.04, host nginx + certbot, Postgres 16 on the host, Docker for apps. SSH with the `gamedash_deploy` key.
 
 ## First time

@@ -1,5 +1,6 @@
 import { cardBatchSchema } from '@/domain/study/card-schema';
 import { quoteAppearsInSource } from '@/domain/study/verify-quote';
+import { env } from '@/lib/env';
 import { initialCardState } from '@/domain/review/scheduler';
 import type { NoteChunk } from '@/domain/types';
 import { db } from '@/server/db';
@@ -47,7 +48,7 @@ async function generateForChunk(input: {
   // CLI usage includes Claude Code's own system prompt; it would swamp the meter.
   if (provider.name !== 'local-cli')
     await recordUsage(userId, usage, MODELS.cardGeneration);
-  if (process.env.NODE_ENV === 'development') {
+  if (env.NODE_ENV === 'development') {
     console.info(
       `[cards] chunk ${chunk.ordinal}: cache read ${usage.cacheReadInputTokens}, cache write ${usage.cacheCreationInputTokens}`,
     );

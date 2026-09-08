@@ -42,8 +42,19 @@ jobs:
 
       - name: Layer boundaries
         run: |
-          ! grep -rq "from '@/server" src/game src/domain
-          ! grep -rq --include='*.ts' --include='*.tsx' --exclude='env.ts' --exclude='*.test.*' "process\.env\.[A-Z]" src/app src/server src/domain --exclude-dir=dev
+          if grep -rn "from '@/server" src/game src/domain; then
+            echo "game and domain must not import server" >&2
+            exit 1
+          fi
+          # Env vars come from @/lib/env. The one exception is a literal
+          # NODE_ENV check, which the bundler needs to drop dev-only code.
+          hits=$(grep -rn --include='*.ts' --include='*.tsx' --exclude='env.ts' --exclude='*.test.*' --exclude-dir=dev \
+            "process\.env\.[A-Z_]" src/app src/server src/domain | grep -v 'process\.env\.NODE_ENV' || true)
+          if [ -n "$hits" ]; then
+            echo "use @/lib/env instead of process.env:" >&2
+            echo "$hits" >&2
+            exit 1
+          fi
 
       - run: pnpm lint
       - run: pnpm typecheck
