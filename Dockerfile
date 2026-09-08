@@ -25,15 +25,22 @@ ENV NEXT_TELEMETRY_DISABLED=1
 RUN pnpm build
 
 # --- runtime: standalone output, static files, migrations, entrypoint ---
+# HOME must be writable: the Agent SDK's bundled claude keeps its state there.
 FROM node:22-slim AS runtime
 WORKDIR /app
 ENV NODE_ENV=production
 ENV HOSTNAME=0.0.0.0
 ENV PORT=3000
 ENV NEXT_TELEMETRY_DISABLED=1
+ENV HOME=/root
+ENV DISABLE_AUTOUPDATER=1
 COPY --from=build /app/.next/standalone ./
 COPY --from=build /app/.next/static ./.next/static
 COPY --from=build /app/public ./public
+# The whole tree, not just the traced subset: the Agent SDK spawns its
+# platform binary (claude-agent-sdk-linux-x64) by name at runtime, which no
+# tracer can follow. Same call the tracker made; image size is not a concern.
+COPY --from=build /app/node_modules ./node_modules
 COPY --from=build /app/drizzle ./drizzle
 COPY scripts/migrate.mjs ./scripts/migrate.mjs
 COPY docker-entrypoint.sh ./

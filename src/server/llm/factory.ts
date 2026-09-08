@@ -4,6 +4,7 @@ import { decryptSecret } from '@/server/crypto';
 import { AppError } from '@/server/errors';
 import { findEncryptedApiKey } from '@/server/repositories/user';
 import { AnthropicApiProvider } from './anthropic-provider';
+import { ClaudeCodeProvider } from './claude-code-provider';
 import { FakeLlmProvider } from './fake-provider';
 import { LocalCliProvider } from './local-cli-provider';
 import type { LlmProvider } from './provider';
@@ -18,6 +19,8 @@ export async function getProviderForUser(userId: string): Promise<LlmProvider> {
     // Only end-to-end runs of the production build get here; env.ts checks.
     return new FakeLlmProvider(env.E2E_TEST_MODE ? 'test' : env.NODE_ENV);
   }
+
+  if (env.LLM_PROVIDER === 'claude-code') return new ClaudeCodeProvider();
 
   if (env.LLM_PROVIDER === 'local-cli') {
     if (env.NODE_ENV === 'production')

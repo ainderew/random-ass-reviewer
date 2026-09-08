@@ -23,6 +23,7 @@ Read `feature-plans/aloft/00-overview.md` before changing anything. Each phase f
 - The system prompt in `src/server/llm/prompts/card-generation.ts` is frozen and cached. Per-request text goes in the user turn.
 - Every generated card passes `quoteAppearsInSource` before insert. Do not loosen it to fuzzy matching.
 - `LLM_PROVIDER=local-cli` (in `.env.local`) uses the developer's own `claude` CLI. It is refused in production by both the env schema and the provider constructor.
+- `LLM_PROVIDER=claude-code` runs the owner's subscription through the Agent SDK (the tracker app's approach). Production needs `ALLOW_CLAUDE_CODE_IN_PRODUCTION=true` and `CLAUDE_CODE_OAUTH_TOKEN`; the opt-in is deliberate, because a subscription serving other people is the owner's call. This path is not metered or quota-capped.
 - BYOK keys are AES-256-GCM encrypted with `ENCRYPTION_KEY` and only ever returned masked.
 
 ## Testing

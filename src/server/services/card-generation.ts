@@ -45,7 +45,8 @@ async function generateForChunk(input: {
     model: MODELS.cardGeneration,
     maxTokens: CARD_MAX_TOKENS,
   });
-  // CLI usage includes Claude Code's own system prompt; it would swamp the meter.
+  // CLI and subscription usage include Claude Code's own system prompt and are
+  // not billed per token; metering them would only swamp the numbers.
   if (provider.name !== 'local-cli')
     await recordUsage(userId, usage, MODELS.cardGeneration);
   if (env.NODE_ENV === 'development') {

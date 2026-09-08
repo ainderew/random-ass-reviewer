@@ -54,4 +54,4 @@ The container runs `scripts/migrate.mjs` (pg only, the same journal and hashes a
 ## Still to decide
 
 - Google OAuth: create a client with redirect URI `https://studydash.workdash.site/api/auth/callback/google`, put the id and secret in `.env.production`, restart. The button appears on its own.
-- `ANTHROPIC_API_KEY`: without it, uploads ask users to add their own key in settings.
+- Card generation runs on the owner's Claude subscription: `LLM_PROVIDER=claude-code`, `ALLOW_CLAUDE_CODE_IN_PRODUCTION=true`, and `CLAUDE_CODE_OAUTH_TOKEN` from `claude setup-token` (the same token the tracker app uses). Switch to `LLM_PROVIDER=anthropic-api` plus `ANTHROPIC_API_KEY` to bill the API instead.

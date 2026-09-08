@@ -30,6 +30,7 @@
     "seed:smoke": "dotenv -e .env.test -- tsx scripts/seed-smoke.ts"
   },
   "dependencies": {
+    "@anthropic-ai/claude-agent-sdk": "^0.3.263",
     "@anthropic-ai/sdk": "^0.124.0",
     "@auth/drizzle-adapter": "^1.11.3",
     "@react-three/drei": "^10.7.8",

@@ -12,7 +12,7 @@ const envSchema = z
     AUTH_GOOGLE_SECRET: z.string().min(1),
     ANTHROPIC_API_KEY: z.string().startsWith('sk-ant-').optional(),
     LLM_PROVIDER: z
-      .enum(['anthropic-api', 'byok', 'local-cli', 'fake'])
+      .enum(['anthropic-api', 'byok', 'local-cli', 'claude-code', 'fake'])
       .default('anthropic-api'),
     // Which Claude generates cards. Card quality is the product; keep Opus.
     ANTHROPIC_MODEL_CARDS: z.string().default('claude-opus-5'),
@@ -20,6 +20,14 @@ const envSchema = z
     ENCRYPTION_KEY: z.string().min(32).optional(),
     // Per user, per calendar month, for the platform-key path. $5 by default.
     MONTHLY_LLM_QUOTA_CENTS: z.coerce.number().int().nonnegative().default(500),
+    // The owner's own Claude subscription through the Agent SDK. In production
+    // this needs the token from `claude setup-token` and an explicit opt-in:
+    // a subscription serving other people is the owner's decision to make.
+    CLAUDE_CODE_OAUTH_TOKEN: z.string().min(20).optional(),
+    ALLOW_CLAUDE_CODE_IN_PRODUCTION: z
+      .enum(['true', 'false'])
+      .default('false')
+      .transform((v) => v === 'true'),
     // Development and end-to-end only: a shorter minimum session.
     MIN_SESSION_MS_OVERRIDE: z.coerce.number().int().positive().optional(),
     // CI runs the production build against the fake provider and a short
@@ -45,6 +53,18 @@ const envSchema = z
       !(e.LLM_PROVIDER === 'local-cli' && e.NODE_ENV === 'production'),
     {
       message: 'LLM_PROVIDER=local-cli is not permitted in production',
+      path: ['LLM_PROVIDER'],
+    },
+  )
+  .refine(
+    (e) =>
+      isBuildPhase ||
+      e.LLM_PROVIDER !== 'claude-code' ||
+      e.NODE_ENV !== 'production' ||
+      (e.ALLOW_CLAUDE_CODE_IN_PRODUCTION && Boolean(e.CLAUDE_CODE_OAUTH_TOKEN)),
+    {
+      message:
+        'LLM_PROVIDER=claude-code in production needs ALLOW_CLAUDE_CODE_IN_PRODUCTION=true and CLAUDE_CODE_OAUTH_TOKEN',
       path: ['LLM_PROVIDER'],
     },
   )

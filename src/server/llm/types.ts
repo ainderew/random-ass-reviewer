@@ -1,6 +1,7 @@
 import type { z } from 'zod';
 
-export type LlmProviderName = 'anthropic-api' | 'byok' | 'local-cli' | 'fake';
+export type LlmProviderName =
+  'anthropic-api' | 'byok' | 'local-cli' | 'claude-code' | 'fake';
 
 export interface SystemBlock {
   text: string;

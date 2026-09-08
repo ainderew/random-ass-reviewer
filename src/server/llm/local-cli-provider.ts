@@ -25,7 +25,7 @@ const cliResultSchema = z.object({
 
 // The CLI has no structured output mode, so the model may wrap the JSON in a
 // fence or a sentence. Take the outermost object; validation happens after.
-function extractJson(text: string): unknown {
+export function extractJson(text: string): unknown {
   const trimmed = text.trim();
   const fenced = trimmed.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
   const candidates = [trimmed, fenced?.[1]];
