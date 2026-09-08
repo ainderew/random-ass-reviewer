@@ -15,9 +15,8 @@ export async function getProviderForUser(userId: string): Promise<LlmProvider> {
     return new AnthropicApiProvider(decryptSecret(encrypted), 'byok');
 
   if (env.LLM_PROVIDER === 'fake') {
-    if (env.NODE_ENV === 'production')
-      throw new Error('fake provider is not permitted in production');
-    return new FakeLlmProvider();
+    // Only end-to-end runs of the production build get here; env.ts checks.
+    return new FakeLlmProvider(env.E2E_TEST_MODE ? 'test' : env.NODE_ENV);
   }
 
   if (env.LLM_PROVIDER === 'local-cli') {

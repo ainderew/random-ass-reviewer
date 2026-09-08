@@ -90,6 +90,7 @@ jobs:
           --health-interval 5s --health-timeout 3s --health-retries 10
     env:
       CI: 'true'
+      E2E_TEST_MODE: 'true'
       LLM_PROVIDER: fake
       MIN_SESSION_MS_OVERRIDE: '10000'
       AUTH_URL: http://localhost:3000

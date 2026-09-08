@@ -22,6 +22,13 @@ const envSchema = z
     MONTHLY_LLM_QUOTA_CENTS: z.coerce.number().int().nonnegative().default(500),
     // Development and end-to-end only: a shorter minimum session.
     MIN_SESSION_MS_OVERRIDE: z.coerce.number().int().positive().optional(),
+    // CI runs the production build against the fake provider and a short
+    // minimum. This flag is the only way those pass the production gates.
+    // The local CLI stays refused whatever this says: that one is a ToS line.
+    E2E_TEST_MODE: z
+      .enum(['true', 'false'])
+      .default('false')
+      .transform((v) => v === 'true'),
     NODE_ENV: z
       .enum(['development', 'test', 'production'])
       .default('development'),
@@ -35,23 +42,32 @@ const envSchema = z
   .refine(
     (e) =>
       isBuildPhase ||
-      !(
-        (e.LLM_PROVIDER === 'local-cli' || e.LLM_PROVIDER === 'fake') &&
-        e.NODE_ENV === 'production'
-      ),
+      !(e.LLM_PROVIDER === 'local-cli' && e.NODE_ENV === 'production'),
     {
-      message:
-        'LLM_PROVIDER=local-cli and fake are not permitted in production',
+      message: 'LLM_PROVIDER=local-cli is not permitted in production',
+      path: ['LLM_PROVIDER'],
+    },
+  )
+  // The fake provider and the short minimum exist for end-to-end runs of
+  // the production build. They need the explicit flag to get past here.
+  .refine(
+    (e) =>
+      isBuildPhase ||
+      e.E2E_TEST_MODE ||
+      !(e.LLM_PROVIDER === 'fake' && e.NODE_ENV === 'production'),
+    {
+      message: 'LLM_PROVIDER=fake needs E2E_TEST_MODE=true in production',
       path: ['LLM_PROVIDER'],
     },
   )
   .refine(
     (e) =>
       isBuildPhase ||
+      e.E2E_TEST_MODE ||
       e.MIN_SESSION_MS_OVERRIDE === undefined ||
       e.NODE_ENV !== 'production',
     {
-      message: 'MIN_SESSION_MS_OVERRIDE is not permitted in production',
+      message: 'MIN_SESSION_MS_OVERRIDE needs E2E_TEST_MODE=true in production',
       path: ['MIN_SESSION_MS_OVERRIDE'],
     },
   );
