@@ -1,0 +1,21 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: aloft-postgres
+    environment:
+      POSTGRES_USER: aloft
+      POSTGRES_PASSWORD: aloft
+      POSTGRES_DB: aloft
+    ports:
+      - '5432:5432'
+    volumes:
+      - aloft-pgdata:/var/lib/postgresql/data
+      - ./docker/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U aloft -d aloft']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  aloft-pgdata:

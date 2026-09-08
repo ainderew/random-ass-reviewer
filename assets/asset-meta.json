@@ -1,0 +1,110 @@
+{
+  "island_base_meadow": {
+    "category": "terrain",
+    "footprint": [1, 1],
+    "priceFocus": 0,
+    "priceInsight": 0,
+    "rarity": "common",
+    "targetTriangles": 3000,
+    "label": "Meadow island",
+    "minLevel": 1
+  },
+  "grass_tuft": {
+    "category": "prop",
+    "footprint": [1, 1],
+    "priceFocus": 40,
+    "priceInsight": 0,
+    "rarity": "common",
+    "targetTriangles": 400,
+    "label": "Grass tuft",
+    "wind": {
+      "amplitude": 0.12,
+      "speed": 1.6
+    },
+    "minLevel": 1
+  },
+  "bench_wood": {
+    "category": "prop",
+    "footprint": [1, 1],
+    "priceFocus": 80,
+    "priceInsight": 0,
+    "rarity": "common",
+    "targetTriangles": 600,
+    "label": "Wooden bench",
+    "minLevel": 1
+  },
+  "lantern_brass": {
+    "category": "prop",
+    "footprint": [1, 1],
+    "priceFocus": 120,
+    "priceInsight": 0,
+    "rarity": "common",
+    "targetTriangles": 2000,
+    "label": "Lantern post",
+    "minLevel": 1
+  },
+  "tree_round": {
+    "category": "prop",
+    "footprint": [1, 1],
+    "priceFocus": 180,
+    "priceInsight": 0,
+    "rarity": "uncommon",
+    "targetTriangles": 1500,
+    "label": "Round tree",
+    "wind": {
+      "amplitude": 0.16,
+      "speed": 1.1
+    },
+    "minLevel": 2
+  },
+  "cottage_scholar": {
+    "category": "building",
+    "footprint": [2, 2],
+    "priceFocus": 260,
+    "priceInsight": 0,
+    "rarity": "uncommon",
+    "targetTriangles": 3000,
+    "label": "Scholar's cottage",
+    "minLevel": 3
+  },
+  "scholar_robed": {
+    "category": "actor",
+    "footprint": [1, 1],
+    "priceFocus": 0,
+    "priceInsight": 0,
+    "rarity": "common",
+    "targetTriangles": 600,
+    "label": "Scholar",
+    "minLevel": 1
+  },
+  "shelf_study": {
+    "category": "landmark",
+    "footprint": [1, 1],
+    "priceFocus": 0,
+    "priceInsight": 0,
+    "rarity": "common",
+    "targetTriangles": 800,
+    "label": "Study shelf",
+    "minLevel": 1
+  },
+  "fountain_stone": {
+    "category": "prop",
+    "footprint": [1, 1],
+    "priceFocus": 300,
+    "priceInsight": 0,
+    "rarity": "rare",
+    "targetTriangles": 1200,
+    "label": "Stone fountain",
+    "minLevel": 1
+  },
+  "orrery_brass": {
+    "category": "prop",
+    "footprint": [1, 1],
+    "priceFocus": 800,
+    "priceInsight": 40,
+    "rarity": "epic",
+    "targetTriangles": 1500,
+    "label": "Brass orrery",
+    "minLevel": 1
+  }
+}
