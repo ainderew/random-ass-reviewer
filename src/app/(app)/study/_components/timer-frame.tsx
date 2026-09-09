@@ -8,11 +8,14 @@ export const TimerFrame = ({
   top,
   children,
   actions,
+  below,
   label,
 }: {
   top?: ReactNode;
   children: ReactNode;
   actions?: ReactNode;
+  // Small print after the action: today so far, the next milestone.
+  below?: ReactNode;
   label: string;
 }) => (
   <section
@@ -23,6 +26,10 @@ export const TimerFrame = ({
     <div className="flex flex-1 flex-col justify-center py-10 md:py-12">
       {children}
     </div>
-    <div className="space-y-3">{actions}</div>
+    {/* On phones the action row stays in the thumb zone above the tab bar. */}
+    <div className="sticky bottom-[calc(3.5rem+env(safe-area-inset-bottom))] z-10 -mx-4 space-y-3 bg-gradient-to-t from-ground via-ground/95 to-transparent px-4 pt-6 pb-3 md:static md:mx-0 md:bg-none md:p-0">
+      {actions}
+    </div>
+    {below ? <div className="mt-6 space-y-3">{below}</div> : null}
   </section>
 );

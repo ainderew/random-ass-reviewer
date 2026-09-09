@@ -40,7 +40,7 @@ export const TodayLanterns = ({
                   cy="8"
                   r="6"
                   fill={lit ? 'var(--color-focus)' : 'none'}
-                  stroke={lit ? 'none' : 'var(--color-focus-deep)'}
+                  stroke={lit ? 'none' : 'var(--color-muted)'}
                   strokeWidth="1.5"
                 />
               </svg>

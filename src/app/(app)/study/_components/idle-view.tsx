@@ -4,14 +4,18 @@ import type { CareerProgress } from '@/domain/career/milestones';
 import type { Aim } from '@/domain/island/aim';
 import type { SessionLength } from '@/domain/session/rungs';
 import { Button } from '@/components/ui/button';
+import { formatClock } from '@/lib/format-time';
 import { AimLine } from './aim-line';
 import { CareerNext } from './career-next';
-import { CareerScene } from './career-scene';
+import { FocusCircle } from './focus-circle';
 import { LengthPicker } from './length-picker';
 import { TimerFrame } from './timer-frame';
 import { TodayLanterns } from './today-lanterns';
 import { WeeklySummaryCard } from './weekly-summary';
 
+// One shape, one number, one button. She moves around the room she has
+// earned while you decide; the ring shows the rungs the chosen length will
+// pass. Everything smaller sits under the button.
 export const IdleView = ({
   creditedTodayMs,
   todaySessions,
@@ -66,15 +70,26 @@ export const IdleView = ({
         </Button>
       </>
     }
-  >
-    <div className="space-y-6">
-      <WeeklySummaryCard />
-      <OnboardingSteps />
-      <div className="space-y-3">
-        <CareerScene progress={career} mood="resting" />
+    below={
+      <>
+        <WeeklySummaryCard />
+        {todaySessions.length > 0 ? (
+          <TodayLanterns
+            sessions={todaySessions}
+            creditedMs={creditedTodayMs}
+          />
+        ) : streakDays > 0 && !firstVisit ? (
+          <p className="text-sm text-muted">
+            {streakDays}-day streak. Nothing credited yet today.
+          </p>
+        ) : null}
         <CareerNext progress={career} />
-      </div>
-      <h1 className="font-serif text-4xl leading-tight tracking-[-0.01em] text-ink md:text-5xl">
+      </>
+    }
+  >
+    <div className="flex flex-col items-center gap-6 text-center">
+      <OnboardingSteps />
+      <h1 className="font-serif text-3xl leading-tight tracking-[-0.01em] text-ink md:text-4xl">
         {firstVisit ? 'Your first session.' : 'Ready when you are.'}
       </h1>
       {firstVisit ? (
@@ -89,20 +104,34 @@ export const IdleView = ({
           </Link>
         </p>
       ) : null}
-      <AimLine
-        aim={aim}
-        focusBalance={focusBalance}
-        level={level}
-        onChange={onAimChange}
+      <FocusCircle
+        progress={career}
+        mood="wandering"
+        lengthMs={length === null ? null : length * 60_000}
       />
-      <LengthPicker value={length} onChange={onLengthChange} />
-      {todaySessions.length > 0 ? (
-        <TodayLanterns sessions={todaySessions} creditedMs={creditedTodayMs} />
-      ) : streakDays > 0 && !firstVisit ? (
-        <p className="text-sm text-muted">
-          {streakDays}-day streak. Nothing credited yet today.
-        </p>
-      ) : null}
+      <div className="rounded-full border border-hairline px-4 py-1.5">
+        <AimLine
+          aim={aim}
+          focusBalance={focusBalance}
+          level={level}
+          onChange={onAimChange}
+        />
+      </div>
+      <p
+        className="font-mono text-[clamp(3.25rem,16vw,5.25rem)] leading-none font-medium tracking-[-0.03em] text-ink tabular-nums"
+        aria-label="Session length"
+      >
+        {length === null ? (
+          <span className="font-serif text-4xl font-normal tracking-normal md:text-5xl">
+            Open
+          </span>
+        ) : (
+          formatClock(length * 60_000)
+        )}
+      </p>
+      <div className="flex justify-center">
+        <LengthPicker value={length} onChange={onLengthChange} />
+      </div>
     </div>
   </TimerFrame>
 );

@@ -12,14 +12,14 @@ import { Button } from '@/components/ui/button';
 import { formatClock, formatMinutes } from '@/lib/format-time';
 import { useRungTone } from '../_hooks/use-rung-tone';
 import { AimLine } from './aim-line';
-import { CareerScene } from './career-scene';
+import { FocusCircle } from './focus-circle';
 import { Lantern, lanternStage } from './lantern';
-import { SessionRing } from './session-ring';
 import { TimerFrame } from './timer-frame';
 
-// Away is a fact, not a warning. The lantern dims, the ring pauses, the words
-// say what is happening. Nothing dies. Reaching the chosen length is a door,
-// not a wall: end and collect, or keep going.
+// Away is a fact, not a warning. The lantern dims, the ring pauses, she looks
+// up from the desk, and the words say what is happening. Nothing dies.
+// Reaching the chosen length is a door, not a wall: end and collect, or
+// keep going.
 export const RunningView = ({
   elapsedMs,
   focusedMs,
@@ -71,7 +71,7 @@ export const RunningView = ({
       top={
         <p
           role="status"
-          className={`flex items-center gap-3 text-[0.9375rem] transition-colors duration-200 ${
+          className={`flex items-center justify-center gap-3 text-[0.9375rem] transition-colors duration-200 ${
             isFocused ? 'text-ink-2' : 'text-muted'
           }`}
         >
@@ -139,13 +139,24 @@ export const RunningView = ({
         </>
       }
     >
-      <div className="space-y-5">
-        <CareerScene
+      <div className="flex flex-col items-center gap-5 text-center">
+        <FocusCircle
           progress={career}
           mood={isFocused ? 'studying' : 'away'}
-          compact
+          focusedMs={focusedMs}
+          lengthMs={lengthMs}
         />
-        <SessionRing focusedMs={focusedMs} lengthMs={lengthMs}>
+        <p
+          className="flex items-center gap-2 rounded-full border border-hairline px-4 py-1.5 text-[0.9375rem] text-ink-2"
+          aria-live="polite"
+        >
+          <span className="inline-flex items-center gap-1 font-mono text-focus tabular-nums">
+            <BoltGlyph size={14} />
+            {earned}
+          </span>
+          <span className="text-muted">so far</span>
+        </p>
+        <div>
           <p
             data-testid="elapsed"
             role="timer"
@@ -161,25 +172,13 @@ export const RunningView = ({
             {formatMinutes(focusedMs)} focused
             {lengthMs !== null ? ` of ${lengthMs / 60_000}` : ''}
           </p>
-        </SessionRing>
-        <p
-          className="flex items-center justify-center gap-2 text-center text-lg text-ink-2"
-          aria-live="polite"
-        >
-          <span className="inline-flex items-center gap-1 font-mono text-focus tabular-nums">
-            <BoltGlyph size={16} />
-            {earned}
-          </span>
-          <span className="text-muted">so far</span>
-        </p>
-        <div className="text-center">
-          <AimLine
-            aim={aim}
-            focusBalance={focusBalance + earned}
-            level={level}
-            compact
-          />
         </div>
+        <AimLine
+          aim={aim}
+          focusBalance={focusBalance + earned}
+          level={level}
+          compact
+        />
       </div>
     </TimerFrame>
   );
