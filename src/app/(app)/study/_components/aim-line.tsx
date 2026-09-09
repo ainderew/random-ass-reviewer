@@ -25,6 +25,11 @@ export const AimLine = ({
   if (!aim) return null;
   const minutes = minutesToAfford(aim.priceFocus, focusBalance);
   const reached = minutes === 0;
+  // With every piece already affordable there is nothing to choose between,
+  // so the picker stays away and the line points at the island.
+  const nothingToSaveFor = aimCandidates(level).every(
+    (candidate) => minutesToAfford(candidate.priceFocus, focusBalance) === 0,
+  );
 
   const line = reached ? (
     <span>
@@ -55,7 +60,7 @@ export const AimLine = ({
     <div className="space-y-2 text-[0.9375rem] leading-relaxed text-ink-2">
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
         <p className="m-0">{line}</p>
-        {onChange && !picking ? (
+        {onChange && !picking && !nothingToSaveFor ? (
           <button
             type="button"
             onClick={() => setPicking(true)}

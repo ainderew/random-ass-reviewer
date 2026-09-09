@@ -9,8 +9,10 @@ import { ApiError } from '@/lib/api-client';
 import { useSessionQuiz } from '../_hooks/use-session-quiz';
 import { TimerFrame } from './timer-frame';
 
-// Optional, and it only ever adds. Skip is visible from the first frame.
-// Skipping or scoring badly leaves the session exactly where it was.
+// Optional, and it only ever adds. The top row says so and the skip is in
+// the action row, which phones keep in the thumb zone. The multiplier stays
+// quiet until it has something to say; skipping or scoring badly leaves the
+// session exactly where it was.
 export const SessionQuiz = ({
   sessionId,
   onSkip,
@@ -99,9 +101,33 @@ export const SessionQuiz = ({
 
   const multiplier = progress?.multiplier ?? 1;
 
+  const raised = multiplier > 1;
+
   return (
     <TimerFrame
       label="Quiz"
+      top={
+        <div className="flex items-baseline justify-between">
+          <p className="text-[0.9375rem] text-muted">
+            <span className="font-mono tabular-nums">
+              {index + 1} of {questions.length}
+            </span>
+            <span> · optional</span>
+          </p>
+          <p
+            key={multiplier}
+            className={
+              raised
+                ? 'spring-pop font-mono text-2xl text-focus tabular-nums'
+                : 'font-mono text-base text-muted tabular-nums'
+            }
+            aria-live="polite"
+            aria-label={`Bonus multiplier ${multiplier.toFixed(1)}`}
+          >
+            ×{multiplier.toFixed(1)}
+          </p>
+        </div>
+      }
       actions={
         <div className="space-y-2">
           {picked !== null && !answer.isPending ? (
@@ -121,23 +147,10 @@ export const SessionQuiz = ({
       }
     >
       <div className="space-y-6">
-        <div className="flex items-baseline justify-between">
-          <p className="font-mono text-sm text-ink-2 tabular-nums">
-            {index + 1} / {questions.length}
-          </p>
-          <p
-            key={multiplier}
-            className="spring-pop font-mono text-2xl text-focus tabular-nums"
-            aria-live="polite"
-            aria-label={`Bonus multiplier ${multiplier.toFixed(1)}`}
-          >
-            ×{multiplier.toFixed(1)}
-          </p>
-        </div>
         <p className="text-sm text-muted">
           {progress
-            ? `${progress.correctSoFar} right so far. Up to ×${MAX_QUIZ_MULTIPLIER.toFixed(1)} on your Focus.`
-            : `Answer ${questions.length} questions from your own notes for up to ×${MAX_QUIZ_MULTIPLIER.toFixed(1)} Focus.`}
+            ? `${progress.correctSoFar} right so far. Up to ×${MAX_QUIZ_MULTIPLIER.toFixed(1)} on this session's Focus.`
+            : `Optional. Skipping keeps what you earned. Answer ${questions.length} questions from your own notes for up to ×${MAX_QUIZ_MULTIPLIER.toFixed(1)} on this session's Focus.`}
         </p>
         <p className="text-xl leading-relaxed text-ink">{question.question}</p>
         <ol className="space-y-2" aria-label="Options">

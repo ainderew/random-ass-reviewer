@@ -106,8 +106,12 @@ describe('SessionQuiz', () => {
       />,
       { wrapper },
     );
+    expect(
+      await screen.findByText(/^Optional\. Skipping keeps what you earned/),
+    ).toBeInTheDocument();
+    expect(screen.getByText('1 of 2')).toBeInTheDocument();
     await userEvent.click(
-      await screen.findByRole('button', { name: 'Skip, keep my Focus as is' }),
+      screen.getByRole('button', { name: 'Skip, keep my Focus as is' }),
     );
     expect(onSkip).toHaveBeenCalledTimes(1);
   });

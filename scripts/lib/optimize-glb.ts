@@ -15,6 +15,9 @@ export interface OptimizeOptions {
   targetTriangles: number;
   // Props get 512, hero pieces 1024.
   textureSize: number;
+  // Simplification error as a fraction of the mesh extent. Island props take
+  // the default; a character seen up close wants a tighter budget.
+  simplifyError?: number;
 }
 
 // dedup -> weld -> prune -> simplify -> textureCompress -> meshopt.
@@ -34,7 +37,11 @@ export async function optimizeGlb(
   if (before > options.targetTriangles) {
     const ratio = Math.max(0.05, Math.min(1, options.targetTriangles / before));
     await doc.transform(
-      simplify({ simplifier: MeshoptSimplifier, ratio, error: 0.01 }),
+      simplify({
+        simplifier: MeshoptSimplifier,
+        ratio,
+        error: options.simplifyError ?? 0.01,
+      }),
     );
   }
 

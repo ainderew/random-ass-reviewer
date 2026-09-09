@@ -25,8 +25,8 @@ export interface StudySceneCanvasProps {
 
 // The diorama inside the focus circle: her room on a round platform, seen
 // from the front and a little above. Transparent clear colour so the disc
-// behind it shows through; low dpr and a low-power context, since this runs
-// for a whole session on a phone.
+// behind it shows through. Pixel ratio up to 2 so she is not upscaled on a
+// phone; a low-power context, since this runs for a whole session.
 export const StudySceneCanvas = ({
   scene,
   mood,
@@ -34,12 +34,12 @@ export const StudySceneCanvas = ({
 }: StudySceneCanvasProps) => (
   <Canvas
     gl={{ alpha: true, antialias: true, powerPreference: 'low-power' }}
-    dpr={[1, 1.5]}
+    dpr={[1, 2]}
     frameloop={reducedMotion ? 'demand' : 'always'}
-    camera={{ fov: 32, position: [0, 2.7, 4.4], near: 0.1, far: 30 }}
+    camera={{ fov: 30, position: [0, 2.45, 3.95], near: 0.1, far: 30 }}
     onCreated={({ gl, camera }) => {
       gl.setClearColor(0x000000, 0);
-      camera.lookAt(0, 0.5, 0);
+      camera.lookAt(0, 0.52, 0);
     }}
     style={{ background: 'transparent' }}
   >
