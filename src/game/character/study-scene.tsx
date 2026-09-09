@@ -30,6 +30,7 @@ const FLOOR = { bedroom: '#2b3145', clinic: '#2a3c40', office: '#332c44' };
 const RIM = '#181b26';
 const WOOD = '#3a3f55';
 const WOOD_DARK = '#2e3446';
+const SHELF = '#454b66';
 const AMBER = '#e8b04b';
 const TEAL = '#6fd6c4';
 const PAPER = '#e9e5da';
@@ -143,9 +144,9 @@ const Bookshelf = ({
   const spines = [GOLD, TEAL, METAL, PAPER, GOLD, TEAL];
   return (
     <group position={place.position} rotation={place.rotation}>
-      <Box size={[0.62, 1.1, 0.28]} position={[0, 0, 0]} color={WOOD_DARK} />
-      <Box size={[0.56, 0.02, 0.24]} position={[0, 0.18, 0.02]} color={WOOD} />
-      <Box size={[0.56, 0.02, 0.24]} position={[0, -0.2, 0.02]} color={WOOD} />
+      <Box size={[0.62, 1.1, 0.28]} position={[0, 0, 0]} color={WOOD} />
+      <Box size={[0.56, 0.02, 0.24]} position={[0, 0.18, 0.02]} color={SHELF} />
+      <Box size={[0.56, 0.02, 0.24]} position={[0, -0.2, 0.02]} color={SHELF} />
       {shelves >= 1
         ? spines.map((color, i) => (
             <Box
@@ -288,15 +289,15 @@ const Desk = ({
         />
       )),
     )}
-    {/* Laptop, open toward her. */}
+    {/* Laptop to her right, so her face stays clear of the screen. */}
     <Box
       size={[0.3, 0.015, 0.2]}
-      position={[0.02, 0.48, 0.02]}
+      position={[0.26, 0.48, 0.02]}
       color={WOOD_DARK}
     />
     <Box
       size={[0.3, 0.2, 0.015]}
-      position={[0.02, 0.58, -0.09]}
+      position={[0.26, 0.58, -0.09]}
       color="#3b3f6b"
       rotation={[-0.25, 0, 0]}
     />
@@ -333,16 +334,12 @@ const Desk = ({
     {notebook ? (
       <Box
         size={[0.16, 0.015, 0.12]}
-        position={[0.32, 0.48, 0.08]}
+        position={[-0.02, 0.48, 0.04]}
         color={TEAL}
       />
     ) : null}
     {nameplate ? (
-      <Box
-        size={[0.24, 0.06, 0.02]}
-        position={[-0.08, 0.5, 0.2]}
-        color={GOLD}
-      />
+      <Box size={[0.24, 0.06, 0.02]} position={[-0.3, 0.5, 0.2]} color={GOLD} />
     ) : null}
   </group>
 );

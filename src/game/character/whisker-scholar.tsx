@@ -37,8 +37,8 @@ const SEATED: Pose = {
   RightArm: [50, 0, 40],
   LeftForeArm: [0, 0, 45],
   RightForeArm: [0, 0, 45],
-  Spine02: [12, 0, 0],
-  Head: [22, 0, 0],
+  Spine02: [8, 0, 0],
+  Head: [12, 0, 0],
 };
 const RESTING: Pose = {
   ...SEATED,
