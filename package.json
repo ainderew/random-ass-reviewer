@@ -22,6 +22,7 @@
     "test:e2e": "playwright test",
     "assets:placeholders": "tsx scripts/generate-placeholder-assets.ts",
     "assets:optimize": "tsx scripts/optimize-assets.ts",
+    "assets:character": "tsx scripts/optimize-character.ts",
     "check:bundle": "tsx scripts/check-bundle.ts",
     "build:check": "next build && tsx scripts/check-bundle.ts",
     "test:integration": "NODE_OPTIONS=\"--experimental-vm-modules --no-warnings=ExperimentalWarning\" jest --selectProjects server",

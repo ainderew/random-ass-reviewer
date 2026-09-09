@@ -6,6 +6,8 @@ import { MILESTONES } from '@/domain/career/milestones';
 import { statsQueryKey } from '@/lib/query-keys';
 import { FocusTimer } from './focus-timer';
 
+jest.mock('./character-view', () => ({ CharacterView: () => null }));
+
 const snapshot = {
   stats: {
     userId: 'u1',
@@ -361,7 +363,7 @@ describe('FocusTimer career scene', () => {
     );
     expect(
       await screen.findByRole('img', {
-        name: /at a bedroom desk\. Studying\.$/,
+        name: /At a bedroom desk\. Studying\.$/,
       }),
     ).toBeInTheDocument();
     setVisibility('hidden');

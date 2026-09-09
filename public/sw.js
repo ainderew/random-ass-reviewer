@@ -30,6 +30,7 @@ self.addEventListener('activate', (event) => {
 const isAsset = (url) =>
   url.pathname.startsWith('/_next/static/') ||
   url.pathname.startsWith('/models/') ||
+  url.pathname.startsWith('/characters/') ||
   url.pathname.startsWith('/icons/');
 
 self.addEventListener('fetch', (event) => {

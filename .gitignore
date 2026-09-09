@@ -53,3 +53,6 @@ next-env.d.ts
 
 # raw Tripo3D exports are large and regenerable; only optimised output ships
 assets/raw/*.glb
+
+# Raw Meshy character exports; pnpm assets:character writes the optimised GLB to public/characters
+assets/characters/*.glb

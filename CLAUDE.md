@@ -33,7 +33,7 @@ Read `feature-plans/aloft/00-overview.md` before changing anything. Each phase f
 - `pnpm test:unit` (domain + ui, no services), `pnpm test:integration` (server, real Postgres), `pnpm test:coverage` (enforces 90% branches on `src/domain`, 75% on `src/server/services`).
 - `pnpm test:e2e` runs Playwright against the dev server with the seeded smoke session (`pnpm seed:smoke`): keyboard review, axe, offline, the full loop, notes to cards, and the anti-cheat probes.
 - The only fake is `ScriptedProvider` in `src/server/llm/__fixtures__`; route tests mock `auth()` and nothing else. `LLM_PROVIDER=fake` is the dev and CI provider.
-- `pnpm check:bundle` after `pnpm build` enforces the budget: `/study` under 300 KB gzip, no three.js outside `/island`, no dev surfaces, GLBs under 150 KB.
+- `pnpm check:bundle` after `pnpm build` prints each route's first-load size and fails on dev surfaces in the output or an island GLB over 150 KB. There is no JS budget and no three.js restriction any more: the study tab draws the character in three.js (decision 52).
 
 ## Deploy
 
@@ -59,3 +59,4 @@ Read `feature-plans/aloft/00-overview.md` before changing anything. Each phase f
 - `pnpm assets:optimize` runs dedup, weld, prune, simplify, WebP textures, meshopt, then writes `public/models/*.glb` and regenerates `src/domain/assets/manifest.generated.ts`. It fails if any asset is over 150 KB or 5,000 triangles.
 - `assets/asset-meta.json` is the hand-authored source for price, footprint, rarity, and triangle target. Add an entry before adding a model.
 - `AssetId` is the manifest's key union. Never type an asset id as `string`.
+- The study tab's character is a rigged Meshy export. The raw GLB lives in `assets/characters/` (ignored); `pnpm assets:character` writes the optimised `public/characters/whisker-scholar.glb` (about 24k triangles, 1024 WebP). Pose and idle motion are procedural in `src/game/character/`; the only clip is walking.

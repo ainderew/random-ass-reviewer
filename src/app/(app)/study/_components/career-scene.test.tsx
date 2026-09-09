@@ -1,6 +1,8 @@
 import { render, screen } from '@testing-library/react';
 import { CareerScene } from './career-scene';
 
+jest.mock('./character-view', () => ({ CharacterView: () => null }));
+
 const H = 3_600_000;
 
 describe('CareerScene', () => {
@@ -12,7 +14,7 @@ describe('CareerScene', () => {
       />,
     );
     expect(screen.getByRole('img')).toHaveAccessibleName(
-      'in a hoodie, at a bedroom desk. Studying.',
+      'At a bedroom desk. Studying.',
     );
   });
 
@@ -24,7 +26,7 @@ describe('CareerScene', () => {
       />,
     );
     expect(screen.getByRole('img')).toHaveAccessibleName(
-      'in a white coat, at a clinic, car outside. Looking up.',
+      'At a clinic, white coat on the hook, car outside. Looking up.',
     );
   });
 });
