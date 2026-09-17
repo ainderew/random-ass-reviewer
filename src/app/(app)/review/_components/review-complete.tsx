@@ -32,9 +32,9 @@ export const ReviewComplete = ({
   if (reviewed === 0 && totalCards === 0) {
     return (
       <EmptyState
-        title="No cards yet"
-        body="Upload your lecture notes and we will turn them into a deck you can review here."
-        action={{ href: '/notes', label: 'Upload notes' }}
+        title="No approved cards yet"
+        body="Upload notes, then check and approve their cards before studying. Your drafts are kept in Notes."
+        action={{ href: '/notes', label: 'Check notes and cards' }}
       />
     );
   }

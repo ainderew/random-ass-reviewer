@@ -20,7 +20,10 @@ export function useSessionQuiz(sessionId: string) {
   const answer = useMutation({
     mutationFn: (input: { cardId: string; optionIndex: number }) =>
       answerQuiz({ sessionId, ...input }),
-    onSuccess: setProgress,
+    onSuccess: (result) => {
+      setProgress(result);
+      void queryClient.invalidateQueries({ queryKey: ['study-plan'] });
+    },
   });
   const finish = useMutation({
     mutationFn: () => finishQuiz(sessionId),

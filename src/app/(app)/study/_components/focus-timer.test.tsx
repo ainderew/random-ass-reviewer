@@ -246,6 +246,10 @@ describe('FocusTimer quiz step', () => {
     routes['/api/review/session-quiz?sessionId=s1'] = () => ({ data: quiz });
     routes['/api/review/session-quiz/answer'] = () => ({
       data: {
+        cardId: 'c1',
+        correctAnswer: 'The correct answer',
+        explanation: 'The explanation from the notes.',
+        sourceQuote: 'The quoted notes.',
         correct: true,
         correctSoFar: 1,
         answered: 1,
@@ -270,7 +274,7 @@ describe('FocusTimer quiz step', () => {
       await screen.findByRole('button', { name: 'Facial' }),
     );
 
-    expect(await screen.findByRole('status')).toHaveTextContent('Right.');
+    expect(await screen.findByRole('status')).toHaveTextContent('Correct.');
     expect(screen.getByLabelText('Bonus multiplier 2.0')).toBeInTheDocument();
     await userEvent.click(screen.getByRole('button', { name: 'See my bonus' }));
     expect(

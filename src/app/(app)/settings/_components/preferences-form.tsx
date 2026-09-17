@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { StudyPlanForm } from './study-plan-form';
 import { useProfile, useUpdateProfile } from '@/app/(app)/_hooks/use-profile';
 import { DAILY_CREDITABLE_MS } from '@/domain/economy/constants';
 import { useAudioPreference } from '@/game/systems/use-audio-preference';
@@ -42,6 +43,7 @@ export const PreferencesForm = () => {
 
   return (
     <section aria-label="Preferences" className="space-y-6">
+      <StudyPlanForm />
       <div className="space-y-1">
         <h2 className="font-serif text-2xl text-ink">Studying</h2>
         <p className="max-w-[46ch] text-sm leading-relaxed text-ink-2">

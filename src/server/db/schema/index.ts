@@ -4,3 +4,5 @@ export * from './sessions';
 export * from './study';
 export * from './usage';
 export * from './rate-limit';
+
+export * from './quiz';

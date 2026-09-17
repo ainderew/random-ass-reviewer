@@ -24,8 +24,11 @@ export async function getUserStats(userId: string): Promise<UserStats> {
   return stats;
 }
 
-export async function getDailySummary(userId: string): Promise<DailySummary> {
-  const dayStart = await startOfUserDay(db, userId);
+export async function getDailySummary(
+  userId: string,
+  nowMs = Date.now(),
+): Promise<DailySummary> {
+  const dayStart = await startOfUserDay(db, userId, nowMs);
   const [creditedMs, sessionsStarted, completed] = await Promise.all([
     sumCreditedSince(db, userId, dayStart),
     countSessionsSince(db, userId, dayStart),

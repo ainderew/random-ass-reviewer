@@ -193,6 +193,10 @@ export const ReviewSession = () => {
           {error}
         </p>
       ) : null}
+      <p className="text-sm text-ink-2">
+        Try recalling before revealing. Every honest rating earns the same
+        review credit, including Again. One award per card each day.
+      </p>
       <p className="text-xs text-muted">Space to reveal, 1 to 4 to rate.</p>
     </section>
   );

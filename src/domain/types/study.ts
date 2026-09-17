@@ -1,4 +1,8 @@
 import { z } from 'zod';
+import { subjectSchema, type MedtechSubject } from '../study/medtech';
+import { quizContentSchema, type QuizContent } from '../study/quiz-content';
+
+export const cardStatusSchema = z.enum(['draft', 'approved', 'flagged']);
 
 export const NOTE_KINDS = ['paste', 'markdown', 'pdf', 'image'] as const;
 export type NoteKind = (typeof NOTE_KINDS)[number];
@@ -53,6 +57,10 @@ export interface Card {
   nextDueAt: Date;
   fsrsState: FsrsState;
   suspended: boolean;
+  reviewStatus: z.infer<typeof cardStatusSchema>;
+  subject: MedtechSubject | null;
+  topic: string | null;
+  quiz: QuizContent | null;
 }
 
 export interface CardReview {
@@ -111,8 +119,12 @@ export interface NoteDetail {
 }
 
 export const updateCardRequestSchema = z.object({
-  question: z.string().min(1).max(300),
-  answer: z.string().min(1).max(1000),
+  question: z.string().trim().min(1).max(300).optional(),
+  answer: z.string().trim().min(1).max(1000).optional(),
+  reviewStatus: cardStatusSchema.optional(),
+  subject: subjectSchema.nullable().optional(),
+  topic: z.string().trim().min(1).max(100).nullable().optional(),
+  quiz: quizContentSchema.nullable().optional(),
 });
 export type UpdateCardRequest = z.infer<typeof updateCardRequestSchema>;
 

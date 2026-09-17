@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { examMonthSchema } from '../study/medtech';
 
 export type Currency = 'focus' | 'insight';
 
@@ -13,6 +14,8 @@ export interface User {
   onboardedAt: Date | null;
   dailyCapMs: number | null;
   breakReminderMs: number | null;
+  examMonth: string | null;
+  dailyNewCards: number;
 }
 
 export interface UserStats {
@@ -44,6 +47,8 @@ export const MAX_BREAK_REMINDER_MS = 120 * 60 * 1000;
 export const updateProfileRequestSchema = z.object({
   timeZone: z.string().min(1).max(64).optional(),
   onboarded: z.literal(true).optional(),
+  examMonth: examMonthSchema.nullable().optional(),
+  dailyNewCards: z.number().int().min(0).max(20).optional(),
   dailyCapMs: z
     .number()
     .int()
@@ -77,6 +82,8 @@ export interface Profile {
   // Null means the product default applies.
   dailyCapMs: number | null;
   breakReminderMs: number | null;
+  examMonth: string | null;
+  dailyNewCards: number;
   progress: OnboardingProgress;
 }
 

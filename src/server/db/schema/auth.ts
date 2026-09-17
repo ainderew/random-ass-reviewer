@@ -32,6 +32,8 @@ export const users = pgTable('users', {
   // User-lowered daily creditable cap. Never above DAILY_CREDITABLE_MS.
   dailyCapMs: integer('daily_cap_ms'),
   breakReminderMs: integer('break_reminder_ms'),
+  examMonth: text('exam_month'),
+  dailyNewCards: integer('daily_new_cards').notNull().default(20),
   createdAt: timestamp('created_at', { withTimezone: true })
     .notNull()
     .defaultNow(),

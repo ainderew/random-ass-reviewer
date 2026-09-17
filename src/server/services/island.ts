@@ -16,6 +16,8 @@ import type {
 import { db } from '@/server/db';
 import { isUniqueViolation } from '@/server/db/errors';
 import { AppError } from '@/server/errors';
+import { subjectProgress } from '@/server/repositories/study-plan';
+import { MTLE_SUBJECTS } from '@/domain/study/medtech';
 import { getOwnership } from './inventory';
 import { toPublicStats } from './user-stats';
 import { sumCreditedAllTime } from '@/server/repositories/focus-session';
@@ -42,14 +44,16 @@ function footprintOf(assetId: string): Footprint {
 
 // Real study history the island renders as props (the study shelf).
 export async function getWorldSignals(userId: string): Promise<WorldSignals> {
-  const [creditedMs, stats] = await Promise.all([
+  const [creditedMs, stats, subjects] = await Promise.all([
     sumCreditedAllTime(db, userId),
     findUserStats(db, userId),
+    subjectProgress(db, userId),
   ]);
   return {
     totalFocusHours: creditedMs / 3_600_000,
-    // Phase 6 fills this from note sources.
-    distinctSubjects: [],
+    distinctSubjects: subjects
+      .filter((s) => s.practiced > 0 && s.subject)
+      .map((s) => MTLE_SUBJECTS.find((item) => item.id === s.subject)!.label),
     longestStreak: stats?.streakDays ?? 0,
   };
 }

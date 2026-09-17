@@ -1,3 +1,4 @@
+import { validQuizContent } from '@/domain/study/quiz-content';
 import { cardBatchSchema } from '@/domain/study/card-schema';
 import { quoteAppearsInSource } from '@/domain/study/verify-quote';
 import { env } from '@/lib/env';
@@ -74,6 +75,13 @@ async function generateForChunk(input: {
       question: card.question,
       answer: card.answer,
       sourceQuote: card.sourceQuote,
+      reviewStatus: 'draft',
+      subject: card.subject,
+      topic: card.topic,
+      quiz:
+        card.quiz && validQuizContent(card.answer, card.quiz)
+          ? card.quiz
+          : null,
       tags: [...new Set([...card.tags, card.difficulty])],
       nextDueAt: now,
       fsrsState: initialCardState(now.getTime()),

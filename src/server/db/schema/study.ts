@@ -13,8 +13,16 @@ import {
   uuid,
 } from 'drizzle-orm/pg-core';
 import { NOTE_KINDS, type FsrsState } from '@/domain/types/study';
+import type { QuizContent } from '@/domain/study/quiz-content';
+import type { MedtechSubject } from '@/domain/study/medtech';
 import { users } from './auth';
 import { focusSessions } from './sessions';
+
+export const cardReviewStatus = pgEnum('card_review_status', [
+  'draft',
+  'approved',
+  'flagged',
+]);
 
 export const noteKind = pgEnum('note_kind', NOTE_KINDS);
 
@@ -72,6 +80,10 @@ export const cards = pgTable(
     nextDueAt: timestamp('next_due_at', { withTimezone: true }).notNull(),
     fsrsState: jsonb('fsrs_state').$type<FsrsState>().notNull(),
     suspended: boolean('suspended').notNull().default(false),
+    reviewStatus: cardReviewStatus('review_status').notNull().default('draft'),
+    subject: text('subject').$type<MedtechSubject>(),
+    topic: text('topic'),
+    quiz: jsonb('quiz').$type<QuizContent>(),
   },
   // The review queue query.
   (t) => [index('cards_user_due_idx').on(t.userId, t.nextDueAt)],

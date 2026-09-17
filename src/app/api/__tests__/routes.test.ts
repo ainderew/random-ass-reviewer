@@ -232,6 +232,14 @@ describe('API routes', () => {
         question: `Q${i}?`,
         answer: `A${i}`,
         sourceQuote: 't',
+        reviewStatus: 'approved' as const,
+        quiz: {
+          explanation: 'The correct answer follows from the source.',
+          distractors: ['X', 'Y', 'Z'].map((text) => ({
+            text,
+            explanation: 'This alternative is not supported by the source.',
+          })),
+        },
         tags: [],
         nextDueAt: new Date(),
         fsrsState: initialCardState(Date.now()),

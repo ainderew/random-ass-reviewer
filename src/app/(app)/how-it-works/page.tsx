@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import {
   FOCUS_PER_MINUTE,
-  INSIGHT_PER_CORRECT,
+  INSIGHT_PER_REVIEW,
   INSIGHT_PER_QUIZ_CORRECT,
   MIN_SESSION_MS,
 } from '@/domain/economy/constants';
@@ -18,8 +18,8 @@ export default function HowItWorksPage() {
       <div className="space-y-2">
         <h1 className="font-serif text-4xl text-ink">How rewards work</h1>
         <p className="max-w-[52ch] leading-relaxed text-ink-2">
-          Aloft pays for two things: time you verifiably spend studying, and
-          things you actually remember. Nothing pays for clicking.
+          Focus rewards timed sessions. Insight rewards completed reviews and
+          correct quiz answers. Both help you build your island.
         </p>
       </div>
 
@@ -38,12 +38,11 @@ export default function HowItWorksPage() {
       <section className="space-y-2">
         <h2 className="font-serif text-2xl text-ink">Insight</h2>
         <p className="max-w-[52ch] leading-relaxed text-ink-2">
-          Reviewing a card you remembered pays {INSIGHT_PER_CORRECT} Insight, a
-          little more for hard cards and for every fifth correct answer in a
-          row. Forgetting pays nothing and costs nothing. Each right answer on
-          the post-session quiz pays {INSIGHT_PER_QUIZ_CORRECT}. There is no
-          other way to earn Insight, so the rarest island pieces can only be
-          bought with recall.
+          Completing a due review pays {INSIGHT_PER_REVIEW} Insight once per
+          card each day. Again earns the same as Good or Easy, so rate honestly.
+          Relearning later that day still helps memory but earns no repeat
+          credit. Each right answer on an approved practice quiz pays{' '}
+          {INSIGHT_PER_QUIZ_CORRECT}.
         </p>
       </section>
 

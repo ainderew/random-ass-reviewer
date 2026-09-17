@@ -42,6 +42,17 @@ test('notes become cards with quotes, and reviewing them pays Insight', async ({
   await expect(quotes.first()).toBeVisible();
   expect(await quotes.count()).toBe(detail.cards.length);
 
+  // New AI cards are drafts until the student checks and approves them.
+  expect(
+    detail.cards.every(
+      (card: { reviewStatus: string }) => card.reviewStatus === 'draft',
+    ),
+  ).toBe(true);
+  await page.getByRole('button', { name: 'Edit and approve' }).first().click();
+  await page.getByLabel('I checked the answer', { exact: false }).check();
+  await page.getByRole('button', { name: 'Save and approve' }).click();
+  await expect(page.getByText('Approved for study').first()).toBeVisible();
+
   const before = (await (await page.request.get('/api/stats')).json()).data
     .stats.insightBalance;
   await page.goto('/review');

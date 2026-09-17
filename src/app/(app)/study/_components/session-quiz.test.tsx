@@ -53,6 +53,11 @@ function mockRoutes(quiz = QUIZ) {
         if (correct) correctSoFar += 1;
         const multiplier = correctSoFar === 2 ? 2 : 1;
         return respond({
+          cardId: body.cardId,
+          correctAnswer: body.cardId === 'c1' ? 'right1' : 'right2',
+          explanation:
+            'The source supports this answer because of the stated distinction.',
+          sourceQuote: 'The original passage explaining the distinction.',
           correct,
           correctSoFar,
           answered,
@@ -132,14 +137,15 @@ describe('SessionQuiz', () => {
 
     await userEvent.click(screen.getByRole('button', { name: 'wrong' }));
     expect(await screen.findByRole('status')).toHaveTextContent(
-      'Not that one. No penalty.',
+      'Review the correction.',
     );
     expect(screen.getByLabelText('Bonus multiplier 1.0')).toBeInTheDocument();
     await userEvent.click(screen.getByRole('button', { name: 'Next' }));
 
     await screen.findByText('Q2?');
+    expect(screen.queryByRole('status')).not.toBeInTheDocument();
     await userEvent.click(screen.getByRole('button', { name: 'right2' }));
-    expect(await screen.findByRole('status')).toHaveTextContent('Right.');
+    expect(await screen.findByRole('status')).toHaveTextContent('Correct.');
     await userEvent.click(screen.getByRole('button', { name: 'See my bonus' }));
     await waitFor(() =>
       expect(onFinished).toHaveBeenCalledWith(

@@ -1,34 +1,13 @@
-import type { Rating } from '@/domain/types';
 import {
   MAX_QUIZ_MULTIPLIER,
   QUIZ_PASS_THRESHOLD,
 } from '@/domain/review/constants';
-import {
-  INSIGHT_HARD_BONUS,
-  INSIGHT_PER_CORRECT,
-  INSIGHT_STREAK_BONUS,
-  INSIGHT_STREAK_BONUS_AT,
-} from './constants';
+import { INSIGHT_PER_REVIEW } from './constants';
 
-export type CardDifficulty = 'easy' | 'medium' | 'hard';
-
-// Insight pays for recall and nothing else. Again pays zero: never negative,
-// never a deduction.
-export function calculateReviewInsight(input: {
-  rating: Rating;
-  difficulty: CardDifficulty;
-  consecutiveCorrect: number;
-}): number {
-  if (input.rating === 1) return 0;
-  let insight = INSIGHT_PER_CORRECT;
-  if (input.difficulty === 'hard') insight += INSIGHT_HARD_BONUS;
-  if (
-    input.consecutiveCorrect > 0 &&
-    input.consecutiveCorrect % INSIGHT_STREAK_BONUS_AT === 0
-  ) {
-    insight += INSIGHT_STREAK_BONUS;
-  }
-  return insight;
+// A scheduled retrieval attempt earns the same credit for every honest rating.
+// The service limits this to one award per card per local day.
+export function calculateReviewInsight(): number {
+  return INSIGHT_PER_REVIEW;
 }
 
 // 1.0 below the pass threshold, then a straight ramp to the maximum at 100%.

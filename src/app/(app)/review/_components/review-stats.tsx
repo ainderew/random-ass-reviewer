@@ -29,7 +29,7 @@ export const ReviewStatsPanel = () => {
           </dd>
         </div>
         <div>
-          <dt className="text-muted">Retention</dt>
+          <dt className="text-muted">Self-rated recall</dt>
           <dd className="font-mono text-2xl text-ink tabular-nums">
             {data.retention === null
               ? '–'
@@ -37,6 +37,10 @@ export const ReviewStatsPanel = () => {
           </dd>
         </div>
       </dl>
+      <p className="text-sm text-ink-2">
+        Good or Easy ratings in your recent flashcard reviews. Quiz scores are
+        tracked separately.
+      </p>
       <div>
         <p className="text-sm text-muted">Coming due</p>
         <ol

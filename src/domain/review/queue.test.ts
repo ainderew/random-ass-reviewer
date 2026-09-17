@@ -76,3 +76,15 @@ describe('selectQuizCards', () => {
     );
   });
 });
+
+it('allows pausing new cards while continuing due reviews', () => {
+  expect(
+    selectQueue({
+      due: [card('due', -100)],
+      newCards: [card('new', 0)],
+      newCardsSeenToday: 0,
+      nowMs: NOW,
+      dailyNewLimit: 0,
+    }).map((c) => c.id),
+  ).toEqual(['due']);
+});

@@ -30,6 +30,7 @@ export function useAnswerQueue(onFlushed: (result: AnswerResult) => void) {
   const invalidate = useCallback(() => {
     void queryClient.invalidateQueries({ queryKey: statsQueryKey });
     void queryClient.invalidateQueries({ queryKey: reviewStatsKey });
+    void queryClient.invalidateQueries({ queryKey: ['study-plan'] });
   }, [queryClient]);
 
   const flush = useCallback(async () => {
@@ -82,7 +83,10 @@ export function useAnswerQueue(onFlushed: (result: AnswerResult) => void) {
         invalidate();
         return { kind: 'ok', result };
       } catch (error) {
-        if (error instanceof ApiError && error.code === 'NOT_FOUND')
+        if (
+          error instanceof ApiError &&
+          (error.code === 'NOT_FOUND' || error.code === 'INVALID_STATE')
+        )
           return { kind: 'gone' };
         if (!isTransient(error)) throw error;
         return enqueue(body);

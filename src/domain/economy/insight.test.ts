@@ -1,53 +1,10 @@
 import { MAX_QUIZ_MULTIPLIER } from '@/domain/review/constants';
-import {
-  INSIGHT_HARD_BONUS,
-  INSIGHT_PER_CORRECT,
-  INSIGHT_STREAK_BONUS,
-} from './constants';
+import { INSIGHT_PER_REVIEW } from './constants';
 import { calculateQuizMultiplier, calculateReviewInsight } from './insight';
 
 describe('calculateReviewInsight', () => {
-  it('pays zero for Again and never negative', () => {
-    expect(
-      calculateReviewInsight({
-        rating: 1,
-        difficulty: 'hard',
-        consecutiveCorrect: 10,
-      }),
-    ).toBe(0);
-    for (const rating of [1, 2, 3, 4] as const) {
-      expect(
-        calculateReviewInsight({
-          rating,
-          difficulty: 'easy',
-          consecutiveCorrect: 0,
-        }),
-      ).toBeGreaterThanOrEqual(0);
-    }
-  });
-
-  it('pays the base for a correct answer, more for hard cards and every fifth in a row', () => {
-    expect(
-      calculateReviewInsight({
-        rating: 3,
-        difficulty: 'easy',
-        consecutiveCorrect: 1,
-      }),
-    ).toBe(INSIGHT_PER_CORRECT);
-    expect(
-      calculateReviewInsight({
-        rating: 2,
-        difficulty: 'hard',
-        consecutiveCorrect: 1,
-      }),
-    ).toBe(INSIGHT_PER_CORRECT + INSIGHT_HARD_BONUS);
-    expect(
-      calculateReviewInsight({
-        rating: 4,
-        difficulty: 'medium',
-        consecutiveCorrect: 5,
-      }),
-    ).toBe(INSIGHT_PER_CORRECT + INSIGHT_STREAK_BONUS);
+  it('pays a fixed completion award independent of ratings, difficulty and streaks', () => {
+    expect(calculateReviewInsight()).toBe(INSIGHT_PER_REVIEW);
   });
 });
 

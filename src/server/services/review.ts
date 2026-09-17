@@ -1,7 +1,4 @@
-import {
-  calculateReviewInsight,
-  type CardDifficulty,
-} from '@/domain/economy/insight';
+import { calculateReviewInsight } from '@/domain/economy/insight';
 import { selectQueue } from '@/domain/review/queue';
 import {
   parseState,
@@ -9,12 +6,13 @@ import {
   scheduleReview,
 } from '@/domain/review/scheduler';
 import { startOfLocalDay } from '@/domain/time/local-day';
-import type { AnswerResult, Card, QueuedCard, Rating } from '@/domain/types';
+import type { AnswerResult, QueuedCard, Rating } from '@/domain/types';
 import { db, type DbOrTx } from '@/server/db';
 import { AppError } from '@/server/errors';
 import {
   countCardsFirstReviewedSince,
-  findCardById,
+  lockCard,
+  hasRecallSince,
   insertCardReview,
   listDueCards,
   listRecentReviews,
@@ -22,12 +20,6 @@ import {
 } from '@/server/repositories/card';
 import { findUserById } from '@/server/repositories/user';
 import { incrementBalances } from '@/server/repositories/user-stats';
-
-export function cardDifficulty(card: Pick<Card, 'tags'>): CardDifficulty {
-  if (card.tags.includes('hard')) return 'hard';
-  if (card.tags.includes('easy')) return 'easy';
-  return 'medium';
-}
 
 async function userDayStart(
   tx: DbOrTx,
@@ -61,6 +53,7 @@ export async function getReviewQueue(userId: string): Promise<QueuedCard[]> {
     newCards: withState.filter((c) => c.state.state === 0),
     newCardsSeenToday,
     nowMs,
+    dailyNewLimit: (await findUserById(db, userId))?.dailyNewCards ?? 20,
   });
 
   return queue.map(({ card, state }) => ({
@@ -94,11 +87,26 @@ export async function submitAnswer(input: {
   elapsedMs: number;
 }): Promise<AnswerResult> {
   return db.transaction(async (tx) => {
-    const card = await findCardById(tx, input.cardId);
+    const card = await lockCard(tx, input.userId, input.cardId);
     if (!card || card.userId !== input.userId) {
       throw new AppError('NOT_FOUND', 'Card not found');
     }
     const nowMs = Date.now();
+    if (card.reviewStatus !== 'approved' || card.suspended)
+      throw new AppError(
+        'INVALID_STATE',
+        'This card needs approval before reviewing.',
+      );
+    if (card.nextDueAt.getTime() > nowMs)
+      throw new AppError(
+        'INVALID_STATE',
+        'This review has already been saved or is not due yet.',
+      );
+    const rewardedToday = await hasRecallSince(
+      tx,
+      card.id,
+      await userDayStart(tx, input.userId, nowMs),
+    );
     const scheduled = scheduleReview({
       state: parseState(card.fsrsState, nowMs),
       rating: input.rating,
@@ -122,11 +130,7 @@ export async function submitAnswer(input: {
       { limit: 50 },
     );
     const run = consecutiveCorrect(recent.map((r) => r.rating));
-    const insight = calculateReviewInsight({
-      rating: input.rating,
-      difficulty: cardDifficulty(card),
-      consecutiveCorrect: run,
-    });
+    const insight = rewardedToday ? 0 : calculateReviewInsight();
     const stats = await incrementBalances(tx, input.userId, {
       insight,
       xp: insight,

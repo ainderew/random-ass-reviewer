@@ -1,4 +1,6 @@
 import { z } from 'zod';
+import { quizContentSchema } from './quiz-content';
+import { subjectSchema } from './medtech';
 
 // Keep this stable. Schema changes trigger a recompilation on the API side,
 // and the descriptions are what the model reads to understand each field.
@@ -20,6 +22,9 @@ export const generatedCardSchema = z.object({
     .describe(
       'A verbatim quote from the provided source text that supports this answer. Copy it exactly, character for character.',
     ),
+  quiz: quizContentSchema.nullable().default(null),
+  subject: subjectSchema.nullable().default(null),
+  topic: z.string().min(1).max(100).nullable().default(null),
   difficulty: z.enum(['easy', 'medium', 'hard']),
   tags: z.array(z.string().min(1).max(30)).max(5),
 });

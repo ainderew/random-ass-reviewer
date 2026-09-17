@@ -5,7 +5,6 @@ import { MAX_QUIZ_MULTIPLIER } from '@/domain/review/constants';
 import type { QuizResult } from '@/domain/types';
 import { Button } from '@/components/ui/button';
 import { playPitched } from '@/game/systems/juice/play-pitched';
-import { ApiError } from '@/lib/api-client';
 import { useSessionQuiz } from '../_hooks/use-session-quiz';
 import { TimerFrame } from './timer-frame';
 
@@ -22,12 +21,23 @@ export const SessionQuiz = ({
   onSkip: () => void;
   onFinished: (result: QuizResult) => void;
 }) => {
-  const { quiz, answer, finish, progress } = useSessionQuiz(sessionId);
+  const {
+    quiz,
+    answer,
+    finish,
+    progress: latestProgress,
+  } = useSessionQuiz(sessionId);
   const [index, setIndex] = useState(0);
   const [picked, setPicked] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const questions = quiz.data?.questions ?? [];
   const question = questions[index];
+  const progress = question
+    ? latestProgress?.cardId === question.cardId
+      ? latestProgress
+      : (quiz.data?.attempts?.[question.cardId] ?? null)
+    : null;
+  const answered = !!progress && !answer.isPending;
   const skipToReward =
     quiz.isSuccess && (quiz.data.submitted || questions.length === 0);
 
@@ -61,7 +71,7 @@ export const SessionQuiz = ({
   }
 
   const choose = (optionIndex: number) => {
-    if (answer.isPending || picked !== null) return;
+    if (answer.isPending || picked !== null || answered) return;
     setPicked(optionIndex);
     setError(null);
     answer.mutate(
@@ -74,11 +84,7 @@ export const SessionQuiz = ({
               semitones: result.correctSoFar - 1,
             });
         },
-        onError: (caught) => {
-          if (caught instanceof ApiError && caught.code === 'INVALID_STATE') {
-            // Already answered (a refresh mid-question). Move on.
-            return;
-          }
+        onError: () => {
           setPicked(null);
           setError('Could not check that answer. Try again, or skip.');
         },
@@ -130,7 +136,7 @@ export const SessionQuiz = ({
       }
       actions={
         <div className="space-y-2">
-          {picked !== null && !answer.isPending ? (
+          {answered ? (
             <Button size="lg" block onClick={next} disabled={finish.isPending}>
               {index + 1 < questions.length ? 'Next' : 'See my bonus'}
             </Button>
@@ -169,7 +175,7 @@ export const SessionQuiz = ({
                 <button
                   type="button"
                   onClick={() => choose(optionIndex)}
-                  disabled={picked !== null}
+                  disabled={picked !== null || answered}
                   className={`w-full min-h-12 rounded-md border bg-ground-2 px-4 py-3 text-left leading-relaxed transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus disabled:cursor-default ${tone}`}
                 >
                   {option}
@@ -178,13 +184,26 @@ export const SessionQuiz = ({
             );
           })}
         </ol>
-        {graded(picked, progress, answer.isPending) ? (
-          <p
+        {answered && progress ? (
+          <div
             role="status"
-            className={`text-sm ${progress!.correct ? 'text-insight' : 'text-ink-2'}`}
+            className="space-y-3 border-t border-hairline pt-4"
           >
-            {progress!.correct ? 'Right.' : 'Not that one. No penalty.'}
-          </p>
+            <p className="text-ink">
+              {progress.correct
+                ? 'Correct.'
+                : 'Review the correction. Your earned Focus is safe.'}
+            </p>
+            <p className="text-insight">{progress.correctAnswer}</p>
+            <p className="text-ink-2 leading-relaxed">{progress.explanation}</p>
+            <blockquote className="text-ink-2 border-l border-hairline pl-3">
+              {progress.sourceQuote}
+            </blockquote>
+            <p className="text-sm text-muted">
+              From your approved notes. Quiz scores are separate from your
+              flashcard ratings.
+            </p>
+          </div>
         ) : null}
         {error ? (
           <p role="alert" className="text-sm text-warn">
@@ -195,11 +214,3 @@ export const SessionQuiz = ({
     </TimerFrame>
   );
 };
-
-function graded(
-  picked: number | null,
-  progress: unknown,
-  pending: boolean,
-): boolean {
-  return picked !== null && progress !== null && !pending;
-}

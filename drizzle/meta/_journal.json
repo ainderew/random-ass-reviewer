@@ -43,6 +43,13 @@
       "when": 1788881109681,
       "tag": "0005_last_drax",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1789658305707,
+      "tag": "0006_medtech_learning",
+      "breakpoints": true
     }
   ]
 }

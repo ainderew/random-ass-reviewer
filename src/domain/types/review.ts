@@ -42,6 +42,7 @@ export interface SessionQuiz {
   questions: QuizQuestion[];
   // The quiz was already taken; the result screen shows what it earned.
   submitted: boolean;
+  attempts: Record<string, QuizProgress>;
 }
 
 // One answer at a time. The server grades and records the first attempt.
@@ -52,7 +53,19 @@ export const quizAnswerRequestSchema = z.object({
 });
 export type QuizAnswerRequest = z.infer<typeof quizAnswerRequestSchema>;
 
+export interface StoredQuizQuestion extends QuizQuestion {
+  correctIndex: number;
+  correctAnswer: string;
+  explanation: string;
+  optionExplanations: string[];
+  sourceQuote: string;
+}
+
 export interface QuizProgress {
+  cardId: string;
+  correctAnswer: string;
+  explanation: string;
+  sourceQuote: string;
   correct: boolean;
   correctSoFar: number;
   answered: number;

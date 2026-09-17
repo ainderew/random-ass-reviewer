@@ -151,11 +151,10 @@ describe('ReviewSession', () => {
       ...STATS,
       totals: { total: 0, new: 0, learning: 0, mature: 0 },
     });
-    expect(screen.getByText('No cards yet')).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Upload notes' })).toHaveAttribute(
-      'href',
-      '/notes',
-    );
+    expect(screen.getByText('No approved cards yet')).toBeInTheDocument();
+    expect(
+      screen.getByRole('link', { name: 'Check notes and cards' }),
+    ).toHaveAttribute('href', '/notes');
     unmount();
 
     renderSession([], {

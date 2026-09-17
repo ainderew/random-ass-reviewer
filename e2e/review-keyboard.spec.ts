@@ -11,7 +11,7 @@ test.describe('review by keyboard only', () => {
     await page.goto('/review');
     await page.waitForLoadState('networkidle');
     const region = page.getByRole('region', { name: 'Review', exact: true });
-    const caughtUp = page.getByText(/caught up|No cards yet/);
+    const caughtUp = page.getByText(/caught up|No approved cards yet/);
     await expect(region.or(caughtUp)).toBeVisible();
     test.skip(
       await caughtUp.isVisible(),

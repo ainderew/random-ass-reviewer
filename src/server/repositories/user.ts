@@ -24,6 +24,8 @@ function toUser(row: UserRow): User {
     onboardedAt: row.onboardedAt ?? null,
     dailyCapMs: row.dailyCapMs ?? null,
     breakReminderMs: row.breakReminderMs ?? null,
+    examMonth: row.examMonth,
+    dailyNewCards: row.dailyNewCards,
   };
 }
 
@@ -87,6 +89,8 @@ export async function updateUserPreferences(
     onboardedAt: Date;
     dailyCapMs: number | null;
     breakReminderMs: number | null;
+    examMonth: string | null;
+    dailyNewCards: number;
   }>,
 ): Promise<void> {
   if (Object.keys(patch).length === 0) return;

@@ -1,7 +1,7 @@
 import { eq } from 'drizzle-orm';
 import {
   DAILY_CREDITABLE_MS,
-  INSIGHT_PER_CORRECT,
+  INSIGHT_PER_REVIEW,
 } from '@/domain/economy/constants';
 import { initialCardState } from '@/domain/review/scheduler';
 import type { FsrsState } from '@/domain/types';
@@ -59,6 +59,16 @@ async function seedDeck(userId: string, count = 10) {
       question: `Question ${i}?`,
       answer: `Answer ${i}`,
       sourceQuote: 'chunk text',
+      reviewStatus: 'approved' as const,
+      subject: 'hematology' as const,
+      topic: 'Test topic',
+      quiz: {
+        explanation: `Answer ${i} is supported by the source.`,
+        distractors: [1, 2, 3].map((j) => ({
+          text: `Alternative ${i}-${j}`,
+          explanation: 'This alternative does not meet the question criteria.',
+        })),
+      },
       tags: i % 3 === 0 ? ['hard'] : ['medium'],
       nextDueAt: new Date(now - i * 1000),
       fsrsState: initialCardState(now - i * 1000),
@@ -113,7 +123,7 @@ describe('review service', () => {
     });
 
     expect(result.nextDueAt.getTime()).toBeGreaterThan(Date.now());
-    expect(result.insightAwarded).toBeGreaterThanOrEqual(INSIGHT_PER_CORRECT);
+    expect(result.insightAwarded).toBeGreaterThanOrEqual(INSIGHT_PER_REVIEW);
     expect(result.consecutiveCorrect).toBe(1);
     const after = await findUserStats(db, userId);
     expect(after!.insightBalance - before!.insightBalance).toBe(
@@ -131,14 +141,14 @@ describe('review service', () => {
     expect(reviews).toHaveLength(1);
     expect(reviews[0]!.sessionId).toBeNull();
 
-    // Again pays nothing and never deducts.
+    // Again earns the same completion credit.
     const again = await submitAnswer({
       userId,
       cardId: queue[1]!.id,
       rating: 1,
       elapsedMs: 10,
     });
-    expect(again.insightAwarded).toBe(0);
+    expect(again.insightAwarded).toBe(INSIGHT_PER_REVIEW);
     expect(again.consecutiveCorrect).toBe(0);
   });
 
@@ -226,15 +236,15 @@ describe('review service', () => {
       multiplier: 1,
     });
 
-    // A second attempt at a card is refused.
-    await expect(
-      answerQuizQuestion({
-        userId,
-        sessionId,
-        cardId: quiz.questions[0]!.cardId,
-        optionIndex: 0,
-      }),
-    ).rejects.toMatchObject({ code: 'INVALID_STATE' });
+    // A retry returns the first outcome without changing the score.
+    const repeated = await answerQuizQuestion({
+      userId,
+      sessionId,
+      cardId: quiz.questions[0]!.cardId,
+      optionIndex: 0,
+    });
+    expect(repeated.correct).toBe(true);
+    expect(repeated.answered).toBe(8);
 
     const before = await findUserStats(db, userId);
     const result = await finishSessionQuiz({ userId, sessionId });

@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button';
 import { apiFetch } from '@/lib/api-client';
 import { noteDetailKey, notesQueryKey } from '@/lib/query-keys';
 import { CardEditor } from './card-editor';
+import { CardDetails } from './card-details';
 
 const GenerationProgress = ({
   status,
@@ -101,6 +102,8 @@ export const NoteDetailView = ({
       }),
     onSuccess: () => {
       setEditing(null);
+      void queryClient.invalidateQueries({ queryKey: ['review'] });
+      void queryClient.invalidateQueries({ queryKey: ['study-plan'] });
       void queryClient.invalidateQueries({ queryKey: noteDetailKey(sourceId) });
     },
   });
@@ -146,12 +149,24 @@ export const NoteDetailView = ({
         retrying={retry.isPending}
       />
 
+      <p className="text-ink-2">
+        Check each card against the source before approving it. Draft and
+        flagged cards stay out of study sessions. Source matching does not
+        establish medical accuracy.
+      </p>
+      {update.isError || remove.isError ? (
+        <p role="alert" className="text-warn">
+          {(update.error ?? remove.error)?.message ??
+            'Could not save. Try again.'}
+        </p>
+      ) : null}
       <ol className="space-y-4">
         {cards.map((card) =>
           editing === card.id ? (
             <li key={card.id}>
               <CardEditor
                 card={card}
+                source={chunkText.get(card.chunkId)}
                 busy={update.isPending}
                 onSave={(body) => update.mutate({ cardId: card.id, ...body })}
                 onCancel={() => setEditing(null)}
@@ -162,24 +177,22 @@ export const NoteDetailView = ({
               key={card.id}
               className="space-y-2 rounded-lg border border-hairline p-4"
             >
-              <p className="text-ink">{card.question}</p>
-              <p className="text-insight">{card.answer}</p>
-              {/* The quote is a trust feature, not debug output. Always shown. */}
-              <blockquote className="border-l-0 text-sm leading-relaxed text-muted">
-                “{card.sourceQuote}”
-              </blockquote>
-              <div className="flex gap-2 pt-1">
-                <Button variant="ghost" onClick={() => setEditing(card.id)}>
-                  Edit
-                </Button>
-                <Button
-                  variant="ghost"
-                  onClick={() => remove.mutate(card.id)}
-                  disabled={remove.isPending}
-                >
-                  Delete
-                </Button>
-              </div>
+              <CardDetails
+                card={card}
+                source={chunkText.get(card.chunkId) ?? ''}
+                busy={update.isPending}
+                onEdit={() => setEditing(card.id)}
+                onStatus={(reviewStatus) =>
+                  update.mutate({ cardId: card.id, reviewStatus })
+                }
+              />
+              <Button
+                variant="ghost"
+                onClick={() => remove.mutate(card.id)}
+                disabled={remove.isPending}
+              >
+                Delete
+              </Button>
               <span className="sr-only">
                 {chunkText.has(card.chunkId) ? 'From your notes' : ''}
               </span>

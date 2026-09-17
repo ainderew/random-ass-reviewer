@@ -21,6 +21,10 @@ export function useUpdateProfile() {
         method: 'PATCH',
         body: JSON.stringify(patch),
       }),
-    onSuccess: (profile) => queryClient.setQueryData(profileQueryKey, profile),
+    onSuccess: (profile) => {
+      queryClient.setQueryData(profileQueryKey, profile);
+      void queryClient.invalidateQueries({ queryKey: ['study-plan'] });
+      void queryClient.invalidateQueries({ queryKey: ['review', 'queue'] });
+    },
   });
 }

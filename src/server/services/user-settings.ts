@@ -47,6 +47,8 @@ export async function getProfile(userId: string): Promise<Profile> {
     onboardedAt: user.onboardedAt,
     dailyCapMs: user.dailyCapMs,
     breakReminderMs: user.breakReminderMs,
+    examMonth: user.examMonth,
+    dailyNewCards: user.dailyNewCards,
     progress: {
       hasNotes: notes > 0,
       hasSession: sessions > 0,
@@ -66,6 +68,10 @@ export async function updateProfile(
   }
   await updateUserPreferences(db, userId, {
     ...(patch.timeZone !== undefined ? { timezone: patch.timeZone } : {}),
+    ...(patch.examMonth !== undefined ? { examMonth: patch.examMonth } : {}),
+    ...(patch.dailyNewCards !== undefined
+      ? { dailyNewCards: patch.dailyNewCards }
+      : {}),
     ...(patch.onboarded ? { onboardedAt: new Date() } : {}),
     ...(patch.dailyCapMs !== undefined
       ? {

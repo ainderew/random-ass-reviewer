@@ -14,12 +14,7 @@ export const XP_BASE = 100;
 export const XP_EXPONENT = 1.5;
 export const MAX_LEVEL = 100;
 
-// Insight, paid only for recall.
-export const INSIGHT_PER_CORRECT = 3;
-// A hard card you still got right.
-export const INSIGHT_HARD_BONUS = 2;
-// Every fifth consecutive correct answer.
-export const INSIGHT_STREAK_BONUS_AT = 5;
-export const INSIGHT_STREAK_BONUS = 5;
+// Credit for completing a scheduled retrieval attempt.
+export const INSIGHT_PER_REVIEW = 3;
 // Per correct answer in the post-session quiz.
 export const INSIGHT_PER_QUIZ_CORRECT = 3;

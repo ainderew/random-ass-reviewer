@@ -1,5 +1,22 @@
-import { and, asc, count, desc, eq, gt, gte, lte, sql } from 'drizzle-orm';
-import type { Card, CardReview, FsrsState, Rating } from '@/domain/types';
+import {
+  and,
+  asc,
+  count,
+  desc,
+  eq,
+  gt,
+  gte,
+  isNull,
+  lte,
+  sql,
+} from 'drizzle-orm';
+import type {
+  Card,
+  CardReview,
+  FsrsState,
+  Rating,
+  UpdateCardRequest,
+} from '@/domain/types';
 import type { DbOrTx } from '@/server/db';
 import { cardReviews, cards, noteChunks } from '@/server/db/schema';
 import { clampPage, type Page } from './pagination';
@@ -19,6 +36,10 @@ function toCard(row: CardRow): Card {
     nextDueAt: row.nextDueAt,
     fsrsState: row.fsrsState,
     suspended: row.suspended,
+    reviewStatus: row.reviewStatus,
+    subject: row.subject,
+    topic: row.topic,
+    quiz: row.quiz,
   };
 }
 
@@ -34,6 +55,10 @@ function toCardReview(row: ReviewRow): CardReview {
 }
 
 export interface NewCard {
+  reviewStatus?: Card['reviewStatus'];
+  subject?: Card['subject'];
+  topic?: Card['topic'];
+  quiz?: Card['quiz'];
   userId: string;
   chunkId: string;
   question: string;
@@ -75,6 +100,7 @@ export async function listDueCards(
       and(
         eq(cards.userId, input.userId),
         eq(cards.suspended, false),
+        eq(cards.reviewStatus, 'approved'),
         lte(cards.nextDueAt, input.now),
       ),
     )
@@ -161,11 +187,18 @@ export async function countChunksWithCards(
 
 export async function updateCardText(
   tx: DbOrTx,
-  input: { userId: string; cardId: string; question: string; answer: string },
+  input: UpdateCardRequest & { userId: string; cardId: string },
 ): Promise<Card | null> {
   const [row] = await tx
     .update(cards)
-    .set({ question: input.question, answer: input.answer })
+    .set(
+      Object.fromEntries(
+        Object.entries(input).filter(
+          ([key, value]) =>
+            key !== 'userId' && key !== 'cardId' && value !== undefined,
+        ),
+      ),
+    )
     .where(and(eq(cards.id, input.cardId), eq(cards.userId, input.userId)))
     .returning();
   return row ? toCard(row) : null;
@@ -210,6 +243,7 @@ export async function listSeenCards(
       and(
         eq(cards.userId, userId),
         eq(cards.suspended, false),
+        eq(cards.reviewStatus, 'approved'),
         sql`coalesce((${cards.fsrsState}->>'state')::int, 0) <> 0`,
       ),
     )
@@ -239,7 +273,7 @@ export async function countCardsFirstReviewedSince(
 // Most recent first. Used for the consecutive-correct run and retention.
 export async function listRecentReviews(
   tx: DbOrTx,
-  input: { userId: string; since?: Date },
+  input: { userId: string; since?: Date; includeQuiz?: boolean },
   page?: Partial<Page>,
 ): Promise<CardReview[]> {
   const { limit, offset } = clampPage(page);
@@ -250,6 +284,7 @@ export async function listRecentReviews(
     .where(
       and(
         eq(cards.userId, input.userId),
+        input.includeQuiz ? undefined : isNull(cardReviews.sessionId),
         input.since ? gte(cardReviews.reviewedAt, input.since) : undefined,
       ),
     )
@@ -272,6 +307,7 @@ export async function listCardsDueBetween(
       and(
         eq(cards.userId, input.userId),
         eq(cards.suspended, false),
+        eq(cards.reviewStatus, 'approved'),
         gt(cards.nextDueAt, input.from),
         lte(cards.nextDueAt, input.to),
       ),
@@ -294,7 +330,13 @@ export async function countCardsByMaturity(
       mature: sql<number>`count(*) filter (where coalesce((${cards.fsrsState}->>'state')::int, 0) <> 0 and (${cards.fsrsState}->>'scheduled_days')::numeric >= ${matureDays})`,
     })
     .from(cards)
-    .where(eq(cards.userId, userId));
+    .where(
+      and(
+        eq(cards.userId, userId),
+        eq(cards.reviewStatus, 'approved'),
+        eq(cards.suspended, false),
+      ),
+    );
   const total = row?.total ?? 0;
   const fresh = Number(row?.fresh ?? 0);
   const mature = Number(row?.mature ?? 0);
@@ -326,7 +368,13 @@ export async function listUserCards(
   const rows = await tx
     .select()
     .from(cards)
-    .where(and(eq(cards.userId, userId), eq(cards.suspended, false)))
+    .where(
+      and(
+        eq(cards.userId, userId),
+        eq(cards.suspended, false),
+        eq(cards.reviewStatus, 'approved'),
+      ),
+    )
     .orderBy(asc(cards.id))
     .limit(limit)
     .offset(offset);
@@ -341,6 +389,7 @@ export async function findNextDueAt(
     where: and(
       eq(cards.userId, input.userId),
       eq(cards.suspended, false),
+      eq(cards.reviewStatus, 'approved'),
       gt(cards.nextDueAt, input.after),
     ),
     orderBy: asc(cards.nextDueAt),
@@ -360,4 +409,46 @@ export async function countRecalled(
     .innerJoin(cards, eq(cards.id, cardReviews.cardId))
     .where(and(eq(cards.userId, userId), gte(cardReviews.rating, 3)));
   return row?.value ?? 0;
+}
+
+// Serializes reviews and edits of one card.
+export async function lockCard(
+  tx: DbOrTx,
+  userId: string,
+  cardId: string,
+): Promise<Card | null> {
+  const [row] = await tx
+    .select()
+    .from(cards)
+    .where(and(eq(cards.id, cardId), eq(cards.userId, userId)))
+    .for('update');
+  return row ? toCard(row) : null;
+}
+
+export async function hasRecallSince(
+  tx: DbOrTx,
+  cardId: string,
+  since: Date,
+): Promise<boolean> {
+  const [row] = await tx
+    .select({ id: cardReviews.id })
+    .from(cardReviews)
+    .where(
+      and(
+        eq(cardReviews.cardId, cardId),
+        isNull(cardReviews.sessionId),
+        gte(cardReviews.reviewedAt, since),
+      ),
+    )
+    .limit(1);
+  return !!row;
+}
+
+export async function listAllUserCards(
+  tx: DbOrTx,
+  userId: string,
+): Promise<Card[]> {
+  return (await tx.select().from(cards).where(eq(cards.userId, userId))).map(
+    toCard,
+  );
 }

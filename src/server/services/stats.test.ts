@@ -61,6 +61,14 @@ describe('weekly summary and export', () => {
         question: 'q',
         answer: 'a',
         sourceQuote: 't',
+        reviewStatus: 'approved' as const,
+        quiz: {
+          explanation: 'The correct answer follows from the source.',
+          distractors: ['X', 'Y', 'Z'].map((text) => ({
+            text,
+            explanation: 'This alternative is not supported by the source.',
+          })),
+        },
         tags: [],
         nextDueAt: new Date(),
         fsrsState: initialCardState(Date.now()),
@@ -77,7 +85,7 @@ describe('weekly summary and export', () => {
     expect(summary.cardsReviewed).toBe(1);
     expect(summary.retention).toBe(1);
 
-    const today = await getDailySummary(userId);
+    const today = await getDailySummary(userId, now);
     expect(today.creditedMs).toBeGreaterThan(0);
 
     const exported = await exportUserData(userId);

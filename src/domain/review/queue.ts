@@ -18,6 +18,7 @@ export function selectQueue<T extends CardSummary>(input: {
   newCards: T[];
   newCardsSeenToday: number;
   nowMs: number;
+  dailyNewLimit?: number;
 }): T[] {
   const byDue = [...input.due].sort((a, b) => a.nextDueAtMs - b.nextDueAtMs);
   const overdue = byDue.filter(
@@ -28,7 +29,10 @@ export function selectQueue<T extends CardSummary>(input: {
   );
   const newAllowance = Math.max(
     0,
-    MAX_NEW_CARDS_PER_DAY - input.newCardsSeenToday,
+    Math.min(
+      MAX_NEW_CARDS_PER_DAY,
+      input.dailyNewLimit ?? MAX_NEW_CARDS_PER_DAY,
+    ) - input.newCardsSeenToday,
   );
   const fresh = input.newCards.slice(0, newAllowance);
   return [...overdue, ...fresh, ...dueToday].slice(0, MAX_REVIEWS_PER_SESSION);

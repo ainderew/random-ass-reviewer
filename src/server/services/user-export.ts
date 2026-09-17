@@ -1,6 +1,10 @@
+import { exportQuizAttempts } from '@/server/repositories/quiz';
 import { db } from '@/server/db';
 import { AppError } from '@/server/errors';
-import { listRecentReviews, listUserCards } from '@/server/repositories/card';
+import {
+  listRecentReviews,
+  listAllUserCards,
+} from '@/server/repositories/card';
 import { listCompletedSince } from '@/server/repositories/focus-session';
 import {
   findIslandByUserId,
@@ -20,8 +24,8 @@ export async function exportUserData(userId: string) {
       findUserStats(db, userId),
       listCompletedSince(db, userId, new Date(0)),
       listNoteSources(db, userId, { limit: 500 }),
-      listUserCards(db, userId, { limit: 500 }),
-      listRecentReviews(db, { userId }, { limit: 500 }),
+      listAllUserCards(db, userId),
+      listRecentReviews(db, { userId, includeQuiz: true }, { limit: 500 }),
       island ? listPlacements(db, island.id) : Promise.resolve([]),
     ]);
   return {
@@ -34,7 +38,10 @@ export async function exportUserData(userId: string) {
       createdAt: user.createdAt,
       dailyCapMs: user.dailyCapMs,
       breakReminderMs: user.breakReminderMs,
+      examMonth: user.examMonth,
+      dailyNewCards: user.dailyNewCards,
     },
+    quizAttempts: await exportQuizAttempts(db, userId),
     stats,
     sessions,
     notes,

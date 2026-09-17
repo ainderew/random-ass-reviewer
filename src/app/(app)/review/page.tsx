@@ -9,6 +9,7 @@ import { auth } from '@/server/auth';
 import { getReviewQueue } from '@/server/services/review';
 import { getReviewStats } from '@/server/services/review-stats';
 import { ReviewSession } from './_components/review-session';
+import { StudyPlanPanel } from './_components/study-plan';
 import { ReviewStatsPanel } from './_components/review-stats';
 
 export default async function ReviewPage() {
@@ -28,6 +29,7 @@ export default async function ReviewPage() {
       <div className="mx-auto max-w-2xl space-y-8">
         <ReviewSession />
         <ReviewStatsPanel />
+        <StudyPlanPanel />
       </div>
     </HydrationBoundary>
   );
