@@ -6,10 +6,7 @@ import { useInstallPrompt } from '@/lib/use-install-prompt';
 export const InstallApp = () => {
   const state = useInstallPrompt();
   return (
-    <section
-      aria-label="Install"
-      className="space-y-2 border-t border-hairline pt-6"
-    >
+    <section aria-label="Install" className="space-y-2">
       <h2 className="font-serif text-2xl text-ink">On your home screen</h2>
       {state.kind === 'installed' ? (
         <p className="text-sm text-ink-2">

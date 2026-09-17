@@ -12,6 +12,8 @@ const listeners = new Set<() => void>();
 function readLength(): SessionLength {
   try {
     const raw = localStorage.getItem(LENGTH_KEY);
+    if (raw === '5') return 5;
+    if (raw === '15') return 15;
     if (raw === '25') return 25;
     if (raw === '50') return 50;
     if (raw === 'open') return null;

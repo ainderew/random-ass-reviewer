@@ -3,7 +3,11 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { HEARTBEAT_INTERVAL_MS } from '@/domain/session/constants';
-import type { SessionResult, SessionSnapshot } from '@/domain/types';
+import type {
+  SessionResult,
+  SessionSnapshot,
+  StartSessionRequest,
+} from '@/domain/types';
 import { ApiError } from '@/lib/api-client';
 import { statsQueryKey } from '@/lib/query-keys';
 import { withRetry } from '@/lib/retry';
@@ -35,7 +39,11 @@ export function useFocusSession() {
   const sessionIdRef = useRef<string | null>(null);
 
   const invalidateStats = useCallback(
-    () => queryClient.invalidateQueries({ queryKey: statsQueryKey }),
+    () =>
+      Promise.all([
+        queryClient.invalidateQueries({ queryKey: statsQueryKey }),
+        queryClient.invalidateQueries({ queryKey: ['today-plan'] }),
+      ]),
     [queryClient],
   );
 
@@ -62,7 +70,11 @@ export function useFocusSession() {
       .then((snapshot) => {
         if (cancelled) return;
         if (snapshot) adopt(snapshot);
-        else setStatus('idle');
+        else {
+          setStatus('idle');
+          // The active-session read may have settled an expired reading block.
+          void invalidateStats();
+        }
       })
       .catch(() => {
         if (!cancelled) setStatus('idle');
@@ -70,7 +82,7 @@ export function useFocusSession() {
     return () => {
       cancelled = true;
     };
-  }, [adopt]);
+  }, [adopt, invalidateStats]);
 
   const beat = useCallback(async () => {
     const sessionId = sessionIdRef.current;
@@ -99,20 +111,23 @@ export function useFocusSession() {
     return () => clearInterval(id);
   }, [status, beat]);
 
-  const start = useCallback(async () => {
-    setError(null);
-    setStatus('starting');
-    try {
-      adopt(await requestStartSession());
-    } catch (caught) {
-      setError(
-        caught instanceof ApiError
-          ? caught.message
-          : 'Could not start. Try again.',
-      );
-      setStatus('idle');
-    }
-  }, [adopt]);
+  const start = useCallback(
+    async (options?: StartSessionRequest) => {
+      setError(null);
+      setStatus('starting');
+      try {
+        adopt(await requestStartSession(options));
+      } catch (caught) {
+        setError(
+          caught instanceof ApiError
+            ? caught.message
+            : 'Could not start. Try again.',
+        );
+        setStatus('idle');
+      }
+    },
+    [adopt],
+  );
 
   const end = useCallback(async (): Promise<SessionResult | null> => {
     const sessionId = sessionIdRef.current;

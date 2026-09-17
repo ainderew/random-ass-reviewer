@@ -23,6 +23,13 @@ export default async function IslandPage() {
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
+      <div className="page-heading">
+        <h1 className="font-serif">A place of your own.</h1>
+        <p>
+          Spend your Focus and Insight on the island you are building, one
+          session at a time.
+        </p>
+      </div>
       <IslandView />
     </HydrationBoundary>
   );

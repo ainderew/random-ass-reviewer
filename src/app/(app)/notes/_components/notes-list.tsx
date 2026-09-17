@@ -28,10 +28,10 @@ export const NotesList = () => {
         <li key={note.id}>
           <Link
             href={`/notes/${note.id}`}
-            className="flex min-h-14 items-center justify-between gap-4 py-3 text-ink hover:text-focus focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
+            className="flex min-h-14 items-center justify-between gap-4 rounded-xl px-3 py-4 hover:bg-ground text-ink hover:text-focus focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
           >
             <span className="flex flex-col">
-              <span>{note.title}</span>
+              <span className="font-medium">{note.title}</span>
               <span className="text-xs text-muted">
                 {KIND_LABEL[note.kind]} ·{' '}
                 {new Date(note.createdAt).toLocaleDateString()}

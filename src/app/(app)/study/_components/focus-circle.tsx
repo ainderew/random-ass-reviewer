@@ -60,7 +60,7 @@ export const FocusCircle = ({
     .join(', ');
 
   return (
-    <div className="relative mx-auto aspect-square w-[min(88vw,24rem)]">
+    <div className="relative mx-auto aspect-square w-[min(68vw,30dvh,20rem)]">
       <svg
         viewBox="0 0 100 100"
         className="absolute inset-0 h-full w-full -rotate-90"

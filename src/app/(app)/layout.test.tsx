@@ -54,11 +54,11 @@ describe('AppLayout', () => {
     );
 
     // Top nav and tab bar both render; CSS decides which one shows.
-    for (const label of ['Study', 'Notes', 'Review', 'Island']) {
+    for (const label of ['Today', 'Notes', 'Review', 'Island']) {
       expect(screen.getAllByRole('link', { name: label })).toHaveLength(2);
     }
     expect(
-      screen.getAllByRole('link', { name: 'Study', current: 'page' }),
+      screen.getAllByRole('link', { name: 'Today', current: 'page' }),
     ).toHaveLength(2);
     expect(screen.getByText('120')).toBeInTheDocument();
     expect(

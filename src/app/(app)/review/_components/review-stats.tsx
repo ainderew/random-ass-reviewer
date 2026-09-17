@@ -13,7 +13,7 @@ export const ReviewStatsPanel = () => {
   return (
     <section
       aria-label="Review stats"
-      className="space-y-5 border-t border-hairline pt-6"
+      className="paper-panel space-y-5 p-5 sm:p-7"
     >
       <dl className="grid grid-cols-3 gap-4 text-sm">
         <div>

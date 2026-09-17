@@ -14,7 +14,7 @@ const base =
   'inline-flex items-center justify-center gap-2 rounded-lg font-medium select-none transition-[background-color,color,border-color,transform,opacity] duration-150 ease-out-quart focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 disabled:active:scale-100 aria-busy:cursor-progress';
 
 const variants: Record<Variant, string> = {
-  primary: 'bg-focus text-ground hover:bg-focus-deep',
+  primary: 'bg-focus text-white shadow-sm hover:bg-focus-deep',
   ghost:
     'border border-hairline bg-transparent text-ink hover:border-ink-2 hover:bg-ground-2',
 };

@@ -8,6 +8,8 @@ type SessionRow = typeof focusSessions.$inferSelect;
 function toFocusSession(row: SessionRow): FocusSession {
   return {
     id: row.id,
+    mode: row.mode,
+    readingLimitMs: row.readingLimitMs,
     userId: row.userId,
     startedAt: row.startedAt,
     endedAt: row.endedAt,
@@ -24,13 +26,20 @@ function toFocusSession(row: SessionRow): FocusSession {
 // active session for the same user.
 export async function createFocusSession(
   tx: DbOrTx,
-  input: { userId: string; lootSeed: string },
+  input: {
+    userId: string;
+    lootSeed: string;
+    mode?: 'focus' | 'reading';
+    readingLimitMs?: number;
+  },
 ): Promise<FocusSession> {
   const [row] = await tx
     .insert(focusSessions)
     .values({
       userId: input.userId,
       lootSeed: input.lootSeed,
+      mode: input.mode ?? 'focus',
+      readingLimitMs: input.readingLimitMs ?? null,
       startedAt: new Date(),
     })
     .returning();

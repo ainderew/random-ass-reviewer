@@ -2,7 +2,7 @@
    cache first for hashed assets and models, and an offline page when the
    network is gone. Money never comes from the cache: API calls are not
    cached at all. */
-const VERSION = 'aloft-v1';
+const VERSION = 'aloft-v3-journal';
 const SHELL = ['/offline', '/manifest.webmanifest', '/icons/icon-192.png'];
 
 self.addEventListener('install', (event) => {

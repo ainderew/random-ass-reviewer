@@ -1,22 +1,18 @@
 @import 'tailwindcss';
 
-/*
-  Aloft design tokens. North Star: "The Lantern Post", one warm light in a
-  calm dark scene. Colours come from visual-preview.html; muted was lifted
-  from #767d94 to clear 4.5:1 on the ground.
-*/
+/* An island field journal: ivory paper, botanical ink, quiet terracotta rules. */
 @theme {
-  --color-ground: #14161f;
-  --color-ground-2: #1b1f2c;
-  --color-ground-3: #232838;
-  --color-hairline: #2e3446;
-  --color-ink: #e9e5da;
-  --color-ink-2: #a7adc0;
-  --color-muted: #8b91a8;
-  --color-focus: #e8b04b;
-  --color-focus-deep: #c9932f;
-  --color-insight: #6fd6c4;
-  --color-warn: #e8836b;
+  --color-ground: #f6f3e9;
+  --color-ground-2: #faf8f0;
+  --color-ground-3: #e9e7d9;
+  --color-hairline: #d3d5c5;
+  --color-ink: #243d32;
+  --color-ink-2: #4e5b4e;
+  --color-muted: #626b5d;
+  --color-focus: #345a41;
+  --color-focus-deep: #274631;
+  --color-insight: #805234;
+  --color-warn: #a33e2e;
 
   --font-serif:
     Georgia, 'Iowan Old Style', 'Palatino Linotype', Palatino, serif;
@@ -24,8 +20,8 @@
   --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
 
-  --radius-md: 10px;
-  --radius-lg: 14px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
 }
 
 @theme inline {
@@ -35,7 +31,7 @@
 }
 
 :root {
-  color-scheme: dark;
+  color-scheme: light;
   /* Semantic z-index scale. Never reach for a bare number. */
   --z-sticky: 10;
   --z-modal-backdrop: 30;
@@ -266,5 +262,107 @@ p {
 @media (prefers-reduced-motion: reduce) {
   .lantern-flame {
     animation: none;
+  }
+}
+
+/* Shared surfaces keep notes, review, and settings in the same workspace. */
+.paper-panel {
+  border: 1px solid var(--color-hairline);
+  border-radius: 10px;
+  background: var(--color-ground-2);
+  box-shadow: none;
+}
+.page-heading {
+  margin-bottom: 2rem;
+}
+.page-heading h1 {
+  font-size: clamp(2.25rem, 5vw, 3rem);
+  line-height: 1.15;
+}
+.page-heading p {
+  margin-top: 0.75rem;
+  max-width: 55ch;
+  color: var(--color-ink-2);
+}
+
+.journal-hero {
+  position: relative;
+  min-height: 245px;
+  border-bottom: 1px solid var(--color-hairline);
+  overflow: hidden;
+}
+.journal-illustration {
+  position: absolute;
+  width: 64%;
+  height: 100%;
+  object-fit: contain;
+  right: -3%;
+  bottom: -5%;
+  mix-blend-mode: multiply;
+  mask-image: radial-gradient(
+    ellipse 65% 60% at 55% 52%,
+    black 45%,
+    transparent 85%
+  );
+}
+.journal-label {
+  font-size: 0.65rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+  font-weight: 600;
+}
+.journal-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1.25rem 0;
+}
+.journal-number {
+  font-family: var(--font-serif);
+  font-size: 1.4rem;
+  font-style: italic;
+  color: #805234;
+  line-height: 1.4;
+}
+.journal-primary {
+  display: flex;
+  min-height: 56px;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  border-radius: 7px;
+  padding: 0.85rem 1.2rem;
+  background: var(--color-focus);
+  color: #faf8f0;
+  font-weight: 500;
+}
+.journal-primary:hover {
+  background: var(--color-focus-deep);
+}
+.journal-primary:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 3px;
+}
+@media (max-width: 639px) {
+  .journal-hero {
+    min-height: 215px;
+  }
+  .journal-hero h1 {
+    font-size: 2.25rem;
+  }
+  .journal-hero p:last-child {
+    max-width: 23ch;
+    padding-bottom: 0;
+  }
+  .journal-illustration {
+    width: 68%;
+    height: 65%;
+    right: -4%;
+    bottom: -4%;
+    opacity: 0.8;
+  }
+  .journal-plan > div > .journal-label {
+    display: none;
   }
 }

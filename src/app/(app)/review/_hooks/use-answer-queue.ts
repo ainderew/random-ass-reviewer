@@ -31,6 +31,7 @@ export function useAnswerQueue(onFlushed: (result: AnswerResult) => void) {
     void queryClient.invalidateQueries({ queryKey: statsQueryKey });
     void queryClient.invalidateQueries({ queryKey: reviewStatsKey });
     void queryClient.invalidateQueries({ queryKey: ['study-plan'] });
+    void queryClient.invalidateQueries({ queryKey: ['today-plan'] });
   }, [queryClient]);
 
   const flush = useCallback(async () => {

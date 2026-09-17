@@ -41,7 +41,7 @@ export const SESSION_RUNGS: readonly Rung[] = [
 ];
 
 // Offered lengths, in minutes. Open means no shape beyond the rungs.
-export const SESSION_LENGTHS_MIN = [25, 50] as const;
+export const SESSION_LENGTHS_MIN = [5, 15, 25, 50] as const;
 export type SessionLength = (typeof SESSION_LENGTHS_MIN)[number] | null;
 
 export function rungsWithin(lengthMs: number | null): Rung[] {

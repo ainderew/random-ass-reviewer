@@ -56,7 +56,10 @@ export const SessionResult = ({
           <h1 className="font-serif text-4xl leading-tight tracking-[-0.01em] text-ink">
             Session saved
           </h1>
-          <p className="text-lg text-ink-2">{creditedLine(result)}</p>
+          <p className="text-lg text-ink-2">
+            {creditedLine(result)}
+            {result.mode === 'reading' ? ' · self-reported reading' : ''}
+          </p>
         </div>
 
         <div className="relative">

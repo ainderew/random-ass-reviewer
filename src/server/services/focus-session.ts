@@ -1,3 +1,8 @@
+import { readingElapsedMs } from '@/domain/session/reading';
+import {
+  startSessionRequestSchema,
+  type StartSessionRequest,
+} from '@/domain/types/session';
 import { MAX_SESSIONS_PER_DAY } from '@/domain/session/constants';
 import {
   creditForGap,
@@ -37,7 +42,16 @@ async function toSnapshot(
   return {
     sessionId: session.id,
     startedAt: session.startedAt.toISOString(),
-    focusedMs: session.focusedMs,
+    mode: session.mode ?? 'focus',
+    readingLimitMs: session.readingLimitMs,
+    focusedMs:
+      session.mode === 'reading'
+        ? readingElapsedMs(
+            session.startedAt.getTime(),
+            Date.now(),
+            session.readingLimitMs ?? 0,
+          )
+        : session.focusedMs,
     lastSeq: last?.seq ?? null,
   };
 }
@@ -53,7 +67,11 @@ export async function sweepStaleSessions(
   for (const session of active) {
     const last = await getLastHeartbeat(db, session.id);
     const lastActivityMs = (last?.at ?? session.startedAt).getTime();
-    if (!isStale({ lastActivityMs, nowMs })) continue;
+    // PDF reading can stay in the background. Settle expired blocks on return.
+    if (session.mode === 'reading') {
+      if (nowMs < session.startedAt.getTime() + (session.readingLimitMs ?? 0))
+        continue;
+    } else if (!isStale({ lastActivityMs, nowMs })) continue;
     try {
       await endSession({ userId, sessionId: session.id });
     } catch (error) {
@@ -74,7 +92,11 @@ export async function getActiveSession(
 
 // Returns the existing session rather than erroring when one is already
 // running. The partial unique index is the backstop for the race.
-export async function startSession(userId: string): Promise<SessionSnapshot> {
+export async function startSession(
+  userId: string,
+  request: StartSessionRequest = { mode: 'focus' },
+): Promise<SessionSnapshot> {
+  const options = startSessionRequestSchema.parse(request);
   await sweepStaleSessions(userId);
 
   const existing = await findActiveSession(db, userId);
@@ -93,6 +115,10 @@ export async function startSession(userId: string): Promise<SessionSnapshot> {
     const created = await createFocusSession(db, {
       userId,
       lootSeed: crypto.randomUUID(),
+      mode: options.mode,
+      ...(options.mode === 'reading'
+        ? { readingLimitMs: options.minutes * 60_000 }
+        : {}),
     });
     return toSnapshot(db, created);
   } catch (error) {
@@ -116,6 +142,14 @@ export async function recordHeartbeat(
     if (session.status !== 'active')
       throw new AppError('INVALID_STATE', 'Session already ended');
 
+    if (session.mode === 'reading')
+      return {
+        focusedMs: readingElapsedMs(
+          session.startedAt.getTime(),
+          Date.now(),
+          session.readingLimitMs ?? 0,
+        ),
+      };
     const last = await getLastHeartbeat(tx, session.id);
     const nowMs = Date.now();
     const verdict = isValidNextBeat({

@@ -1,3 +1,4 @@
+import { readingElapsedMs } from '@/domain/session/reading';
 import { MIN_SESSION_MS } from '@/domain/economy/constants';
 import { env } from '@/lib/env';
 import { applyDailyCap, calculateFocusAward } from '@/domain/economy/currency';
@@ -67,9 +68,17 @@ export async function endSession(input: {
     const session = await claimSessionForEnd(tx, { ...input, endedAt });
     if (!session) throw new AppError('INVALID_STATE', 'Session already ended');
 
-    const focusedMs = accumulateFocusedMs(await loadAllBeats(tx, session.id));
+    const focusedMs =
+      session.mode === 'reading'
+        ? readingElapsedMs(
+            session.startedAt.getTime(),
+            endedAt.getTime(),
+            session.readingLimitMs ?? 0,
+          )
+        : accumulateFocusedMs(await loadAllBeats(tx, session.id));
     const base = {
       sessionId: session.id,
+      mode: session.mode ?? 'focus',
       focusedMs,
       xpAwarded: 0,
       focusAwarded: 0,

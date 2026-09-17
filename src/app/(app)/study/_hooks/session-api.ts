@@ -7,14 +7,15 @@ import type {
   SessionQuiz,
   SessionResult,
   SessionSnapshot,
+  StartSessionRequest,
 } from '@/domain/types';
 import { apiFetch, postJson } from '@/lib/api-client';
 
 // Note what is absent from every payload: time. The server owns the clock.
 export const fetchActiveSession = () =>
   apiFetch<SessionSnapshot | null>('/api/session/active');
-export const requestStartSession = () =>
-  postJson<SessionSnapshot>('/api/session/start');
+export const requestStartSession = (options?: StartSessionRequest) =>
+  postJson<SessionSnapshot>('/api/session/start', options);
 export const sendHeartbeat = (body: HeartbeatRequest) =>
   postJson<HeartbeatResult>('/api/session/beat', body);
 export const requestEndSession = (sessionId: string) =>

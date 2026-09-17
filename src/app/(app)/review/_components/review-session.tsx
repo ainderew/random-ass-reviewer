@@ -1,5 +1,7 @@
 'use client';
 
+import Link from 'next/link';
+import { reviewBatch, type StudyBudget } from '@/domain/review/today';
 import { useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { QueuedCard, Rating } from '@/domain/types';
@@ -23,9 +25,18 @@ const isTyping = (target: EventTarget | null) =>
 // Space reveals, 1 to 4 rate. Serious users review hundreds of cards and will
 // not click through them, so the keyboard is the primary interface and the
 // shortcuts stay on screen. A failed save is queued; the student keeps moving.
-export const ReviewSession = () => {
+export const ReviewSession = ({
+  minutes = null,
+}: {
+  minutes?: StudyBudget | null;
+}) => {
   const queryClient = useQueryClient();
-  const { data: queue, isPending } = useReviewQueue();
+  const {
+    data: queue,
+    isPending,
+    isError: queueError,
+    refetch,
+  } = useReviewQueue();
   const { data: stats } = useReviewStats();
   const pop = useSpringPop();
   const [index, setIndex] = useState(0);
@@ -45,7 +56,9 @@ export const ReviewSession = () => {
   }, []);
   const answers = useAnswerQueue((result) => credit(result.insightAwarded));
 
-  const cards: QueuedCard[] = (queue ?? []).filter((c) => !skipped.has(c.id));
+  const cards: QueuedCard[] = (
+    minutes ? reviewBatch(queue ?? [], minutes) : (queue ?? [])
+  ).filter((c) => !skipped.has(c.id));
   const card = cards[index];
   const done = !isPending && card === undefined;
 
@@ -125,21 +138,53 @@ export const ReviewSession = () => {
 
   if (isPending) return <p className="text-ink-2">Loading your deck…</p>;
 
+  if (queueError)
+    return (
+      <p role="alert">
+        Your cards could not load.{' '}
+        <button className="underline" onClick={() => void refetch()}>
+          Try again
+        </button>
+      </p>
+    );
+
   if (done) {
     return (
-      <ReviewComplete
-        reviewed={index}
-        insight={insight}
-        bestRun={bestRun}
-        totalCards={stats?.totals.total ?? null}
-        nextDueAt={stats?.nextDueAt ?? null}
-        onAgain={() => {
-          setIndex(0);
-          setRun(0);
-          setInsight(0);
-          void queryClient.invalidateQueries({ queryKey: reviewQueueKey });
-        }}
-      />
+      <div className="space-y-6">
+        <ReviewComplete
+          reviewed={index}
+          bounded={minutes !== null}
+          insight={insight}
+          bestRun={bestRun}
+          totalCards={stats?.totals.total ?? null}
+          nextDueAt={stats?.nextDueAt ?? null}
+          onAgain={() => {
+            if (answers.pending > 0) return;
+            setIndex(0);
+            setRun(0);
+            setInsight(0);
+            void queryClient.invalidateQueries({ queryKey: reviewQueueKey });
+          }}
+        />
+        {answers.pending > 0 ? (
+          <p role="status">
+            {answers.pending} answers waiting to save. Keep this page open until
+            they are saved.
+          </p>
+        ) : (
+          <>
+            <Link href="/review/mistakes" className="journal-primary">
+              Check for a mistake follow-up <span aria-hidden="true">→</span>
+            </Link>
+            <Link
+              href="/study"
+              className="inline-flex min-h-11 items-center text-focus underline"
+            >
+              Back to today
+            </Link>
+          </>
+        )}
+      </div>
     );
   }
 

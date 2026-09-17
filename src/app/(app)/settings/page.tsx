@@ -8,11 +8,18 @@ export default async function SettingsPage() {
   const session = await auth();
   if (!session?.user?.id) redirect('/');
   return (
-    <section className="mx-auto max-w-2xl space-y-10">
-      <h1 className="font-serif text-4xl text-ink">Settings</h1>
-      <PreferencesForm />
-      <InstallApp />
-      <div className="border-t border-hairline pt-6">
+    <section className="mx-auto w-full max-w-3xl space-y-6">
+      <div className="page-heading">
+        <h1 className="font-serif text-ink">Make yourself at home.</h1>
+        <p>Your study plan and preferences, all in one place.</p>
+      </div>
+      <div className="paper-panel p-5 sm:p-8">
+        <PreferencesForm />
+      </div>
+      <div className="paper-panel p-5 sm:p-8">
+        <InstallApp />
+      </div>
+      <div className="paper-panel p-5 sm:p-8">
         <ApiKeyForm />
       </div>
     </section>

@@ -41,6 +41,7 @@ export function useSubmitAnswer() {
     mutationFn: (body: ReviewAnswerRequest) =>
       postJson<AnswerResult>('/api/review/answer', body),
     onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['today-plan'] });
       void queryClient.invalidateQueries({ queryKey: statsQueryKey });
       void queryClient.invalidateQueries({ queryKey: reviewStatsKey });
     },

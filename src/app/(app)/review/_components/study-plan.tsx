@@ -30,7 +30,7 @@ export const StudyPlanPanel = () => {
   return (
     <section
       aria-label="Medtech study plan"
-      className="space-y-4 border-t border-hairline pt-6"
+      className="paper-panel space-y-4 p-5 sm:p-7"
     >
       <h2 className="font-serif text-2xl text-ink">Your Medtech review</h2>
       <p className="text-ink-2">
@@ -50,8 +50,8 @@ export const StudyPlanPanel = () => {
         {MTLE_SUBJECTS.map((s) => {
           const row = data.subjects.find((r) => r.subject === s.id);
           return (
-            <li key={s.id} className="py-3 space-y-1">
-              <h3 className="text-ink">{s.label}</h3>
+            <li key={s.id} className="py-4 space-y-1">
+              <h3 className="font-medium text-ink">{s.label}</h3>
               <p className="text-ink-2">
                 {!row?.total
                   ? 'No notes classified here yet.'
@@ -76,38 +76,19 @@ export const StudyPlanPanel = () => {
         </a>
         . Confirm the applicable version for your exam sitting.
       </p>
-      {data.mistakes.length ? (
-        <div className="space-y-4">
-          <h3 className="font-serif text-2xl text-ink">
-            Revisit quiz mistakes
-          </h3>
-          <p className="text-ink-2">
-            Try answering again before opening the correction. This extra
-            practice does not change your schedule or earn repeat points.
-          </p>
-          {data.mistakes.map((m) => (
-            <details
-              key={m.cardId}
-              className="border-b border-hairline pb-3 text-ink-2"
-            >
-              <summary className="cursor-pointer py-2 text-ink">
-                {m.question}
-              </summary>
-              <div className="space-y-2">
-                <p className="text-insight">{m.answer}</p>
-                <p>{m.explanation}</p>
-                <blockquote>{m.sourceQuote}</blockquote>
-                <Link
-                  href={`/notes/${m.sourceId}`}
-                  className="text-focus underline"
-                >
-                  Check source and card
-                </Link>
-              </div>
-            </details>
-          ))}
-        </div>
-      ) : null}
+      <div className="border-t border-hairline pt-5">
+        <h3 className="font-serif text-2xl">Revisit quiz mistakes</h3>
+        <p className="mt-2 text-sm text-ink-2">
+          Missed questions return after 24 hours. Try answering before seeing
+          the correction.
+        </p>
+        <Link
+          href="/review/mistakes"
+          className="mt-3 inline-flex min-h-11 items-center text-focus underline"
+        >
+          Open delayed checks ↗
+        </Link>
+      </div>
     </section>
   );
 };

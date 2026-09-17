@@ -3,19 +3,17 @@ import { OnboardingSteps } from '@/app/(app)/_components/onboarding-steps';
 import type { CareerProgress } from '@/domain/career/milestones';
 import type { Aim } from '@/domain/island/aim';
 import type { SessionLength } from '@/domain/session/rungs';
+import type { StudyBudget } from '@/domain/review/today';
 import { Button } from '@/components/ui/button';
 import { formatClock } from '@/lib/format-time';
 import { AimLine } from './aim-line';
 import { CareerNext } from './career-next';
-import { FocusCircle } from './focus-circle';
+import { CoastalHero } from '@/components/coastal-hero';
 import { LengthPicker } from './length-picker';
-import { TimerFrame } from './timer-frame';
 import { TodayLanterns } from './today-lanterns';
 import { WeeklySummaryCard } from './weekly-summary';
+import { TodayPlan } from './today-plan';
 
-// One shape, one number, one button. She moves around the room she has
-// earned while you decide; the ring shows the rungs the chosen length will
-// pass. Everything smaller sits under the button.
 export const IdleView = ({
   creditedTodayMs,
   todaySessions,
@@ -31,6 +29,7 @@ export const IdleView = ({
   starting,
   error,
   onStart,
+  onRead,
 }: {
   creditedTodayMs: number;
   todaySessions: Array<{ creditedMs: number }>;
@@ -46,92 +45,91 @@ export const IdleView = ({
   starting: boolean;
   error: string | null;
   onStart: () => void;
+  onRead: (minutes: StudyBudget) => void;
 }) => (
-  <TimerFrame
-    label="Start a focus session"
-    actions={
-      <>
-        {error ? (
-          <p
-            role="status"
-            className="text-[0.9375rem] leading-relaxed text-warn"
-          >
-            {error}
-          </p>
-        ) : null}
-        <Button
-          onClick={onStart}
-          disabled={starting}
-          aria-busy={starting}
-          size="lg"
-          block
-        >
-          {starting ? 'Starting…' : 'Start focusing'}
-        </Button>
-      </>
-    }
-    below={
-      <>
-        <WeeklySummaryCard />
-        {todaySessions.length > 0 ? (
-          <TodayLanterns
-            sessions={todaySessions}
-            creditedMs={creditedTodayMs}
-          />
-        ) : streakDays > 0 && !firstVisit ? (
-          <p className="text-sm text-muted">
-            {streakDays}-day streak. Nothing credited yet today.
-          </p>
-        ) : null}
-        <CareerNext progress={career} />
-      </>
-    }
-  >
-    <div className="flex flex-col items-center gap-6 text-center">
-      <OnboardingSteps />
-      <h1 className="font-serif text-3xl leading-tight tracking-[-0.01em] text-ink md:text-4xl">
-        {firstVisit ? 'Your first session.' : 'Ready when you are.'}
-      </h1>
-      {firstVisit ? (
-        <p className="max-w-[40ch] text-lg leading-relaxed text-ink-2">
-          Start the timer and study anything. Stay on this tab and every minute
-          pays ten Focus. Five minutes is enough for the first reward.{' '}
-          <Link
-            href="/how-it-works"
-            className="text-focus underline underline-offset-4"
-          >
-            How rewards work
-          </Link>
-        </p>
-      ) : null}
-      <FocusCircle
-        progress={career}
-        mood="wandering"
-        lengthMs={length === null ? null : length * 60_000}
-      />
-      <div className="rounded-full border border-hairline px-4 py-1.5">
-        <AimLine
-          aim={aim}
-          focusBalance={focusBalance}
-          level={level}
-          onChange={onAimChange}
-        />
-      </div>
-      <p
-        className="font-mono text-[clamp(3.25rem,16vw,5.25rem)] leading-none font-medium tracking-[-0.03em] text-ink tabular-nums"
-        aria-label="Session length"
-      >
-        {length === null ? (
-          <span className="font-serif text-4xl font-normal tracking-normal md:text-5xl">
-            Open
-          </span>
-        ) : (
-          formatClock(length * 60_000)
-        )}
+  <div className="space-y-8">
+    <CoastalHero />
+    {error && (
+      <p role="alert" className="text-warn">
+        {error}
       </p>
-      <div className="flex justify-center">
-        <LengthPicker value={length} onChange={onLengthChange} />
-      </div>
+    )}
+    <div className="grid items-start gap-9 md:grid-cols-[1.4fr_1fr] lg:gap-14">
+      <TodayPlan onRead={onRead} starting={starting} />
+      <aside className="space-y-7 md:border-l md:border-hairline md:pl-8">
+        <section
+          aria-label="Your island goal"
+          className="border-y border-hairline py-5"
+        >
+          <p className="journal-label">From effort to a little home</p>
+          <Link
+            href="/island"
+            className="my-3 flex min-h-11 items-center justify-between font-serif text-3xl text-focus"
+          >
+            Your island project <span aria-hidden="true">↗</span>
+          </Link>
+          <AimLine
+            aim={aim}
+            focusBalance={focusBalance}
+            level={level}
+            onChange={onAimChange}
+          />
+          <div className="mt-5 border-t border-hairline pt-5">
+            <CareerNext progress={career} />
+          </div>
+        </section>
+        <section aria-label="Start a focus session" className="space-y-4">
+          <div>
+            <p className="journal-label">Stay a little longer</p>
+            <h2 className="mt-2 font-serif text-2xl">Focus session</h2>
+            <p className="mt-1 text-sm text-ink-2">
+              {firstVisit
+                ? 'Your first session. Start small.'
+                : 'Keep Aloft visible while you study.'}
+            </p>
+          </div>
+          <p
+            className="font-serif text-5xl tabular-nums"
+            aria-label="Session length"
+          >
+            {length === null ? 'Open' : formatClock(length * 60_000)}
+          </p>
+          <LengthPicker value={length} onChange={onLengthChange} />
+          <Button
+            onClick={onStart}
+            disabled={starting}
+            aria-busy={starting}
+            block
+            variant="ghost"
+          >
+            {starting ? 'Starting…' : 'Start focusing'}
+          </Button>
+          <p className="text-xs text-muted">
+            Visible, focused time earns Focus after 5 minutes.{' '}
+            <Link href="/how-it-works" className="underline">
+              How it works
+            </Link>
+          </p>
+        </section>
+        <Link
+          href="/notes"
+          className="flex min-h-14 items-center justify-between border-y border-hairline py-3 text-focus"
+        >
+          Your notes &amp; sources <span aria-hidden="true">↗</span>
+        </Link>
+      </aside>
     </div>
-  </TimerFrame>
+    <OnboardingSteps />
+    <WeeklySummaryCard />
+    {todaySessions.length > 0 ? (
+      <div className="border-t border-hairline py-5">
+        <TodayLanterns sessions={todaySessions} creditedMs={creditedTodayMs} />
+      </div>
+    ) : streakDays > 0 && !firstVisit ? (
+      <p className="text-sm text-muted">
+        Your previous streak: {streakDays} days. Today can start with one small
+        step.
+      </p>
+    ) : null}
+  </div>
 );

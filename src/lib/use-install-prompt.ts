@@ -35,11 +35,16 @@ function subscribeStandalone(onChange: () => void): () => void {
 
 const isIos = () =>
   typeof navigator !== 'undefined' &&
-  /iphone|ipad|ipod/i.test(navigator.userAgent);
+  (/iphone|ipad|ipod/i.test(navigator.userAgent) ||
+    (/Macintosh/i.test(navigator.userAgent) && navigator.maxTouchPoints > 1));
+
+const subscribePlatform = () => () => {};
 
 // Chrome and Edge hand us a deferred prompt; Safari on iOS needs the Share
 // sheet, which cannot be triggered from a page. Say so instead of hiding it.
 export function useInstallPrompt(): InstallState {
+  // Use the server snapshot during hydration before reading the browser's OS.
+  const ios = useSyncExternalStore(subscribePlatform, isIos, () => false);
   const standalone = useSyncExternalStore(
     subscribeStandalone,
     readStandalone,
@@ -76,6 +81,6 @@ export function useInstallPrompt(): InstallState {
       },
     };
   }
-  if (isIos()) return { kind: 'ios' };
+  if (ios) return { kind: 'ios' };
   return { kind: 'unavailable' };
 }

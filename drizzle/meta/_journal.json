@@ -50,6 +50,20 @@
       "when": 1789658305707,
       "tag": "0006_medtech_learning",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1789699000000,
+      "tag": "0007_reading_sessions",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1789699000001,
+      "tag": "0008_mistake_checks",
+      "breakpoints": true
     }
   ]
 }

@@ -12,8 +12,8 @@ export default function GlobalError({
     <html lang="en">
       <body
         style={{
-          background: '#14161f',
-          color: '#e9e5da',
+          background: '#f6f3e9',
+          color: '#153b43',
           fontFamily: 'system-ui, sans-serif',
           margin: 0,
           padding: '3rem 1.5rem',
@@ -30,7 +30,7 @@ export default function GlobalError({
             Aloft hit a snag
           </h1>
           <p
-            style={{ lineHeight: 1.6, color: '#a7adc0', margin: '0 0 1.25rem' }}
+            style={{ lineHeight: 1.6, color: '#47636d', margin: '0 0 1.25rem' }}
           >
             Your progress is safe on the server. Reload to keep going.
           </p>
@@ -38,8 +38,8 @@ export default function GlobalError({
             type="button"
             onClick={reset}
             style={{
-              background: '#e8b04b',
-              color: '#14161f',
+              background: '#296b5c',
+              color: '#f6f3e9',
               border: 0,
               borderRadius: '0.5rem',
               padding: '0.75rem 1.25rem',
@@ -55,7 +55,7 @@ export default function GlobalError({
                 marginTop: '1.5rem',
                 fontFamily: 'monospace',
                 fontSize: '0.75rem',
-                color: '#8b91a8',
+                color: '#526e77',
               }}
             >
               Reference {error.digest}

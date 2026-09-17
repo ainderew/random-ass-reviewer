@@ -5,12 +5,15 @@ import { SignOutButton } from '@/components/nav/sign-out-button';
 import { TopNav } from '@/components/nav/top-nav';
 
 export const AppHeader = () => (
-  <header className="sticky top-0 z-(--z-sticky) border-b border-hairline bg-ground/90 pt-[env(safe-area-inset-top)] backdrop-blur-sm">
-    <div className="mx-auto flex h-14 max-w-5xl items-center gap-4 px-4 md:h-16 md:gap-8 md:px-6">
+  <header className="sticky top-0 z-(--z-sticky) border-b border-hairline bg-ground/95 pt-[env(safe-area-inset-top)] backdrop-blur-sm">
+    <div className="mx-auto flex h-14 max-w-6xl items-center gap-4 px-4 md:h-16 lg:gap-8 md:px-6">
       <Link
         href="/study"
-        className="font-serif text-xl text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
+        className="font-serif text-2xl text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
       >
+        <span aria-hidden="true" className="mr-2 text-focus">
+          ✦
+        </span>
         Aloft
       </Link>
       <TopNav />

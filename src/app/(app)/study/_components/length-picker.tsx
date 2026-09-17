@@ -37,7 +37,7 @@ export const LengthPicker = ({
             role="radio"
             aria-checked={on}
             onClick={() => onChange(option.length)}
-            className={`${chip} ${on ? 'border-focus text-ink' : 'border-hairline text-ink-2 hover:text-ink'}`}
+            className={`${chip} ${on ? 'border-focus bg-focus/10 text-focus' : 'border-hairline text-ink-2 hover:text-ink'}`}
           >
             {option.label}
           </button>

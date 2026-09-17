@@ -1,6 +1,13 @@
 import { eq } from 'drizzle-orm';
 import { db, closeDb } from '@/server/db';
-import { cards, cardReviews, focusSessions, users } from '@/server/db/schema';
+import {
+  cards,
+  cardReviews,
+  focusSessions,
+  sessionQuizQuestions,
+  mistakeChecks,
+  users,
+} from '@/server/db/schema';
 import { initialCardState } from '@/domain/review/scheduler';
 import { insertCards } from '@/server/repositories/card';
 import { insertNoteChunks, insertNoteSource } from '@/server/repositories/note';
@@ -16,6 +23,8 @@ import {
 } from './session-quiz';
 import { updateProfile } from './user-settings';
 import { getWorldSignals } from './island';
+import { getMistakeChecks, answerMistakeCheck } from './mistakes';
+import { getTodayPlan } from './today-plan';
 import { exportUserData } from './user-export';
 
 const created: string[] = [];
@@ -202,4 +211,98 @@ it('refuses another user editing or inspecting a quiz', async () => {
   await expect(
     getSessionQuiz({ userId: intruder.userId, sessionId: session!.id }),
   ).rejects.toMatchObject({ code: 'NOT_FOUND' });
+});
+
+it('schedules delayed checks, freezes retry results, and clears only a correct delayed answer', async () => {
+  const { userId, card } = await setup();
+  const empty = await getTodayPlan(userId);
+  expect(empty.approved).toBe(0);
+  expect(empty.batches[5].total).toBe(0);
+  await editCard({ userId, cardId: card.id, reviewStatus: 'approved' });
+  expect((await getTodayPlan(userId)).batches[5]).toEqual({
+    total: 1,
+    returning: 0,
+    fresh: 1,
+  });
+  await answer(userId, card.id, 3);
+  const [session] = await db
+    .insert(focusSessions)
+    .values({ userId, startedAt: new Date(), lootSeed: 'delayed' })
+    .returning();
+  const input = { userId, sessionId: session!.id };
+  const quiz = await getSessionQuiz(input);
+  const wrong = quiz.questions[0]!.options.indexOf('Sample B');
+  const right = quiz.questions[0]!.options.indexOf('Sample A');
+  await answerQuizQuestion({ ...input, cardId: card.id, optionIndex: wrong });
+  const checks = await getMistakeChecks(userId);
+  expect(checks).toHaveLength(1);
+  expect(checks[0]).not.toHaveProperty('correctIndex');
+  expect((await getTodayPlan(userId)).mistakesDue).toBe(0);
+  const attempt = {
+    sessionId: session!.id,
+    cardId: card.id,
+    attemptId: crypto.randomUUID(),
+    optionIndex: wrong,
+  };
+  await expect(answerMistakeCheck(userId, attempt)).rejects.toMatchObject({
+    code: 'INVALID_STATE',
+  });
+  await db
+    .update(sessionQuizQuestions)
+    .set({ answeredAt: new Date(Date.now() - 25 * 3600000) })
+    .where(eq(sessionQuizQuestions.sessionId, session!.id));
+  expect((await getTodayPlan(userId)).mistakesDue).toBe(1);
+  const [a, b] = await Promise.all([
+    answerMistakeCheck(userId, attempt),
+    answerMistakeCheck(userId, attempt),
+  ]);
+  expect(a).toEqual(b);
+  expect(a.correct).toBe(false);
+  expect(a.nextDueAt).not.toBeNull();
+  const retry = await answerMistakeCheck(userId, {
+    ...attempt,
+    optionIndex: right,
+  });
+  expect(retry).toEqual(a);
+  expect((await getTodayPlan(userId)).mistakesDue).toBe(0);
+  await db
+    .update(mistakeChecks)
+    .set({ answeredAt: new Date(Date.now() - 25 * 3600000) })
+    .where(eq(mistakeChecks.id, attempt.attemptId));
+  const correct = await answerMistakeCheck(userId, {
+    ...attempt,
+    attemptId: crypto.randomUUID(),
+    optionIndex: right,
+  });
+  expect(correct).toMatchObject({ correct: true, nextDueAt: null });
+  expect(await getMistakeChecks(userId)).toEqual([]);
+  expect((await exportUserData(userId)).mistakeChecks).toHaveLength(2);
+});
+it('removes edited or unapproved questions from delayed checks and isolates their owner', async () => {
+  const { userId, card } = await setup();
+  const other = await setup();
+  await editCard({ userId, cardId: card.id, reviewStatus: 'approved' });
+  await answer(userId, card.id, 3);
+  const [session] = await db
+    .insert(focusSessions)
+    .values({ userId, startedAt: new Date(), lootSeed: 'private-check' })
+    .returning();
+  const quiz = await getSessionQuiz({ userId, sessionId: session!.id });
+  await answerQuizQuestion({
+    userId,
+    sessionId: session!.id,
+    cardId: card.id,
+    optionIndex: quiz.questions[0]!.options.indexOf('Sample B'),
+  });
+  expect(await getMistakeChecks(other.userId)).toEqual([]);
+  await expect(
+    answerMistakeCheck(other.userId, {
+      sessionId: session!.id,
+      cardId: card.id,
+      attemptId: crypto.randomUUID(),
+      optionIndex: 0,
+    }),
+  ).rejects.toMatchObject({ code: 'NOT_FOUND' });
+  await editCard({ userId, cardId: card.id, answer: 'An edited answer' });
+  expect(await getMistakeChecks(userId)).toEqual([]);
 });

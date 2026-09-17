@@ -16,6 +16,7 @@ function nextDueLine(nextDueAt: Date | string | null): string {
 // "No cards" is a task. "Caught up" is an achievement. They must not look alike.
 export const ReviewComplete = ({
   reviewed,
+  bounded = false,
   insight,
   bestRun,
   totalCards,
@@ -23,6 +24,7 @@ export const ReviewComplete = ({
   onAgain,
 }: {
   reviewed: number;
+  bounded?: boolean;
   insight: number;
   bestRun: number;
   totalCards: number | null;
@@ -51,12 +53,14 @@ export const ReviewComplete = ({
     <section className="rise-in space-y-6" aria-label="Review complete">
       <div className="space-y-2">
         <h1 className="font-serif text-4xl leading-tight text-ink">
-          Deck cleared
+          {bounded ? 'Your batch is complete' : 'Deck cleared'}
         </h1>
         <p className="text-ink-2">
           {reviewed} {reviewed === 1 ? 'card' : 'cards'} reviewed
           {bestRun >= 3 ? `, best run ${bestRun}` : ''}.{' '}
-          {nextDueLine(nextDueAt)}
+          {bounded
+            ? 'A good stopping point. More cards may still be waiting.'
+            : nextDueLine(nextDueAt)}
         </p>
       </div>
       {insight > 0 ? (

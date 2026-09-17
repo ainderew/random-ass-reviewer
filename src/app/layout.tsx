@@ -21,16 +21,16 @@ export const metadata: Metadata = {
     icon: [{ url: '/icons/icon-192.png', sizes: '192x192', type: 'image/png' }],
     apple: [{ url: '/icons/apple-touch-icon.png', sizes: '180x180' }],
   },
-  // Installed on iOS: full-screen, dark status bar, our name on the home screen.
+  // Installed on iOS: use the light status bar to match the coastal theme.
   appleWebApp: {
     capable: true,
-    statusBarStyle: 'black-translucent',
+    statusBarStyle: 'default',
     title: 'Aloft',
   },
 };
 
 export const viewport: Viewport = {
-  themeColor: '#14161f',
+  themeColor: '#f6f3e9',
   // Lets the bottom tab bar extend under the home indicator on phones.
   viewportFit: 'cover',
 };

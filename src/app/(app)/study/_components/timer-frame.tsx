@@ -20,14 +20,14 @@ export const TimerFrame = ({
 }) => (
   <section
     aria-label={label}
-    className="mx-auto flex w-full max-w-md flex-1 flex-col md:flex-none md:pt-12 lg:pt-20"
+    className="mx-auto flex w-full max-w-lg flex-1 flex-col rounded-3xl border border-hairline bg-ground-2 px-5 pt-4 pb-6 md:flex-none md:px-10 md:pt-6"
   >
     <div className="min-h-7">{top}</div>
-    <div className="flex flex-1 flex-col justify-center py-10 md:py-12">
+    <div className="flex flex-1 flex-col justify-center py-5 md:py-8">
       {children}
     </div>
     {/* On phones the action row stays in the thumb zone above the tab bar. */}
-    <div className="sticky bottom-[calc(3.5rem+env(safe-area-inset-bottom))] z-10 -mx-4 space-y-3 bg-gradient-to-t from-ground via-ground/95 to-transparent px-4 pt-6 pb-3 md:static md:mx-0 md:bg-none md:p-0">
+    <div className="sticky bottom-[calc(5rem+env(safe-area-inset-bottom))] z-10 -mx-4 space-y-3 bg-ground-2 px-4 pt-6 pb-3 md:static md:mx-0 md:bg-ground-2 md:p-0">
       {actions}
     </div>
     {below ? <div className="mt-6 space-y-3">{below}</div> : null}

@@ -14,6 +14,8 @@ export interface FocusSession {
   status: SessionStatus;
   quizMultiplier: number;
   quizSubmittedAt: Date | null;
+  mode?: 'focus' | 'reading';
+  readingLimitMs?: number | null;
 }
 
 export interface Heartbeat {
@@ -23,8 +25,14 @@ export interface Heartbeat {
   focused: boolean;
 }
 
-// The client sends nothing at start. The server picks the clock and the loot seed.
-export const startSessionRequestSchema = z.object({});
+// Only intent comes from the client. The server owns the clock and limit.
+export const startSessionRequestSchema = z.discriminatedUnion('mode', [
+  z.object({ mode: z.literal('focus') }),
+  z.object({
+    mode: z.literal('reading'),
+    minutes: z.union([z.literal(5), z.literal(15), z.literal(30)]),
+  }),
+]);
 export type StartSessionRequest = z.infer<typeof startSessionRequestSchema>;
 
 // No timestamp on purpose. The server stamps receipt time. Phase 2 depends on this.
@@ -48,6 +56,8 @@ export interface SessionSnapshot {
   focusedMs: number;
   // Highest seq the server has accepted, so a reload can continue the sequence.
   lastSeq: number | null;
+  mode?: 'focus' | 'reading';
+  readingLimitMs?: number | null;
 }
 
 export interface HeartbeatResult {
@@ -68,6 +78,7 @@ export interface SessionLevelUp {
 }
 
 export interface SessionResult {
+  mode?: 'focus' | 'reading';
   sessionId: string;
   focusedMs: number;
   creditedMs: number;

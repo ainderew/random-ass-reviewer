@@ -78,6 +78,16 @@ beforeEach(() => {
   routes['/api/review/session-quiz?sessionId=s1'] = () => ({
     data: { sessionId: 's1', questions: [], submitted: false },
   });
+  routes['/api/study-plan/today'] = () => ({
+    data: {
+      batches: { 5: { total: 0 }, 15: { total: 0 }, 30: { total: 0 } },
+      reviewedToday: 0,
+      approved: 0,
+      mistakesDue: 0,
+      nextMistakeAt: null,
+      examMonth: null,
+    },
+  });
   routes['/api/stats'] = () => ({ data: snapshot });
   routes['/api/me'] = () => ({
     data: {
@@ -397,4 +407,22 @@ describe('FocusTimer career scene', () => {
     expect(screen.getByText(label('lamp'))).toBeInTheDocument();
     expect(screen.getByText(label('stethoscope'))).toBeInTheDocument();
   });
+});
+
+it('resumes a reading block after a reload and finishes without the focus quiz', async () => {
+  routes['/api/session/active'] = () => ({
+    data: { ...activeSession, mode: 'reading', readingLimitMs: 900000 },
+  });
+  routes['/api/session/end'] = () => ({
+    data: { ...sessionResult, mode: 'reading' },
+  });
+  render(<FocusTimer />, { wrapper });
+  expect(
+    await screen.findByRole('region', { name: 'Reading session' }),
+  ).toBeInTheDocument();
+  await userEvent.click(screen.getByRole('button', { name: 'Finish reading' }));
+  expect(await screen.findByText(/self-reported reading/)).toBeInTheDocument();
+  expect(calls.some((c) => c.path.startsWith('/api/review/session-quiz'))).toBe(
+    false,
+  );
 });

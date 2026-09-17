@@ -1,6 +1,7 @@
 import { sql } from 'drizzle-orm';
 import {
   boolean,
+  check,
   index,
   integer,
   numeric,
@@ -33,6 +34,10 @@ export const focusSessions = pgTable(
     creditedMs: integer('credited_ms').notNull().default(0),
     // Generated server-side at start; the client cannot reroll it.
     lootSeed: text('loot_seed').notNull(),
+    mode: text('mode', { enum: ['focus', 'reading'] })
+      .notNull()
+      .default('focus'),
+    readingLimitMs: integer('reading_limit_ms'),
     status: sessionStatus('status').notNull().default('active'),
     // Set by the post-session quiz (Phase 7).
     quizMultiplier: numeric('quiz_multiplier', { precision: 3, scale: 2 })
@@ -46,6 +51,10 @@ export const focusSessions = pgTable(
     quizTotal: integer('quiz_total'),
   },
   (t) => [
+    check(
+      'reading_session_limit',
+      sql`(${t.mode} = 'focus' and ${t.readingLimitMs} is null) or (${t.mode} = 'reading' and ${t.readingLimitMs} in (300000, 900000, 1800000) and ${t.readingLimitMs} is not null)`,
+    ),
     index('focus_sessions_user_started_idx').on(t.userId, t.startedAt.desc()),
     // One active session per user, guaranteed by the database.
     uniqueIndex('focus_sessions_one_active')

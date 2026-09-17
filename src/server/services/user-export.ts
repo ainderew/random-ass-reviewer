@@ -1,3 +1,4 @@
+import { exportMistakeChecks } from '@/server/repositories/mistakes';
 import { exportQuizAttempts } from '@/server/repositories/quiz';
 import { db } from '@/server/db';
 import { AppError } from '@/server/errors';
@@ -41,6 +42,7 @@ export async function exportUserData(userId: string) {
       examMonth: user.examMonth,
       dailyNewCards: user.dailyNewCards,
     },
+    mistakeChecks: await exportMistakeChecks(db, userId),
     quizAttempts: await exportQuizAttempts(db, userId),
     stats,
     sessions,

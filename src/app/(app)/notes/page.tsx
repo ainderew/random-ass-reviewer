@@ -19,16 +19,26 @@ export default async function NotesPage() {
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
-      <section className="mx-auto max-w-2xl space-y-8">
-        <div className="space-y-2">
-          <h1 className="font-serif text-4xl text-ink">Notes</h1>
+      <section className="w-full space-y-8">
+        <div className="page-heading">
+          <h1 className="font-serif text-4xl text-ink">
+            Your notes, ready to grow.
+          </h1>
           <p className="max-w-[46ch] leading-relaxed text-ink-2">
-            Your notes become your cards. Nothing is invented: a card only
-            survives if its quote is in what you uploaded.
+            Bring your lecture notes together. Create flashcards, check them
+            against the source, and build a deck you trust.
           </p>
         </div>
-        <UploadDropzone />
-        <NotesList />
+        <div className="grid items-start gap-6 lg:grid-cols-[1fr_1.15fr]">
+          <div className="paper-panel p-5 sm:p-7">
+            <h2 className="mb-5 font-serif text-2xl">Add something to learn</h2>
+            <UploadDropzone />
+          </div>
+          <div className="paper-panel p-5 sm:p-7">
+            <h2 className="mb-5 font-serif text-2xl">Your library</h2>
+            <NotesList />
+          </div>
+        </div>
       </section>
     </HydrationBoundary>
   );

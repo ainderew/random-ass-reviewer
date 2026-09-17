@@ -10,6 +10,7 @@ import { useElapsed } from '../_hooks/use-elapsed';
 import { useFocusFlag } from '../_hooks/use-focus-flag';
 import { useFocusSession } from '../_hooks/use-focus-session';
 import { useSessionPreferences } from '../_hooks/use-session-preferences';
+import { ReadingView } from './reading-view';
 import { IdleView } from './idle-view';
 import { LoadingView } from './loading-view';
 import { QuizResult } from './quiz-result';
@@ -85,6 +86,10 @@ export const FocusTimer = () => {
         onLengthChange={prefs.setLength}
         starting={status === 'starting'}
         error={error}
+        onRead={(minutes) => {
+          setCareerBefore(career);
+          void start({ mode: 'reading', minutes });
+        }}
         onStart={() => {
           setCareerBefore(career);
           void start();
@@ -92,6 +97,17 @@ export const FocusTimer = () => {
       />
     );
   }
+
+  if (session?.mode === 'reading')
+    return (
+      <ReadingView
+        elapsedMs={elapsedMs}
+        limitMs={session.readingLimitMs ?? 0}
+        ending={status === 'ending'}
+        error={error}
+        onEnd={finish}
+      />
+    );
 
   if (phase === 'quiz' && session && status === 'running') {
     return (

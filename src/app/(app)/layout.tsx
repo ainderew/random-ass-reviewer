@@ -39,7 +39,7 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
         {/* Bottom padding clears the phone tab bar plus the home indicator. */}
         <main
           id="main"
-          className="mx-auto flex w-full max-w-5xl flex-1 flex-col px-4 pt-6 pb-[calc(5rem+env(safe-area-inset-bottom))] md:px-6 md:pt-10 md:pb-12"
+          className="mx-auto flex w-full max-w-6xl flex-1 flex-col px-4 pt-4 pb-[calc(5rem+env(safe-area-inset-bottom))] md:px-6 md:pt-8 lg:pb-12"
         >
           {children}
         </main>

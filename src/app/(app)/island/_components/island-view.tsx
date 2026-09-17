@@ -166,7 +166,7 @@ export const IslandView = () => {
   };
 
   return (
-    <div className="relative -mx-4 flex-1 overflow-hidden md:mx-0 md:min-h-[60dvh] md:rounded-xl md:border md:border-hairline">
+    <div className="relative -mx-4 flex-1 overflow-hidden md:mx-0 md:min-h-[60dvh] md:rounded-3xl md:border md:border-hairline">
       <IslandCanvas
         island={data.island}
         timeZone={timeZone}
