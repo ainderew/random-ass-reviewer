@@ -32,22 +32,26 @@ export default async function ReviewPage({
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
-      <div className="w-full">
+      <div className="mx-auto max-w-3xl">
         <div className="page-heading">
-          <h1 className="font-serif">Make it stick.</h1>
-          <p>
-            A moment to recall, a little more remembered. Your next cards are
-            ready when you are.
-          </p>
+          <h1 className="font-semibold">Review</h1>
+          <p>Recall, reveal, then rate your answer.</p>
         </div>
-        <div className="grid items-start gap-6 lg:grid-cols-[1.15fr_1fr]">
+        <div className="space-y-8">
           <div className="space-y-6">
             <div className="paper-panel p-5 sm:p-8">
               <ReviewSession minutes={minutes} />
             </div>
-            <ReviewStatsPanel />
           </div>
-          <StudyPlanPanel />
+          <details className="border-t border-hairline pt-3">
+            <summary className="min-h-11 cursor-pointer content-center font-medium">
+              Your schedule and subject progress
+            </summary>
+            <div className="mt-4 space-y-5">
+              <ReviewStatsPanel />
+              <StudyPlanPanel />
+            </div>
+          </details>
         </div>
       </div>
     </HydrationBoundary>

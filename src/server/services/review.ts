@@ -1,3 +1,4 @@
+import { sourcesForChunks } from '@/server/repositories/card-source';
 import { calculateReviewInsight } from '@/domain/economy/insight';
 import { selectQueue } from '@/domain/review/queue';
 import {
@@ -56,7 +57,17 @@ export async function getReviewQueue(userId: string): Promise<QueuedCard[]> {
     dailyNewLimit: (await findUserById(db, userId))?.dailyNewCards ?? 20,
   });
 
+  const sources = new Map(
+    (
+      await sourcesForChunks(
+        db,
+        userId,
+        queue.map(({ card }) => card.chunkId),
+      )
+    ).map(({ chunkId, ...source }) => [chunkId, source]),
+  );
   return queue.map(({ card, state }) => ({
+    source: sources.get(card.chunkId),
     id: card.id,
     question: card.question,
     answer: card.answer,

@@ -6,15 +6,15 @@ product
 
 ## Users
 
-Students, board-exam takers, and grad students who want to study but cannot hold focus. They open Aloft on a phone or laptop at a desk, in a library, or in bed at night, usually already tired and a little guilty about the session they skipped yesterday. The job on any given screen is one thing: start a session, keep it honest, see what it earned. Everything else is secondary to that loop.
+The primary student is preparing for the Philippine Medical Technologists Licensure Examination, tentatively in March 2027. She studies from her own notes, expected mostly as PDFs with other formats possible. Aloft is a mobile-first PWA for her phone and iPad. Her immediate tasks are to check generated cards against their source, practise recalling answers, and choose a manageable next study session.
 
 ## Product Purpose
 
-Aloft turns studying into a game with a real reward loop. Verified focus minutes pay Focus, correct recall on the student's own notes pays Insight, and both are spent building a persistent 3D island. The server owns the clock and every payout, so the reward is earned, not claimed. Success is a student who comes back tomorrow because the island is visibly theirs and the numbers never lied to them.
+Aloft turns the student's notes into source-backed flashcards and schedules their review. Generated cards need approval before study. Honest recall ratings determine scheduling; completed reviews earn Insight without rewarding inflated self-ratings. Focus sessions and self-reported reading earn Focus under the existing server-controlled limits. Both currencies support persistent island progress. Progress and rewards describe study activity, not predicted exam scores.
 
 ## Brand Personality
 
-Calm, warm, honest. The screen is quiet and mostly empty while a session runs: one big number, a soft indicator, nothing that nags. Reward moments at the end of a session are the only loud part. The voice is a kind tutor who says "session logged" and never "you failed". Closest references: Forest (one thing on screen, no chatter), Finch (progress framed as care, not discipline).
+Calm, warm, honest. The study interface uses warm stationery colors, rounded display lettering, and a small illustrated stack of cards. Question, Answer, and Source remain explicit text labels. A running focus session stays quiet: one big number, a soft indicator, nothing that nags. Reward moments at the end of a session are the only loud part. The voice is a kind tutor who says "session logged" and never "you failed". Closest references: Forest (one thing on screen, no chatter), Finch (progress framed as care, not discipline).
 
 ## Anti-references
 

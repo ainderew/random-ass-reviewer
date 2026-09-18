@@ -84,6 +84,12 @@ describe('ReviewSession', () => {
       screen.queryByRole('group', { name: 'Rate your recall' }),
     ).not.toBeInTheDocument();
 
+    expect(
+      screen.queryByRole('region', { name: 'Answer' }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('region', { name: 'Source' }),
+    ).not.toBeInTheDocument();
     await userEvent.keyboard(' ');
 
     expect(

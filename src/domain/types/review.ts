@@ -7,6 +7,7 @@ export interface QueuedCard {
   answer: string;
   sourceQuote: string;
   tags: string[];
+  source?: { id: string; title: string };
   isNew: boolean;
   dueAt: Date;
   // Projected interval per rating, in days. Fractional under a day.

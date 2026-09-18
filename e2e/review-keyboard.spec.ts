@@ -35,7 +35,17 @@ test.describe('review by keyboard only', () => {
     ).toBeVisible();
 
     await page.keyboard.press('3');
-    await expect(counter).not.toHaveText(before ?? '');
+    await expect
+      .poll(async () => {
+        if (
+          await page
+            .getByRole('region', { name: 'Review complete' })
+            .isVisible()
+        )
+          return true;
+        return (await counter.textContent().catch(() => before)) !== before;
+      })
+      .toBe(true);
   });
 
   test('tab order reaches the reveal button and the ratings', async ({

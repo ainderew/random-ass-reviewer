@@ -192,7 +192,7 @@ export const ReviewSession = ({
     <section aria-label="Review" className="space-y-5">
       <div className="flex items-center justify-between text-sm">
         <p className="font-mono text-ink-2 tabular-nums">
-          {index + 1} / {cards.length}
+          Card {index + 1} of {cards.length}
         </p>
         <p
           key={lastAward === null ? 'none' : `${index}-${lastAward}`}
@@ -215,16 +215,20 @@ export const ReviewSession = ({
           onClick={() => setRevealed(true)}
           aria-keyshortcuts="Space"
         >
-          Show answer{' '}
-          <span className="ml-2 font-mono text-xs opacity-70">Space</span>
+          Show answer <kbd className="ml-2 hidden text-xs sm:inline">Space</kbd>
         </Button>
       ) : null}
       {card && revealed ? (
-        <RatingButtons
-          card={card}
-          disabled={busy}
-          onRate={(r) => void rate(r)}
-        />
+        <div className="space-y-3">
+          <h2 className="text-base font-semibold">
+            How well did you remember?
+          </h2>
+          <RatingButtons
+            card={card}
+            disabled={busy}
+            onRate={(r) => void rate(r)}
+          />
+        </div>
       ) : null}
 
       {answers.pending > 0 ? (
@@ -238,11 +242,12 @@ export const ReviewSession = ({
           {error}
         </p>
       ) : null}
-      <p className="text-sm text-ink-2">
-        Try recalling before revealing. Every honest rating earns the same
-        review credit, including Again. One award per card each day.
+      <p className="text-xs text-muted">
+        Again earns the same review credit as Good. Rate what you remembered.
       </p>
-      <p className="text-xs text-muted">Space to reveal, 1 to 4 to rate.</p>
+      <p className="hidden text-xs text-muted sm:block">
+        Space to reveal, 1 to 4 to rate.
+      </p>
     </section>
   );
 };

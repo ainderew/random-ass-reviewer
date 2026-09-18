@@ -1,0 +1,428 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-17T18:53:15.254813+00:00",
+  "title": "Design System: Aloft study stationery",
+  "extensions": {
+    "colorMeta": {
+      "ground": {
+        "role": "neutral",
+        "displayName": "Ground",
+        "tonalRamp": [
+          "oklch(15% 0.0135 53.35)",
+          "oklch(26% 0.0135 53.35)",
+          "oklch(38% 0.0135 53.35)",
+          "oklch(49% 0.0135 53.35)",
+          "oklch(61% 0.0135 53.35)",
+          "oklch(72% 0.0135 53.35)",
+          "oklch(84% 0.0135 53.35)",
+          "oklch(95% 0.0135 53.35)"
+        ]
+      },
+      "ground-2": {
+        "role": "neutral",
+        "displayName": "Ground 2",
+        "tonalRamp": [
+          "oklch(15% 0.0045 78.30)",
+          "oklch(26% 0.0045 78.30)",
+          "oklch(38% 0.0045 78.30)",
+          "oklch(49% 0.0045 78.30)",
+          "oklch(61% 0.0045 78.30)",
+          "oklch(72% 0.0045 78.30)",
+          "oklch(84% 0.0045 78.30)",
+          "oklch(95% 0.0045 78.30)"
+        ]
+      },
+      "ground-3": {
+        "role": "neutral",
+        "displayName": "Ground 3",
+        "tonalRamp": [
+          "oklch(15% 0.0173 44.80)",
+          "oklch(26% 0.0173 44.80)",
+          "oklch(38% 0.0173 44.80)",
+          "oklch(49% 0.0173 44.80)",
+          "oklch(61% 0.0173 44.80)",
+          "oklch(72% 0.0173 44.80)",
+          "oklch(84% 0.0173 44.80)",
+          "oklch(95% 0.0173 44.80)"
+        ]
+      },
+      "hairline": {
+        "role": "neutral",
+        "displayName": "Hairline",
+        "tonalRamp": [
+          "oklch(15% 0.0176 35.34)",
+          "oklch(26% 0.0176 35.34)",
+          "oklch(38% 0.0176 35.34)",
+          "oklch(49% 0.0176 35.34)",
+          "oklch(61% 0.0176 35.34)",
+          "oklch(72% 0.0176 35.34)",
+          "oklch(84% 0.0176 35.34)",
+          "oklch(95% 0.0176 35.34)"
+        ]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Ink",
+        "tonalRamp": [
+          "oklch(15% 0.0450 318.40)",
+          "oklch(26% 0.0450 318.40)",
+          "oklch(38% 0.0450 318.40)",
+          "oklch(49% 0.0450 318.40)",
+          "oklch(61% 0.0450 318.40)",
+          "oklch(72% 0.0450 318.40)",
+          "oklch(84% 0.0450 318.40)",
+          "oklch(95% 0.0450 318.40)"
+        ]
+      },
+      "ink-2": {
+        "role": "neutral",
+        "displayName": "Ink 2",
+        "tonalRamp": [
+          "oklch(15% 0.0323 320.29)",
+          "oklch(26% 0.0323 320.29)",
+          "oklch(38% 0.0323 320.29)",
+          "oklch(49% 0.0323 320.29)",
+          "oklch(61% 0.0323 320.29)",
+          "oklch(72% 0.0323 320.29)",
+          "oklch(84% 0.0323 320.29)",
+          "oklch(95% 0.0323 320.29)"
+        ]
+      },
+      "muted": {
+        "role": "neutral",
+        "displayName": "Muted",
+        "tonalRamp": [
+          "oklch(15% 0.0315 326.01)",
+          "oklch(26% 0.0315 326.01)",
+          "oklch(38% 0.0315 326.01)",
+          "oklch(49% 0.0315 326.01)",
+          "oklch(61% 0.0315 326.01)",
+          "oklch(72% 0.0315 326.01)",
+          "oklch(84% 0.0315 326.01)",
+          "oklch(95% 0.0315 326.01)"
+        ]
+      },
+      "focus": {
+        "role": "primary",
+        "displayName": "Focus",
+        "tonalRamp": [
+          "oklch(15% 0.1637 30.69)",
+          "oklch(26% 0.1637 30.69)",
+          "oklch(38% 0.1637 30.69)",
+          "oklch(49% 0.1637 30.69)",
+          "oklch(61% 0.1637 30.69)",
+          "oklch(72% 0.1637 30.69)",
+          "oklch(84% 0.1637 30.69)",
+          "oklch(95% 0.1637 30.69)"
+        ]
+      },
+      "focus-deep": {
+        "role": "primary",
+        "displayName": "Focus deep",
+        "tonalRamp": [
+          "oklch(15% 0.1446 30.23)",
+          "oklch(26% 0.1446 30.23)",
+          "oklch(38% 0.1446 30.23)",
+          "oklch(49% 0.1446 30.23)",
+          "oklch(61% 0.1446 30.23)",
+          "oklch(72% 0.1446 30.23)",
+          "oklch(84% 0.1446 30.23)",
+          "oklch(95% 0.1446 30.23)"
+        ]
+      },
+      "insight": {
+        "role": "secondary",
+        "displayName": "Insight",
+        "tonalRamp": [
+          "oklch(15% 0.1124 306.14)",
+          "oklch(26% 0.1124 306.14)",
+          "oklch(38% 0.1124 306.14)",
+          "oklch(49% 0.1124 306.14)",
+          "oklch(61% 0.1124 306.14)",
+          "oklch(72% 0.1124 306.14)",
+          "oklch(84% 0.1124 306.14)",
+          "oklch(95% 0.1124 306.14)"
+        ]
+      },
+      "warn": {
+        "role": "neutral",
+        "displayName": "Warn",
+        "tonalRamp": [
+          "oklch(15% 0.1514 20.39)",
+          "oklch(26% 0.1514 20.39)",
+          "oklch(38% 0.1514 20.39)",
+          "oklch(49% 0.1514 20.39)",
+          "oklch(61% 0.1514 20.39)",
+          "oklch(72% 0.1514 20.39)",
+          "oklch(84% 0.1514 20.39)",
+          "oklch(95% 0.1514 20.39)"
+        ]
+      },
+      "question-tab": {
+        "role": "neutral",
+        "displayName": "Question tab",
+        "tonalRamp": [
+          "oklch(15% 0.0318 42.26)",
+          "oklch(26% 0.0318 42.26)",
+          "oklch(38% 0.0318 42.26)",
+          "oklch(49% 0.0318 42.26)",
+          "oklch(61% 0.0318 42.26)",
+          "oklch(72% 0.0318 42.26)",
+          "oklch(84% 0.0318 42.26)",
+          "oklch(95% 0.0318 42.26)"
+        ]
+      },
+      "answer": {
+        "role": "secondary",
+        "displayName": "Answer",
+        "tonalRamp": [
+          "oklch(15% 0.0370 68.66)",
+          "oklch(26% 0.0370 68.66)",
+          "oklch(38% 0.0370 68.66)",
+          "oklch(49% 0.0370 68.66)",
+          "oklch(61% 0.0370 68.66)",
+          "oklch(72% 0.0370 68.66)",
+          "oklch(84% 0.0370 68.66)",
+          "oklch(95% 0.0370 68.66)"
+        ]
+      },
+      "answer-label": {
+        "role": "secondary",
+        "displayName": "Answer label",
+        "tonalRamp": [
+          "oklch(15% 0.0819 53.76)",
+          "oklch(26% 0.0819 53.76)",
+          "oklch(38% 0.0819 53.76)",
+          "oklch(49% 0.0819 53.76)",
+          "oklch(61% 0.0819 53.76)",
+          "oklch(72% 0.0819 53.76)",
+          "oklch(84% 0.0819 53.76)",
+          "oklch(95% 0.0819 53.76)"
+        ]
+      },
+      "source": {
+        "role": "secondary",
+        "displayName": "Source",
+        "tonalRamp": [
+          "oklch(15% 0.0189 309.79)",
+          "oklch(26% 0.0189 309.79)",
+          "oklch(38% 0.0189 309.79)",
+          "oklch(49% 0.0189 309.79)",
+          "oklch(61% 0.0189 309.79)",
+          "oklch(72% 0.0189 309.79)",
+          "oklch(84% 0.0189 309.79)",
+          "oklch(95% 0.0189 309.79)"
+        ]
+      },
+      "source-text": {
+        "role": "secondary",
+        "displayName": "Source text",
+        "tonalRamp": [
+          "oklch(15% 0.0496 310.27)",
+          "oklch(26% 0.0496 310.27)",
+          "oklch(38% 0.0496 310.27)",
+          "oklch(49% 0.0496 310.27)",
+          "oklch(61% 0.0496 310.27)",
+          "oklch(72% 0.0496 310.27)",
+          "oklch(84% 0.0496 310.27)",
+          "oklch(95% 0.0496 310.27)"
+        ]
+      },
+      "source-link": {
+        "role": "secondary",
+        "displayName": "Source link",
+        "tonalRamp": [
+          "oklch(15% 0.0914 313.17)",
+          "oklch(26% 0.0914 313.17)",
+          "oklch(38% 0.0914 313.17)",
+          "oklch(49% 0.0914 313.17)",
+          "oklch(61% 0.0914 313.17)",
+          "oklch(72% 0.0914 313.17)",
+          "oklch(84% 0.0914 313.17)",
+          "oklch(95% 0.0914 313.17)"
+        ]
+      },
+      "field-border": {
+        "role": "neutral",
+        "displayName": "Field border",
+        "tonalRamp": [
+          "oklch(15% 0.0349 338.97)",
+          "oklch(26% 0.0349 338.97)",
+          "oklch(38% 0.0349 338.97)",
+          "oklch(49% 0.0349 338.97)",
+          "oklch(61% 0.0349 338.97)",
+          "oklch(72% 0.0349 338.97)",
+          "oklch(84% 0.0349 338.97)",
+          "oklch(95% 0.0349 338.97)"
+        ]
+      },
+      "recall-border": {
+        "role": "neutral",
+        "displayName": "Recall border",
+        "tonalRamp": [
+          "oklch(15% 0.0285 337.26)",
+          "oklch(26% 0.0285 337.26)",
+          "oklch(38% 0.0285 337.26)",
+          "oklch(49% 0.0285 337.26)",
+          "oklch(61% 0.0285 337.26)",
+          "oklch(72% 0.0285 337.26)",
+          "oklch(84% 0.0285 337.26)",
+          "oklch(95% 0.0285 337.26)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Rounded display",
+        "purpose": "Page headings and related display text."
+      },
+      "question": {
+        "displayName": "Question",
+        "purpose": "Primary recall prompt."
+      }
+    },
+    "shadows": [
+      {
+        "name": "paper-panel",
+        "value": "none",
+        "purpose": "Flat study panels use borders and tonal backgrounds."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease-out-quart",
+        "value": "cubic-bezier(0.25, 1, 0.5, 1)",
+        "purpose": "Shared control transitions and focus indicator."
+      },
+      {
+        "name": "ease-out-expo",
+        "value": "cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "Contained reward appearances."
+      },
+      {
+        "name": "control-duration",
+        "value": "150ms",
+        "purpose": "Button and recall-choice state transitions."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "compact",
+        "value": "380px"
+      },
+      {
+        "name": "sm",
+        "value": "640px"
+      },
+      {
+        "name": "md",
+        "value": "768px"
+      },
+      {
+        "name": "lg",
+        "value": "1024px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Primary button as implemented in the study interface.",
+      "html": "<button class=\"ds-primary\">Show answer</button>",
+      "css": ".ds-primary{font-family:var(--font-sans,Geist,sans-serif);font-size:15px;font-weight:500;min-height:44px;padding:0 16px;border-radius:12px;cursor:pointer;transition:background-color 150ms,transform 150ms;border:0;background:var(--color-focus,#bd402f);color:white}.ds-primary:hover{background:var(--color-focus-deep,#9b3023)}.ds-primary:active{transform:scale(.98)}.ds-primary:focus-visible{outline:2px solid var(--color-focus,#bd402f);outline-offset:3px}"
+    },
+    {
+      "name": "Ghost button",
+      "kind": "button",
+      "refersTo": "button-ghost",
+      "description": "Ghost button as implemented in the study interface.",
+      "html": "<button class=\"ds-ghost\">Cancel</button>",
+      "css": ".ds-ghost{font-family:var(--font-sans,Geist,sans-serif);font-size:15px;font-weight:500;min-height:44px;padding:0 16px;border-radius:12px;cursor:pointer;transition:background-color 150ms,transform 150ms;border:1px solid var(--color-hairline,#dfd0cc);background:transparent;color:var(--color-ink,#38273d)}.ds-ghost:hover{background:var(--color-ground-2,#fffdfa);border-color:var(--color-ink-2,#615364)}.ds-ghost:active{transform:scale(.98)}.ds-ghost:focus-visible{outline:2px solid var(--color-focus,#bd402f);outline-offset:3px}"
+    },
+    {
+      "name": "Study field",
+      "kind": "input",
+      "refersTo": "study-field",
+      "description": "Study field as implemented in the study interface.",
+      "html": "<label class=\"ds-label\" for=\"ds-topic\">Topic</label><input id=\"ds-topic\" class=\"ds-field\" placeholder=\"Optional topic\">",
+      "css": ".ds-label{display:block;color:var(--color-ink,#38273d);font:700 14px/1.4 var(--font-sans,Geist,sans-serif);margin-bottom:8px}.ds-field{font:16px/1.6 var(--font-sans,Geist,sans-serif);min-height:48px;padding:12px;border:1px solid #9e8796;border-radius:8px;background:var(--color-ground-2,#fffdfa);color:var(--color-ink,#38273d)}.ds-field:focus-visible{outline:2px solid var(--color-focus,#bd402f);outline-offset:3px}"
+    },
+    {
+      "name": "Answer section",
+      "kind": "card",
+      "refersTo": "answer-section",
+      "description": "Answer section as implemented in the study interface.",
+      "html": "<section class=\"ds-answer\"><h2>Answer</h2><p>Your recalled answer appears here.</p></section>",
+      "css": ".ds-answer{border-radius:12px;padding:1.1rem 1.25rem;background:#ffead4;color:var(--color-ink,#38273d);font:16px/1.6 var(--font-sans,Geist,sans-serif)}.ds-answer h2{font-size:14px;line-height:1.4;margin:0;font-weight:700}.ds-answer p{margin:12px 0 0}"
+    },
+    {
+      "name": "Source section",
+      "kind": "card",
+      "refersTo": "source-evidence",
+      "description": "Source section as implemented in the study interface.",
+      "html": "<section class=\"ds-source\"><h2>Source</h2><p>The saved source passage appears here.</p></section>",
+      "css": ".ds-source{border-radius:12px;padding:1.1rem 1.25rem;background:#eee7f4;color:var(--color-ink,#38273d);font:16px/1.6 var(--font-sans,Geist,sans-serif)}.ds-source h2{font-size:14px;line-height:1.4;margin:0;font-weight:700}.ds-source p{margin:12px 0 0}"
+    },
+    {
+      "name": "Question tab",
+      "kind": "chip",
+      "refersTo": "question-tab",
+      "description": "Question tab as implemented in the study interface.",
+      "html": "<span class=\"ds-tab\">Question</span>",
+      "css": ".ds-tab{display:inline-block;background:#fbe1d7;color:var(--color-ink,#38273d);border-radius:4px;padding:.35rem .7rem;font:700 14px/1.4 var(--font-display-face,Nunito Sans,sans-serif)}"
+    },
+    {
+      "name": "Card editor",
+      "kind": "card",
+      "refersTo": "card-editor",
+      "description": "Card editor as implemented in the study interface.",
+      "html": "<section class=\"ds-editor\"><h2>Check this card</h2><p>Compare the question and answer with the saved source.</p></section>",
+      "css": ".ds-editor{border:1px solid var(--color-hairline,#dfd0cc);border-radius:14px;padding:20px;background:var(--color-ground-2,#fffdfa);color:var(--color-ink,#38273d);font:16px/1.6 var(--font-sans,Geist,sans-serif)}.ds-editor h2{font:600 20px/1.4 var(--font-display-face,Nunito Sans,sans-serif);margin:0}.ds-editor p{margin:12px 0 0}"
+    },
+    {
+      "name": "Desktop navigation",
+      "kind": "nav",
+      "refersTo": "button-ghost",
+      "description": "Desktop navigation as implemented in the study interface.",
+      "html": "<nav class=\"ds-nav\" aria-label=\"Primary\"><a href=\"#today\" aria-current=\"page\">Today</a><a href=\"#review\">Review</a></nav>",
+      "css": ".ds-nav{display:flex;gap:4px;font:15px var(--font-sans,Geist,sans-serif)}.ds-nav a{display:inline-flex;align-items:center;min-height:44px;border-radius:8px;padding:0 16px;text-decoration:none;color:var(--color-ink-2,#615364)}.ds-nav a[aria-current]{background:var(--color-ground-3,#f5e7e1);color:var(--color-focus,#bd402f);font-weight:500}.ds-nav a:hover{background:var(--color-ground-2,#fffdfa);color:var(--color-ink,#38273d)}.ds-nav a:focus-visible{outline:2px solid var(--color-focus,#bd402f);outline-offset:3px}"
+    }
+  ],
+  "narrative": {
+    "northStar": "Study stationery",
+    "overview": "Aloft uses a study stationery world: peach workspace, warm white sheets, plum text, and a small illustrated stack of blank cards. Rounded display lettering adds character while readable study content stays primary. The existing island game remains a separate part of the product.",
+    "keyCharacteristics": [
+      "Explicit Question, Answer, and Source labels with consistent spacing and color.",
+      "Coral actions, apricot answers, and lilac source evidence.",
+      "Phone-first controls and a wider comparison layout on iPad.",
+      "Limited decorative illustration with real HTML text and controls."
+    ],
+    "rules": [
+      {
+        "name": "The labeled sections rule",
+        "body": "Color supports the visible Question, Answer, and Source labels; it never replaces them.",
+        "section": "colors"
+      },
+      {
+        "name": "The honest rating rule",
+        "body": "Give all recall choices equal visual weight. Ratings affect scheduling; completed reviews earn equal credit regardless of the rating.",
+        "section": "components"
+      }
+    ],
+    "dos": [
+      "Do preserve explicit Question, Answer, and Source labels.",
+      "Do keep source evidence read-only and hide it with the answer until reveal during review.",
+      "Do give every recall rating the same visual weight and retain its meaning and next-review interval.",
+      "Do honor reduced motion and preserve visible keyboard focus.",
+      "Do use the generated blank-card illustration as decoration with empty alternative text."
+    ],
+    "donts": [
+      "Don't use generated mockup slogans, scores, or clinical facts as product data.",
+      "Don't put illustration behind study text or let it displace the question.",
+      "Don't reintroduce the tropical field-journal treatment into study pages.",
+      "Don't replace the retained island game or its saved progress as part of a visual extension."
+    ]
+  }
+}

@@ -1,24 +1,18 @@
 'use client';
-
 import type { QueuedCard, Rating } from '@/domain/types';
 import { formatInterval } from '@/lib/format-interval';
-
 const LABELS: Record<Rating, string> = {
   1: 'Again',
   2: 'Hard',
   3: 'Good',
   4: 'Easy',
 };
-
-const TONE: Record<Rating, string> = {
-  1: 'text-warn',
-  2: 'text-ink-2',
-  3: 'text-insight',
-  4: 'text-focus',
+const MEANING: Record<Rating, string> = {
+  1: 'I forgot',
+  2: 'With effort',
+  3: 'I remembered',
+  4: 'Immediately',
 };
-
-// Each button shows its projected interval: the algorithm made legible.
-// The digit is the keyboard shortcut and stays visible.
 export const RatingButtons = ({
   card,
   disabled,
@@ -31,7 +25,7 @@ export const RatingButtons = ({
   <div
     role="group"
     aria-label="Rate your recall"
-    className="grid grid-cols-4 gap-2"
+    className="grid grid-cols-2 gap-3 sm:grid-cols-4"
   >
     {([1, 2, 3, 4] as const).map((rating) => (
       <button
@@ -41,14 +35,15 @@ export const RatingButtons = ({
         onClick={() => onRate(rating)}
         aria-keyshortcuts={String(rating)}
         aria-label={`${LABELS[rating]}, next in ${formatInterval(card.intervals[rating])}`}
-        className="flex min-h-16 flex-col items-center justify-center gap-1 rounded-md border border-hairline bg-ground-2 px-2 py-2 transition-colors duration-150 hover:bg-ground-3 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus disabled:opacity-50"
+        className="recall-choice"
       >
-        <span className={`text-sm font-medium ${TONE[rating]}`}>
-          <span className="mr-1 font-mono text-xs text-muted">{rating}</span>
-          {LABELS[rating]}
+        <span className="flex w-full items-center justify-between gap-2">
+          <span className="font-semibold">{LABELS[rating]}</span>
+          <kbd className="hidden text-xs text-muted sm:inline">{rating}</kbd>
         </span>
-        <span className="font-mono text-xs text-muted tabular-nums">
-          {formatInterval(card.intervals[rating])}
+        <span className="text-sm text-ink-2">{MEANING[rating]}</span>
+        <span className="mt-2 text-xs text-muted">
+          Next: {formatInterval(card.intervals[rating])}
         </span>
       </button>
     ))}

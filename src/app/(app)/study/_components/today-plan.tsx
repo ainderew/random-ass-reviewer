@@ -26,12 +26,11 @@ export const TodayPlan = ({
   return (
     <section aria-label="Today's study plan" className="journal-plan">
       <div className="flex items-baseline justify-between gap-3">
-        <h2 className="font-serif text-3xl">A little progress today</h2>
-        <span className="journal-label">Your itinerary</span>
+        <h2 className="font-serif text-2xl font-bold">Your next review</h2>
       </div>
       <fieldset className="mt-5 flex flex-wrap items-center justify-between gap-3">
         <legend className="sr-only">Time for this review</legend>
-        <span className="text-sm text-ink-2">Make room for</span>
+        <span className="text-sm text-ink-2">Time for review</span>
         <div className="flex gap-1 rounded-lg border border-hairline p-1">
           {STUDY_BUDGETS.map((n) => (
             <button
@@ -63,7 +62,6 @@ export const TodayPlan = ({
         <>
           <ol className="mt-5 divide-y divide-hairline border-y border-hairline">
             <li className="journal-step">
-              <span className="journal-number">01</span>
               <div>
                 <h3 className="font-serif text-2xl">
                   {batch?.total
@@ -82,7 +80,6 @@ export const TodayPlan = ({
               </div>
             </li>
             <li className="journal-step">
-              <span className="journal-number">02</span>
               <div>
                 <h3 className="font-serif text-2xl">Revisit a mistake</h3>
                 <p className="mt-1 text-sm text-ink-2">

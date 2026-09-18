@@ -9,11 +9,8 @@ export const AppHeader = () => (
     <div className="mx-auto flex h-14 max-w-6xl items-center gap-4 px-4 md:h-16 lg:gap-8 md:px-6">
       <Link
         href="/study"
-        className="font-serif text-2xl text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
+        className="aloft-wordmark focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
       >
-        <span aria-hidden="true" className="mr-2 text-focus">
-          ✦
-        </span>
         Aloft
       </Link>
       <TopNav />

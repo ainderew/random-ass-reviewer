@@ -61,7 +61,6 @@ export const IdleView = ({
           aria-label="Your island goal"
           className="border-y border-hairline py-5"
         >
-          <p className="journal-label">From effort to a little home</p>
           <Link
             href="/island"
             className="my-3 flex min-h-11 items-center justify-between font-serif text-3xl text-focus"
@@ -80,7 +79,6 @@ export const IdleView = ({
         </section>
         <section aria-label="Start a focus session" className="space-y-4">
           <div>
-            <p className="journal-label">Stay a little longer</p>
             <h2 className="mt-2 font-serif text-2xl">Focus session</h2>
             <p className="mt-1 text-sm text-ink-2">
               {firstVisit

@@ -50,3 +50,37 @@ it('requires an explicit check to approve, while allowing saving a draft', async
     }),
   );
 });
+
+it('clears approval after changing a checked answer and keeps the source read-only', async () => {
+  const onSave = jest.fn();
+  render(
+    <CardEditor
+      card={card}
+      source="The full source passage."
+      sourceTitle="My notes"
+      busy={false}
+      onSave={onSave}
+      onCancel={jest.fn()}
+    />,
+  );
+  const checkbox = screen.getByRole('checkbox', {
+    name: /I checked the answer/,
+  });
+  await userEvent.click(checkbox);
+  expect(checkbox).toBeChecked();
+  await userEvent.type(
+    screen.getByRole('textbox', { name: 'Answer' }),
+    ' Revised.',
+  );
+  expect(checkbox).not.toBeChecked();
+  expect(screen.getByRole('region', { name: 'Source' })).toHaveTextContent(
+    'The source passage.',
+  );
+  await userEvent.click(screen.getByRole('button', { name: 'Save draft' }));
+  expect(onSave).toHaveBeenCalledWith(
+    expect.objectContaining({
+      reviewStatus: 'draft',
+      answer: 'The answer. Revised.',
+    }),
+  );
+});

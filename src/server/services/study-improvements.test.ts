@@ -91,6 +91,10 @@ it('keeps draft and flagged cards out of study, persists planning, and maps prac
   expect(await getReviewQueue(userId)).toEqual([]);
   await updateProfile(userId, { dailyNewCards: 5 });
   expect(await getReviewQueue(userId)).toHaveLength(1);
+  expect((await getReviewQueue(userId))[0]!.source).toEqual({
+    id: expect.any(String),
+    title: 'Learning test',
+  });
   await answer(userId, card.id);
   expect((await getStudyPlan(userId)).examMonth).toBe('2027-03');
   expect((await getStudyPlan(userId)).subjects).toEqual([

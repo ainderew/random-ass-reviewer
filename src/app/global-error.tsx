@@ -12,7 +12,7 @@ export default function GlobalError({
     <html lang="en">
       <body
         style={{
-          background: '#f6f3e9',
+          background: '#fcf2ec',
           color: '#153b43',
           fontFamily: 'system-ui, sans-serif',
           margin: 0,
@@ -39,7 +39,7 @@ export default function GlobalError({
             onClick={reset}
             style={{
               background: '#296b5c',
-              color: '#f6f3e9',
+              color: '#fcf2ec',
               border: 0,
               borderRadius: '0.5rem',
               padding: '0.75rem 1.25rem',

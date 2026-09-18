@@ -61,7 +61,7 @@ test('notes become cards with quotes, and reviewing them pays Insight', async ({
   let answered = 0;
   for (let i = 0; i < 5; i += 1) {
     if (!(await reveal.isVisible().catch(() => false))) break;
-    await page.keyboard.press('Space');
+    await reveal.click();
     await expect(
       page.getByRole('group', { name: 'Rate your recall' }),
     ).toBeVisible();

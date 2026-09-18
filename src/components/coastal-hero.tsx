@@ -1,28 +1,24 @@
 import Image from 'next/image';
 
-// Kept as a shared component so the landing page and Today use the same art.
+// Shared introduction for Today and the landing page. Study content stays in HTML.
 export const CoastalHero = () => (
-  <div className="journal-hero">
-    <div className="relative z-1 max-w-[26rem] py-5 sm:py-8">
-      <p className="journal-label">Aloft / The study journal</p>
-      <h1 className="mt-4 font-serif text-[2.5rem] leading-[1.04] tracking-tight sm:text-6xl">
-        Small steps.
-        <br />
-        <em className="font-normal">Stronger recall.</em>
+  <div className="study-intro">
+    <div>
+      <h1 className="font-serif text-3xl font-extrabold tracking-tight sm:text-4xl">
+        Make a little room
+        <br className="sm:hidden" /> for learning.
       </h1>
-      <p className="mt-4 max-w-[24ch] text-sm text-ink-2 sm:max-w-[34ch] sm:text-base">
-        A place for your notes, your next question, and the island you are
-        growing.
+      <p className="mt-3 max-w-md text-sm text-ink-2 sm:text-base">
+        Your notes. A few good questions. A little more remembered.
       </p>
     </div>
     <Image
-      src="/illustrations/field-journal-island-v1.png"
+      src="/illustrations/study-cards-v1.png"
       alt=""
       width={1536}
       height={1024}
-      preload
-      sizes="(max-width: 640px) 60vw, 600px"
-      className="journal-illustration"
+      sizes="(max-width: 640px) 100px, 160px"
+      className="w-24 shrink-0 sm:w-40"
     />
   </div>
 );
