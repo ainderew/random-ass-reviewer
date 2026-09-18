@@ -8,6 +8,21 @@ for (const path of ['/study', '/review', '/notes', '/settings']) {
     await signInAsSmokeUser(context);
     await page.goto(path);
     await expect(page.getByRole('main')).toBeVisible();
+    // Audit the loaded page after finite entrance animations settle. A fade
+    // sampled mid-frame reports transient text contrast as a permanent defect.
+    await page.waitForLoadState('networkidle');
+    await page.evaluate(async () => {
+      await document.fonts.ready;
+      await Promise.all(
+        document
+          .getAnimations()
+          .filter(
+            (animation) =>
+              animation.effect?.getComputedTiming().iterations !== Infinity,
+          )
+          .map((animation) => animation.finished.catch(() => undefined)),
+      );
+    });
     const results = await new AxeBuilder({ page })
       .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])
       .analyze();
