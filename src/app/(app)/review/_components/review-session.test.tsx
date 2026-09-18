@@ -172,3 +172,94 @@ describe('ReviewSession', () => {
     expect(screen.getByText(/Next review/)).toBeInTheDocument();
   });
 });
+
+describe('practice modes', () => {
+  beforeEach(() => {
+    global.fetch = jest.fn(async (input: RequestInfo | URL) =>
+      routeResponse(input),
+    ) as unknown as typeof fetch;
+  });
+  const quizCard: QueuedCard = {
+    ...QUEUE[0]!,
+    quiz: {
+      explanation: 'This is supported by the source passage.',
+      distractors: [1, 2, 3].map((n) => ({
+        text: `Alternative ${n}`,
+        explanation: `Alternative ${n} does not match the source.`,
+      })),
+    },
+  };
+  it('preserves written recall beside the revealed answer without auto-grading', async () => {
+    const user = userEvent.setup();
+    renderSession();
+    await user.selectOptions(
+      screen.getByLabelText('Answer type for this card'),
+      'write',
+    );
+    await user.type(
+      screen.getByLabelText('Your answer'),
+      'My remembered explanation',
+    );
+    expect(
+      screen.queryByRole('region', { name: 'Answer' }),
+    ).not.toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: /Show answer/ }));
+    expect(screen.getByLabelText('Your answer')).toHaveValue(
+      'My remembered explanation',
+    );
+    expect(screen.getByText(/not automatically graded/)).toBeInTheDocument();
+  });
+  it('locks the first choice, explains an error, and only accepts Again', async () => {
+    const user = userEvent.setup();
+    renderSession([quizCard]);
+    await user.selectOptions(
+      screen.getByLabelText('Answer type for this card'),
+      'choice',
+    );
+    await user.keyboard(' ');
+    expect(
+      screen.queryByRole('region', { name: 'Answer' }),
+    ).not.toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: /Alternative 1/ }));
+    expect(
+      screen.getByText('Alternative 1 does not match the source.'),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('region', { name: 'Source' })).toBeVisible();
+    expect(
+      screen.getByRole('button', { name: /Alternative 2/ }),
+    ).toBeDisabled();
+    expect(
+      screen.queryByRole('button', { name: /^Good,/ }),
+    ).not.toBeInTheDocument();
+    await user.keyboard('3');
+    expect(global.fetch).not.toHaveBeenCalledWith(
+      '/api/review/answer',
+      expect.anything(),
+    );
+    await user.click(
+      screen.getByRole('button', { name: /Again · review this sooner/ }),
+    );
+    await waitFor(() =>
+      expect(
+        screen.getByText(/0 of 1 correct on the first choice/),
+      ).toBeInTheDocument(),
+    );
+  });
+  it('keeps every card in the regimen and disables unsupported multiple choice', async () => {
+    renderSession();
+    expect(
+      screen.getByRole('option', { name: 'Multiple choice' }),
+    ).toBeDisabled();
+    expect(screen.getByText('First question?')).toBeInTheDocument();
+    expect(screen.getByLabelText('Answer type for this card')).toHaveValue(
+      'auto',
+    );
+  });
+  it('automatically uses a saved multiple-choice preference', () => {
+    renderSession([{ ...quizCard, answerType: 'choice' }]);
+    expect(screen.getByRole('button', { name: /Alternative 1/ })).toBeVisible();
+    expect(
+      screen.queryByRole('button', { name: /Show answer/ }),
+    ).not.toBeInTheDocument();
+  });
+});

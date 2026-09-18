@@ -25,7 +25,7 @@ export const WeeklySummaryCard = () => {
           ? `, ${summary.cardsReviewed} cards reviewed${
               summary.retention === null
                 ? ''
-                : ` at ${Math.round(summary.retention * 100)}% retention`
+                : ` at ${Math.round(summary.retention * 100)}% rated Good or Easy`
             }`
           : ''}
         .

@@ -1,6 +1,9 @@
+import type { AnswerType } from '@/domain/review/regimen';
 import { sql } from 'drizzle-orm';
 import {
   boolean,
+  doublePrecision,
+  check,
   index,
   integer,
   jsonb,
@@ -70,6 +73,10 @@ export const cards = pgTable(
       .notNull()
       .references(() => noteChunks.id, { onDelete: 'cascade' }),
     question: text('question').notNull(),
+    answerType: text('answer_type')
+      .$type<AnswerType>()
+      .notNull()
+      .default('auto'),
     answer: text('answer').notNull(),
     // Must appear verbatim in the parent chunk. Hallucination guard.
     sourceQuote: text('source_quote').notNull(),
@@ -86,7 +93,13 @@ export const cards = pgTable(
     quiz: jsonb('quiz').$type<QuizContent>(),
   },
   // The review queue query.
-  (t) => [index('cards_user_due_idx').on(t.userId, t.nextDueAt)],
+  (t) => [
+    index('cards_user_due_idx').on(t.userId, t.nextDueAt),
+    check(
+      'cards_answer_type_check',
+      sql`${t.answerType} IN ('auto', 'recall', 'write', 'choice')`,
+    ),
+  ],
 );
 
 export const cardReviews = pgTable(
@@ -105,6 +118,10 @@ export const cardReviews = pgTable(
       .defaultNow(),
     // FSRS 1-4: Again / Hard / Good / Easy.
     rating: smallint('rating').notNull(),
+    practiceType: text('practice_type').$type<'recall' | 'write' | 'choice'>(),
+    correct: boolean('correct'),
+    delayDays: doublePrecision('delay_days'),
+    subject: text('subject').$type<MedtechSubject>(),
     elapsedMs: integer('elapsed_ms').notNull(),
   },
   (t) => [

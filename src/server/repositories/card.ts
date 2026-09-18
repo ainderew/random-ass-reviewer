@@ -40,6 +40,7 @@ function toCard(row: CardRow): Card {
     subject: row.subject,
     topic: row.topic,
     quiz: row.quiz,
+    answerType: row.answerType,
   };
 }
 
@@ -59,6 +60,7 @@ export interface NewCard {
   subject?: Card['subject'];
   topic?: Card['topic'];
   quiz?: Card['quiz'];
+  answerType?: Card['answerType'];
   userId: string;
   chunkId: string;
   question: string;
@@ -130,6 +132,10 @@ export async function insertCardReview(
     sessionId: string | null;
     rating: Rating;
     elapsedMs: number;
+    practiceType?: 'recall' | 'write' | 'choice';
+    correct?: boolean | null;
+    delayDays?: number | null;
+    subject?: Card['subject'];
   },
 ): Promise<CardReview> {
   const [row] = await tx.insert(cardReviews).values(input).returning();

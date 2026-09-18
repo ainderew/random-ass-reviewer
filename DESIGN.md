@@ -168,11 +168,19 @@ Study inputs and textareas have warm white backgrounds, stronger plum-gray borde
 
 A question appears first with its visible label. Answer and Source enter the page together only after reveal. The answer is apricot; the source is lilac and read-only. The editor keeps both editable fields separate from source evidence and includes an explicit approval checkbox. Content edits clear approval.
 
+### Practice modes
+
+Flashcards, Write your answer, and Multiple choice reuse the same study field and Question / Answer / Source structure. Each card defaults to the automatic regimen unless its saved answer type in the card editor specifies a format. The review selector allows a temporary change before reveal or choice, then locks for that answer and resets to the regimen on the next card. Multiple choice is unavailable when the card lacks valid options. Writing appears below the question and becomes read-only after reveal for self-comparison. Multiple-choice options are full-width warm white buttons; the selected option gains a coral border and pressed background. Explicit "Your choice" and "Correct answer" labels distinguish states without relying on color. The first choice locks the options and reveals feedback, Answer, and Source; a wrong choice offers only Again. Written and multiple-choice modes omit the decorative recall illustration to give the response controls space.
+
 ### Recall choices
 
 Again, Hard, Good, and Easy share the same warm white treatment and 102px minimum height. Each includes a plain-language meaning and next-review interval. Hover adds apricot and a coral border. Disabled choices reduce opacity and show a waiting cursor.
 
 **The honest rating rule.** Give all recall choices equal visual weight. Ratings affect scheduling; completed reviews earn equal credit regardless of the rating.
+
+### Progress charts
+
+Learning progress uses a paper panel with a labeled measure selector for scored multiple-choice accuracy, multiple choice after seven or more days, and explicitly self-rated recall after seven or more days. Coral dots and straight segments share a fixed 0–100% scale; segments connect only adjacent periods with results, leaving missing periods blank. Keep the correct/total counts beside the aggregate percentage and an expandable, labeled weekly-results table below the chart. Explain that self-ratings are subjective and earlier history remains unscored. Practice patterns and subject results use plain rows with sample counts. These charts describe practice results, not exam readiness.
 
 ### Navigation
 

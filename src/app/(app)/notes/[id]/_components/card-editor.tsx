@@ -1,6 +1,7 @@
 'use client';
 import { useId, useState } from 'react';
 import { MTLE_SUBJECTS, type MedtechSubject } from '@/domain/study/medtech';
+import type { AnswerType } from '@/domain/review/regimen';
 import { QuizEditor } from './quiz-editor';
 import type { Card, UpdateCardRequest } from '@/domain/types';
 import { Button } from '@/components/ui/button';
@@ -26,6 +27,9 @@ export const CardEditor = ({
   const [answer, setAnswer] = useState(card.answer);
   const [subject, setSubject] = useState<MedtechSubject | null>(card.subject);
   const [topic, setTopic] = useState(card.topic ?? '');
+  const [answerType, setAnswerType] = useState<AnswerType>(
+    card.answerType ?? 'auto',
+  );
   const [quiz, setQuiz] = useState(card.quiz);
   const [approved, setApproved] = useState(false);
   // An approval describes exactly the content checked. Any edit requires rechecking.
@@ -47,6 +51,7 @@ export const CardEditor = ({
           subject,
           topic: topic.trim() || null,
           quiz,
+          answerType,
           reviewStatus: approved ? 'approved' : 'draft',
         });
       }}
@@ -56,6 +61,40 @@ export const CardEditor = ({
         <Button variant="ghost" disabled={busy} onClick={onCancel}>
           Cancel
         </Button>
+      </div>
+      <div className="mt-5 space-y-2">
+        <label htmlFor={`${id}-answer-type`} className="card-section-label">
+          Answer type
+        </label>
+        <select
+          id={`${id}-answer-type`}
+          className="study-field"
+          disabled={busy}
+          value={answerType}
+          onChange={(e) =>
+            change(() => {
+              const next = e.target.value as AnswerType;
+              setAnswerType(next);
+              if (next === 'choice' && !quiz)
+                setQuiz({
+                  explanation: '',
+                  distractors: Array.from({ length: 3 }, () => ({
+                    text: '',
+                    explanation: '',
+                  })),
+                });
+            })
+          }
+        >
+          <option value="auto">Automatic · follow my regimen</option>
+          <option value="recall">Flashcard · recall then reveal</option>
+          <option value="write">Written answer</option>
+          <option value="choice">Multiple choice</option>
+        </select>
+        <p className="text-sm text-ink-2">
+          Automatic chooses the format from your review history. A specific type
+          becomes this card&apos;s default.
+        </p>
       </div>
       <div className="card-setup-grid">
         <div className="min-w-0 space-y-5 pt-5">
@@ -172,7 +211,12 @@ export const CardEditor = ({
           <fieldset disabled={busy}>
             <QuizEditor
               quiz={quiz}
-              onChange={(next) => change(() => setQuiz(next))}
+              onChange={(next) =>
+                change(() => {
+                  setQuiz(next);
+                  if (!next && answerType === 'choice') setAnswerType('auto');
+                })
+              }
             />
           </fieldset>
         </div>

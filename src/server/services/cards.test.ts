@@ -72,6 +72,34 @@ describe('card editing', () => {
       sourceQuote: 'body',
     });
 
+    expect(card!.answerType).toBe('auto');
+    const preference = await editCard({
+      userId,
+      cardId: card!.id,
+      answerType: 'write',
+    });
+    expect(preference.answerType).toBe('write');
+    expect(
+      (await db.query.cards.findFirst({ where: eq(cards.id, card!.id) }))!
+        .answerType,
+    ).toBe('write');
+    await expect(
+      editCard({ userId, cardId: card!.id, answerType: 'choice' }),
+    ).rejects.toMatchObject({ code: 'VALIDATION' });
+    const multipleChoice = await editCard({
+      userId,
+      cardId: card!.id,
+      answerType: 'choice',
+      quiz: {
+        explanation: 'Yes matches the source.',
+        distractors: ['No', 'Maybe', 'Unknown'].map((text) => ({
+          text,
+          explanation: 'This does not match the source.',
+        })),
+      },
+    });
+    expect(multipleChoice.answerType).toBe('choice');
+
     await expect(
       removeCard({ userId: intruder, cardId: card!.id }),
     ).rejects.toMatchObject({ code: 'NOT_FOUND' });

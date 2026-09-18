@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { answerTypeSchema, type AnswerType } from '../review/regimen';
 import { subjectSchema, type MedtechSubject } from '../study/medtech';
 import { quizContentSchema, type QuizContent } from '../study/quiz-content';
 
@@ -61,6 +62,7 @@ export interface Card {
   subject: MedtechSubject | null;
   topic: string | null;
   quiz: QuizContent | null;
+  answerType?: AnswerType;
 }
 
 export interface CardReview {
@@ -73,6 +75,8 @@ export interface CardReview {
 }
 
 export const reviewAnswerRequestSchema = z.object({
+  practiceType: z.enum(['recall', 'write', 'choice']).optional(),
+  selectedAnswer: z.string().max(1000).optional(),
   cardId: z.uuid(),
   rating: z.union([z.literal(1), z.literal(2), z.literal(3), z.literal(4)]),
   elapsedMs: z.number().int().nonnegative(),
@@ -125,6 +129,7 @@ export const updateCardRequestSchema = z.object({
   subject: subjectSchema.nullable().optional(),
   topic: z.string().trim().min(1).max(100).nullable().optional(),
   quiz: quizContentSchema.nullable().optional(),
+  answerType: answerTypeSchema.optional(),
 });
 export type UpdateCardRequest = z.infer<typeof updateCardRequestSchema>;
 

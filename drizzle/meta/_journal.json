@@ -64,6 +64,20 @@
       "when": 1789699000001,
       "tag": "0008_mistake_checks",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1789700000000,
+      "tag": "0009_card_answer_type",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1789700000001,
+      "tag": "0010_review_progress",
+      "breakpoints": true
     }
   ]
 }

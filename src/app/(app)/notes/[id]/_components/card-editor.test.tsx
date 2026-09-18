@@ -84,3 +84,28 @@ it('clears approval after changing a checked answer and keeps the source read-on
     }),
   );
 });
+
+it('offers a persistent answer type and opens alternatives when multiple choice is selected', async () => {
+  const onSave = jest.fn();
+  render(
+    <CardEditor
+      card={card}
+      busy={false}
+      onSave={onSave}
+      onCancel={jest.fn()}
+    />,
+  );
+  expect(screen.getByLabelText('Answer type')).toHaveValue('auto');
+  await userEvent.selectOptions(screen.getByLabelText('Answer type'), 'choice');
+  expect(screen.getByLabelText('Why the answer is correct')).toBeVisible();
+  expect(screen.getByLabelText('Alternative 1')).toBeVisible();
+  await userEvent.click(
+    screen.getByLabelText('Include reviewed multiple-choice practice'),
+  );
+  expect(screen.getByLabelText('Answer type')).toHaveValue('auto');
+  await userEvent.selectOptions(screen.getByLabelText('Answer type'), 'write');
+  await userEvent.click(screen.getByRole('button', { name: 'Save draft' }));
+  expect(onSave).toHaveBeenCalledWith(
+    expect.objectContaining({ answerType: 'write' }),
+  );
+});

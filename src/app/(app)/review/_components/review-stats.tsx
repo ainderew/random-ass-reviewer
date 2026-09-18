@@ -38,8 +38,8 @@ export const ReviewStatsPanel = () => {
         </div>
       </dl>
       <p className="text-sm text-ink-2">
-        Good or Easy ratings in your recent flashcard reviews. Quiz scores are
-        tracked separately.
+        Good or Easy ratings in your recent Review sessions. These are your
+        self-ratings; scored accuracy is shown in Learning progress.
       </p>
       <div>
         <p className="text-sm text-muted">Coming due</p>

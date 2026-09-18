@@ -91,6 +91,7 @@ it('keeps draft and flagged cards out of study, persists planning, and maps prac
   expect(await getReviewQueue(userId)).toEqual([]);
   await updateProfile(userId, { dailyNewCards: 5 });
   expect(await getReviewQueue(userId)).toHaveLength(1);
+  expect((await getReviewQueue(userId))[0]!.quiz).toEqual(card.quiz);
   expect((await getReviewQueue(userId))[0]!.source).toEqual({
     id: expect.any(String),
     title: 'Learning test',
@@ -309,4 +310,60 @@ it('removes edited or unapproved questions from delayed checks and isolates thei
   ).rejects.toMatchObject({ code: 'NOT_FOUND' });
   await editCard({ userId, cardId: card.id, answer: 'An edited answer' });
   expect(await getMistakeChecks(userId)).toEqual([]);
+});
+
+it('grades practice choices on the server, snapshots delay, and keeps progress private', async () => {
+  const { userId, card } = await setup();
+  await editCard({ userId, cardId: card.id, reviewStatus: 'approved' });
+  const state = {
+    ...initialCardState(Date.now()),
+    last_review: new Date(Date.now() - 8 * 86400000).toISOString(),
+  };
+  await db.update(cards).set({ fsrsState: state }).where(eq(cards.id, card.id));
+  await expect(
+    submitAnswer({
+      userId,
+      cardId: card.id,
+      rating: 3,
+      elapsedMs: 2000,
+      practiceType: 'choice',
+      selectedAnswer: 'Sample B',
+    }),
+  ).rejects.toMatchObject({ code: 'VALIDATION' });
+  await expect(
+    submitAnswer({
+      userId,
+      cardId: card.id,
+      rating: 1,
+      elapsedMs: 2000,
+      practiceType: 'choice',
+      selectedAnswer: 'Not an option',
+    }),
+  ).rejects.toMatchObject({ code: 'VALIDATION' });
+  await submitAnswer({
+    userId,
+    cardId: card.id,
+    rating: 1,
+    elapsedMs: 2000,
+    practiceType: 'choice',
+    selectedAnswer: 'Sample B',
+  });
+  const { getLearningProgress } = await import('./learning-progress');
+  const progress = await getLearningProgress(userId);
+  expect(progress.choices).toEqual({ correct: 0, total: 1 });
+  expect(progress.delayedChoices).toEqual({ correct: 0, total: 1 });
+  expect(progress.subjects[0]!.subject).toBe('hematology');
+  const other = await setup();
+  expect((await getLearningProgress(other.userId)).choices.total).toBe(0);
+  await expect(
+    submitAnswer({
+      userId,
+      cardId: card.id,
+      rating: 3,
+      elapsedMs: 2000,
+      practiceType: 'choice',
+      selectedAnswer: 'Sample A',
+    }),
+  ).rejects.toMatchObject({ code: 'INVALID_STATE' });
+  expect((await getLearningProgress(userId)).choices.total).toBe(1);
 });

@@ -1,0 +1,11 @@
+◇ injected env (7) from .env.test // tip: ◈ encrypted .env [www.dotenvx.com]
+{"name":"mobile-empty","overflow":false,"violations":[]}
+{"name":"mobile-accuracy","overflow":false,"violations":[]}
+{"name":"mobile-table","overflow":false,"violations":[]}
+{"name":"mobile-delayed","overflow":false,"violations":[]}
+{"name":"mobile-self-rated","overflow":false,"violations":[]}
+{"name":"desktop-accuracy","overflow":false,"violations":[]}
+{"name":"desktop-table","overflow":false,"violations":[]}
+{"name":"desktop-delayed","overflow":false,"violations":[]}
+{"name":"desktop-self-rated","overflow":false,"violations":[]}
+Live API grading and persistent chart verified; historical chart rows are synthetic QA data.

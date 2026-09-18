@@ -39,6 +39,17 @@ export const CardDetails = ({
             : 'Not in review sessions yet'}
         </span>
       </div>
+      <p className="mt-4 text-sm text-ink-2">
+        Answer type:{' '}
+        {
+          {
+            auto: 'Automatic regimen',
+            recall: 'Flashcard',
+            write: 'Written answer',
+            choice: 'Multiple choice',
+          }[card.answerType ?? 'auto']
+        }
+      </p>
       <div className="card-setup-grid">
         <div className="min-w-0">
           <section aria-label="Question" className="py-5">

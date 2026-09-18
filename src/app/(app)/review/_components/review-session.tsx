@@ -14,12 +14,19 @@ import { useReviewQueue, useReviewStats } from '../_hooks/use-review';
 import { useAnswerQueue } from '../_hooks/use-answer-queue';
 import { Flashcard } from './flashcard';
 import { RatingButtons } from './rating-buttons';
+import {
+  recommendedAnswerType,
+  hasChoices,
+  type AnswerType,
+} from '@/domain/review/regimen';
+import { PracticePrompt, PRACTICE_MODES } from './practice-prompt';
 import { ReviewComplete } from './review-complete';
 
 const isTyping = (target: EventTarget | null) =>
   target instanceof HTMLElement &&
   (target.tagName === 'INPUT' ||
     target.tagName === 'TEXTAREA' ||
+    target.tagName === 'SELECT' ||
     target.isContentEditable);
 
 // Space reveals, 1 to 4 rate. Serious users review hundreds of cards and will
@@ -39,6 +46,10 @@ export const ReviewSession = ({
   } = useReviewQueue();
   const { data: stats } = useReviewStats();
   const pop = useSpringPop();
+  const [selection, setSelection] = useState<AnswerType>('auto');
+  const [choiceCorrect, setChoiceCorrect] = useState<boolean | null>(null);
+  const [selectedAnswer, setSelectedAnswer] = useState<string | undefined>();
+  const [choiceScore, setChoiceScore] = useState({ correct: 0, total: 0 });
   const [index, setIndex] = useState(0);
   const [revealed, setRevealed] = useState(false);
   const [skipped, setSkipped] = useState<Set<string>>(() => new Set());
@@ -60,6 +71,12 @@ export const ReviewSession = ({
     minutes ? reviewBatch(queue ?? [], minutes) : (queue ?? [])
   ).filter((c) => !skipped.has(c.id));
   const card = cards[index];
+  const mode =
+    selection === 'auto'
+      ? card
+        ? recommendedAnswerType(card)
+        : 'recall'
+      : selection;
   const done = !isPending && card === undefined;
 
   useEffect(() => {
@@ -72,12 +89,26 @@ export const ReviewSession = ({
     setBestRun((b) => Math.max(b, nextRun));
     // One semitone per consecutive success, capped inside playPitched.
     if (nextRun > 0) playPitched({ frequency: 523.25, semitones: nextRun - 1 });
+    if (mode === 'choice' && choiceCorrect !== null)
+      setChoiceScore((s) => ({
+        correct: s.correct + Number(choiceCorrect),
+        total: s.total + 1,
+      }));
+    setChoiceCorrect(null);
+    setSelectedAnswer(undefined);
+    setSelection('auto');
     setRevealed(false);
     setIndex((i) => i + 1);
   };
 
   const rate = async (rating: Rating) => {
-    if (!card || busy) return;
+    if (
+      !card ||
+      busy ||
+      !revealed ||
+      (mode === 'choice' && choiceCorrect === false && rating !== 1)
+    )
+      return;
     setError(null);
     setBusy(true);
     const elapsedMs = Math.max(
@@ -89,11 +120,16 @@ export const ReviewSession = ({
         cardId: card.id,
         rating,
         elapsedMs,
+        practiceType: mode,
+        ...(mode === 'choice' ? { selectedAnswer } : {}),
       });
       if (outcome.kind === 'ok') credit(outcome.result.insightAwarded);
       if (outcome.kind === 'gone') {
         // Deleted mid-review. Drop it and move on without ceremony.
         setSkipped((s) => new Set(s).add(card.id));
+        setSelection('auto');
+        setChoiceCorrect(null);
+        setSelectedAnswer(undefined);
         setRevealed(false);
         return;
       }
@@ -121,8 +157,11 @@ export const ReviewSession = ({
       )
         return;
       if (event.key === ' ' || event.key === 'Spacebar') {
+        if (mode === 'choice') return;
         event.preventDefault();
-        if (card && !revealed) setRevealed(true);
+        if (card && !revealed) {
+          setRevealed(true);
+        }
         return;
       }
       if (!revealed) return;
@@ -151,6 +190,13 @@ export const ReviewSession = ({
   if (done) {
     return (
       <div className="space-y-6">
+        {choiceScore.total > 0 && (
+          <p role="status" className="answer-section">
+            {choiceScore.correct} of {choiceScore.total} correct on the first
+            choice. This is practice with your notes, not a board-exam readiness
+            score.
+          </p>
+        )}
         <ReviewComplete
           reviewed={index}
           bounded={minutes !== null}
@@ -161,6 +207,7 @@ export const ReviewSession = ({
           onAgain={() => {
             if (answers.pending > 0) return;
             setIndex(0);
+            setChoiceScore({ correct: 0, total: 0 });
             setRun(0);
             setInsight(0);
             void queryClient.invalidateQueries({ queryKey: reviewQueueKey });
@@ -190,6 +237,42 @@ export const ReviewSession = ({
 
   return (
     <section aria-label="Review" className="space-y-5">
+      <div className="space-y-2 border-b border-hairline pb-5">
+        <label htmlFor="practice-mode" className="card-section-label">
+          Answer type for this card
+        </label>
+        <select
+          id="practice-mode"
+          className="study-field"
+          value={selection}
+          disabled={revealed || busy}
+          onChange={(e) => setSelection(e.target.value as AnswerType)}
+        >
+          <option value="auto">Follow my regimen (recommended)</option>
+          {Object.entries(PRACTICE_MODES).map(([key, value]) => (
+            <option
+              key={key}
+              value={key}
+              disabled={key === 'choice' && !!card && !hasChoices(card)}
+            >
+              {value.title}
+            </option>
+          ))}
+        </select>
+        <p className="text-sm text-ink-2">{PRACTICE_MODES[mode].hint}</p>
+        <p className="text-xs text-muted">
+          {selection === 'auto'
+            ? `Selected for you: ${PRACTICE_MODES[mode].title}.`
+            : 'This change applies to this review only.'}{' '}
+          You can change the type before answering.
+        </p>
+        {card && !hasChoices(card) && (
+          <p className="text-xs text-muted">
+            To enable multiple choice, add alternatives and explanations in this
+            card&apos;s notes.
+          </p>
+        )}
+      </div>
       <div className="flex items-center justify-between text-sm">
         <p className="font-mono text-ink-2 tabular-nums">
           Card {index + 1} of {cards.length}
@@ -206,13 +289,31 @@ export const ReviewSession = ({
         </p>
       </div>
 
-      {card ? <Flashcard card={card} revealed={revealed} /> : null}
+      {card ? (
+        <Flashcard card={card} revealed={revealed}>
+          {mode !== 'recall' && (
+            <PracticePrompt
+              key={`${card.id}:${mode}`}
+              card={card}
+              mode={mode}
+              revealed={revealed}
+              onChoice={(correct, selected) => {
+                setSelectedAnswer(selected);
+                setChoiceCorrect(correct);
+                setRevealed(true);
+              }}
+            />
+          )}
+        </Flashcard>
+      ) : null}
 
-      {card && !revealed ? (
+      {card && !revealed && mode !== 'choice' ? (
         <Button
           size="lg"
           block
-          onClick={() => setRevealed(true)}
+          onClick={() => {
+            setRevealed(true);
+          }}
           aria-keyshortcuts="Space"
         >
           Show answer <kbd className="ml-2 hidden text-xs sm:inline">Space</kbd>
@@ -223,11 +324,22 @@ export const ReviewSession = ({
           <h2 className="text-base font-semibold">
             How well did you remember?
           </h2>
-          <RatingButtons
-            card={card}
-            disabled={busy}
-            onRate={(r) => void rate(r)}
-          />
+          {mode === 'choice' && choiceCorrect === false ? (
+            <Button
+              block
+              size="lg"
+              disabled={busy}
+              onClick={() => void rate(1)}
+            >
+              Again · review this sooner
+            </Button>
+          ) : (
+            <RatingButtons
+              card={card}
+              disabled={busy}
+              onRate={(r) => void rate(r)}
+            />
+          )}
         </div>
       ) : null}
 
@@ -246,7 +358,9 @@ export const ReviewSession = ({
         Again earns the same review credit as Good. Rate what you remembered.
       </p>
       <p className="hidden text-xs text-muted sm:block">
-        Space to reveal, 1 to 4 to rate.
+        {mode === 'choice'
+          ? 'Choose an option, then rate your recall.'
+          : 'Space to reveal, 1 to 4 to rate.'}
       </p>
     </section>
   );

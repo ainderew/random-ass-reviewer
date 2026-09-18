@@ -3,6 +3,7 @@ import {
   HydrationBoundary,
   QueryClient,
 } from '@tanstack/react-query';
+import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { reviewQueueKey, reviewStatsKey } from '@/lib/query-keys';
 import { auth } from '@/server/auth';
@@ -36,6 +37,12 @@ export default async function ReviewPage({
         <div className="page-heading">
           <h1 className="font-semibold">Review</h1>
           <p>Recall, reveal, then rate your answer.</p>
+          <Link
+            href="/review/progress"
+            className="mt-3 inline-flex min-h-11 items-center text-base text-focus underline"
+          >
+            See learning progress
+          </Link>
         </div>
         <div className="space-y-8">
           <div className="space-y-6">

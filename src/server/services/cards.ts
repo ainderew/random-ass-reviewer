@@ -25,6 +25,12 @@ export async function editCard(
     if (contentChanged || input.quiz !== undefined)
       patch.reviewStatus = input.reviewStatus ?? 'draft';
     const next = { ...current, ...patch };
+    if (next.answerType === 'choice' && !next.quiz) {
+      throw new AppError(
+        'VALIDATION',
+        'Add three explained alternatives before choosing Multiple choice.',
+      );
+    }
     if (next.quiz && !validQuizContent(next.answer, next.quiz)) {
       throw new AppError(
         'VALIDATION',

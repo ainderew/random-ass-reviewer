@@ -9,6 +9,7 @@ import {
 } from '@/domain/review/today';
 import { apiFetch } from '@/lib/api-client';
 import { Button } from '@/components/ui/button';
+import { WeeklyRegimen } from './weekly-regimen';
 
 export const TodayPlan = ({
   onRead,
@@ -26,8 +27,11 @@ export const TodayPlan = ({
   return (
     <section aria-label="Today's study plan" className="journal-plan">
       <div className="flex items-baseline justify-between gap-3">
-        <h2 className="font-serif text-2xl font-bold">Your next review</h2>
+        <h2 className="font-serif text-2xl font-bold">Your study regimen</h2>
       </div>
+      <p className="mt-2 text-sm text-ink-2">
+        A small review today. A check-in each week.
+      </p>
       <fieldset className="mt-5 flex flex-wrap items-center justify-between gap-3">
         <legend className="sr-only">Time for this review</legend>
         <span className="text-sm text-ink-2">Time for review</span>
@@ -60,46 +64,6 @@ export const TodayPlan = ({
         </div>
       ) : (
         <>
-          <ol className="mt-5 divide-y divide-hairline border-y border-hairline">
-            <li className="journal-step">
-              <div>
-                <h3 className="font-serif text-2xl">
-                  {batch?.total
-                    ? 'Recall what is ready'
-                    : data.approved
-                      ? 'Room to breathe'
-                      : 'Begin with your notes'}
-                </h3>
-                <p className="mt-1 text-sm text-ink-2">
-                  {batch?.total
-                    ? `${batch.returning} returning + ${batch.fresh} new cards. Recall first, then reveal.`
-                    : data.approved
-                      ? 'No cards available in this batch. Come back when the next review is due.'
-                      : 'Upload your notes, then check and approve the generated cards.'}
-                </p>
-              </div>
-            </li>
-            <li className="journal-step">
-              <div>
-                <h3 className="font-serif text-2xl">Revisit a mistake</h3>
-                <p className="mt-1 text-sm text-ink-2">
-                  {data.mistakesDue
-                    ? `${data.mistakesDue} delayed ${data.mistakesDue === 1 ? 'check is' : 'checks are'} ready. Try one after your cards.`
-                    : data.nextMistakeAt
-                      ? 'Your next check is scheduled for later. Spacing gives recall a chance.'
-                      : 'A missed quiz question will return here after a day.'}
-                </p>
-                {data.mistakesDue > 0 && (
-                  <Link
-                    className="mt-2 inline-flex min-h-11 items-center text-sm text-focus underline underline-offset-4"
-                    href="/review/mistakes"
-                  >
-                    Try a delayed check ↗
-                  </Link>
-                )}
-              </div>
-            </li>
-          </ol>
           <Link
             className="journal-primary mt-5"
             href={
@@ -117,20 +81,88 @@ export const TodayPlan = ({
                 : 'Open my notes'}
             <span aria-hidden="true">→</span>
           </Link>
+          <h3 className="mt-5 font-serif text-xl font-bold">Today</h3>
+          <ol className="mt-3 divide-y divide-hairline border-y border-hairline">
+            <li className="journal-step">
+              <div>
+                <h4 className="text-base font-semibold">
+                  {batch?.total
+                    ? 'Answer your due cards before checking'
+                    : data.approved
+                      ? 'You have no cards due in this batch'
+                      : 'Begin with your notes'}
+                </h4>
+                <p className="mt-1 text-sm text-ink-2">
+                  {batch?.total
+                    ? `${batch.returning} returning + ${batch.fresh} new cards. Aloft chooses the answer type.`
+                    : data.approved
+                      ? 'No cards available in this batch. Come back when the next review is due.'
+                      : 'Upload your notes, then check and approve the generated cards.'}
+                </p>
+                <p className="mt-2 text-sm text-ink-2">
+                  {data.approved
+                    ? 'Why: recalling an answer helps you remember it later.'
+                    : 'Why: accurate cards give you reliable answers to practise.'}
+                </p>
+              </div>
+            </li>
+            <li className="journal-step">
+              <div>
+                <h4 className="text-base font-semibold">
+                  Check the answer. Understand any mistake.
+                </h4>
+                <p className="mt-1 text-sm text-ink-2">
+                  Read the explanation and source. Rate a forgotten answer
+                  Again.
+                </p>
+                <p className="mt-2 text-sm text-ink-2">
+                  Why: feedback helps prevent you from learning a wrong answer.
+                </p>
+              </div>
+            </li>
+            <li className="journal-step">
+              <div>
+                <h4 className="text-base font-semibold">
+                  Retry mistakes when they are due
+                </h4>
+                <p className="mt-1 text-sm text-ink-2">
+                  {data.mistakesDue
+                    ? `${data.mistakesDue} delayed ${data.mistakesDue === 1 ? 'check is' : 'checks are'} ready. Try one after your cards.`
+                    : data.nextMistakeAt
+                      ? 'Your next check is scheduled for later. No extra check needed now.'
+                      : 'Questions missed in a focus-session quiz return here after a day.'}
+                </p>
+                <p className="mt-2 text-sm text-ink-2">
+                  Why: a later attempt checks whether the correction stuck.
+                </p>
+                {data.mistakesDue > 0 && (
+                  <Link
+                    className="mt-2 inline-flex min-h-11 items-center text-sm text-focus underline underline-offset-4"
+                    href="/review/mistakes"
+                  >
+                    Try a delayed check ↗
+                  </Link>
+                )}
+              </div>
+            </li>
+          </ol>
           <p className="mt-3 text-xs text-muted">
-            A suggested batch, not a race. Stop whenever you need to.
+            Your cards and answer types are chosen for you. This time budget is
+            an estimate; stop whenever you need to.
             {data.reviewedToday > 0
               ? ` ${data.reviewedToday} reviews saved today.`
               : ''}
           </p>
         </>
       )}
+      <WeeklyRegimen />
       <div className="mt-6 border-t border-hairline pt-5">
         <div className="flex items-start justify-between gap-4">
           <div>
             <h3 className="font-serif text-xl">Read with my notes</h3>
             <p className="mt-1 text-sm text-ink-2">
-              Switch to your PDF or a book. Return to finish.
+              Read a small section, close it, then say what you remember. Reopen
+              it to check.
             </p>
           </div>
           <span aria-hidden="true" className="text-2xl text-focus">

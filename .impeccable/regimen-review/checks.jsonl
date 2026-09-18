@@ -1,0 +1,16 @@
+◇ injected env (7) from .env.test // tip: ⌘ override existing { override: true }
+{"name":"mobile-editor","overflow":false,"violations":[]}
+{"name":"mobile-today","overflow":false,"violations":[]}
+{"name":"mobile-automatic","overflow":false,"violations":[]}
+{"name":"mobile-write","overflow":false,"violations":[]}
+{"name":"mobile-compare","overflow":false,"violations":[]}
+{"name":"mobile-choice","overflow":false,"violations":[]}
+{"name":"mobile-feedback","overflow":false,"violations":[]}
+{"name":"desktop-editor","overflow":false,"violations":[]}
+{"name":"desktop-today","overflow":false,"violations":[]}
+{"name":"desktop-automatic","overflow":false,"violations":[]}
+{"name":"desktop-write","overflow":false,"violations":[]}
+{"name":"desktop-compare","overflow":false,"violations":[]}
+{"name":"desktop-choice","overflow":false,"violations":[]}
+{"name":"desktop-feedback","overflow":false,"violations":[]}
+Incorrect choice scheduled and summary verified

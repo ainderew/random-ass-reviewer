@@ -1,4 +1,5 @@
 'use client';
+import type { ReactNode } from 'react';
 import Image from 'next/image';
 import type { QueuedCard } from '@/domain/types';
 import { SourceEvidence } from '@/components/study/source-evidence';
@@ -6,14 +7,16 @@ import { SourceEvidence } from '@/components/study/source-evidence';
 export const Flashcard = ({
   card,
   revealed,
+  children,
 }: {
   card: QueuedCard;
   revealed: boolean;
+  children?: ReactNode;
 }) => (
   <div className="review-card">
     <section
       aria-label="Question"
-      className={`review-question ${revealed ? 'is-revealed' : ''}`}
+      className={`review-question ${revealed || children ? 'is-revealed' : ''}`}
     >
       <div className="flex items-center justify-between gap-4">
         <h2 className="card-section-label">Question</h2>
@@ -22,7 +25,7 @@ export const Flashcard = ({
       <p className="mt-5 font-display text-2xl font-extrabold leading-[1.45] tracking-[-0.015em] break-words sm:text-[1.75rem]">
         {card.question}
       </p>
-      {!revealed && (
+      {!revealed && !children && (
         <div className="mt-6 flex items-center gap-4 border-t border-hairline pt-5">
           <Image
             src="/illustrations/study-cards-v1.png"
@@ -40,6 +43,7 @@ export const Flashcard = ({
         </div>
       )}
     </section>
+    {children}
     {revealed && (
       <div aria-live="polite">
         <section aria-label="Answer" className="answer-section mt-5">

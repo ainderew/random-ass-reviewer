@@ -1,3 +1,4 @@
+import { validQuizContent } from '@/domain/study/quiz-content';
 import { sourcesForChunks } from '@/server/repositories/card-source';
 import { calculateReviewInsight } from '@/domain/economy/insight';
 import { selectQueue } from '@/domain/review/queue';
@@ -73,6 +74,10 @@ export async function getReviewQueue(userId: string): Promise<QueuedCard[]> {
     answer: card.answer,
     sourceQuote: card.sourceQuote,
     tags: card.tags,
+    quiz: card.quiz,
+    answerType: card.answerType,
+    reviewCount: state.reps,
+    relearning: state.state === 3,
     isNew: state.state === 0,
     dueAt: card.nextDueAt,
     intervals: previewIntervals({ state, nowMs }),
@@ -96,6 +101,8 @@ export async function submitAnswer(input: {
   cardId: string;
   rating: Rating;
   elapsedMs: number;
+  practiceType?: 'recall' | 'write' | 'choice';
+  selectedAnswer?: string;
 }): Promise<AnswerResult> {
   return db.transaction(async (tx) => {
     const card = await lockCard(tx, input.userId, input.cardId);
@@ -113,6 +120,37 @@ export async function submitAnswer(input: {
         'INVALID_STATE',
         'This review has already been saved or is not due yet.',
       );
+    let correct: boolean | null = null;
+    if (input.practiceType === 'choice') {
+      if (
+        !card.quiz ||
+        !validQuizContent(card.answer, card.quiz) ||
+        ![card.answer, ...card.quiz.distractors.map((d) => d.text)].includes(
+          input.selectedAnswer ?? '',
+        )
+      )
+        throw new AppError(
+          'VALIDATION',
+          'Choose one of the current card options.',
+        );
+      correct = input.selectedAnswer === card.answer;
+      if (!correct && input.rating !== 1)
+        throw new AppError(
+          'VALIDATION',
+          'An incorrect choice must be rated Again.',
+        );
+    } else if (input.selectedAnswer !== undefined) {
+      throw new AppError(
+        'VALIDATION',
+        'An option is only accepted for multiple-choice reviews.',
+      );
+    }
+    const previousReview = card.fsrsState.last_review
+      ? Date.parse(card.fsrsState.last_review)
+      : NaN;
+    const delayDays = Number.isFinite(previousReview)
+      ? Math.max(0, (nowMs - previousReview) / 86400000)
+      : null;
     const rewardedToday = await hasRecallSince(
       tx,
       card.id,
@@ -133,6 +171,10 @@ export async function submitAnswer(input: {
       sessionId: null,
       rating: input.rating,
       elapsedMs: Math.min(input.elapsedMs, 10 * 60 * 1000),
+      practiceType: input.practiceType,
+      correct,
+      delayDays,
+      subject: card.subject,
     });
 
     const recent = await listRecentReviews(

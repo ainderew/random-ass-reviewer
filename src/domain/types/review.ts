@@ -1,4 +1,6 @@
 import { z } from 'zod';
+import type { AnswerType } from '../review/regimen';
+import type { QuizContent } from '../study/quiz-content';
 import type { Rating } from './study';
 
 export interface QueuedCard {
@@ -7,6 +9,10 @@ export interface QueuedCard {
   answer: string;
   sourceQuote: string;
   tags: string[];
+  quiz?: QuizContent | null;
+  answerType?: AnswerType;
+  reviewCount?: number;
+  relearning?: boolean;
   source?: { id: string; title: string };
   isNew: boolean;
   dueAt: Date;
