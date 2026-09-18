@@ -97,6 +97,8 @@ async function seedSession(userId: string, spanMs: number): Promise<string> {
 
 const created: string[] = [];
 
+afterEach(() => jest.useRealTimers());
+
 afterAll(async () => {
   for (const id of created) await db.delete(users).where(eq(users.id, id));
   await closeDb();
@@ -263,54 +265,79 @@ describe('review service', () => {
     expect((await getSessionQuiz({ userId, sessionId })).submitted).toBe(true);
   });
 
-  it('applies the daily cap to time before the multiplier applies to the award', async () => {
-    const userId = await makeUser('cap');
-    created.push(userId);
-    const deck = await seedDeck(userId, 8);
-    for (const card of deck)
-      await submitAnswer({ userId, cardId: card.id, rating: 3, elapsedMs: 1 });
-
-    // Already credited all but ten minutes today.
-    await db.insert(focusSessions).values({
-      userId,
-      lootSeed: 'earlier',
-      startedAt: new Date(Date.now() - minutes(600)),
-      endedAt: new Date(Date.now() - minutes(100)),
-      status: 'completed',
-      focusedMs: DAILY_CREDITABLE_MS - minutes(10),
-      creditedMs: DAILY_CREDITABLE_MS - minutes(10),
-    });
-    const sessionId = await seedSession(userId, minutes(30));
-    const quiz = await getSessionQuiz({ userId, sessionId });
-    const byId = new Map(deck.map((c) => [c.id, c.answer]));
-    for (const q of quiz.questions) {
-      await answerQuizQuestion({
-        userId,
-        sessionId,
-        cardId: q.cardId,
-        optionIndex: q.options.indexOf(byId.get(q.cardId)!),
+  it.each(['2026-09-18T00:00:00.000Z', '2026-09-18T12:00:00.000Z'])(
+    'applies the daily cap before the multiplier at %s',
+    async (now) => {
+      // Freeze Date only; PostgreSQL still needs real asynchronous timers.
+      jest.useFakeTimers({
+        now: new Date(now),
+        doNotFake: [
+          'nextTick',
+          'queueMicrotask',
+          'setImmediate',
+          'clearImmediate',
+          'setTimeout',
+          'clearTimeout',
+          'setInterval',
+          'clearInterval',
+          'performance',
+          'hrtime',
+        ],
       });
-    }
-    const outcome = await finishSessionQuiz({ userId, sessionId });
-    expect(outcome.multiplier).toBe(2);
+      const userId = await makeUser('cap');
+      created.push(userId);
+      const deck = await seedDeck(userId, 8);
+      for (const card of deck)
+        await submitAnswer({
+          userId,
+          cardId: card.id,
+          rating: 3,
+          elapsedMs: 1,
+        });
 
-    const result = await endSession({ userId, sessionId });
-    expect(result.creditedMs).toBe(minutes(10));
-    expect(result.cappedByDailyLimit).toBe(true);
-    expect(result.quizMultiplier).toBe(2);
-    // 10 minutes x 10 Focus x 2, not 30 minutes x 10 x 2.
-    expect(result.focusAwarded).toBe(200);
+      // Credit belongs to the day the session ends, including at midnight.
+      // Subtracting 100 minutes here used to put this fixture in yesterday.
+      await db.insert(focusSessions).values({
+        userId,
+        lootSeed: 'earlier',
+        startedAt: new Date(Date.now() - minutes(600)),
+        endedAt: new Date(),
+        status: 'completed',
+        focusedMs: DAILY_CREDITABLE_MS - minutes(10),
+        creditedMs: DAILY_CREDITABLE_MS - minutes(10),
+      });
+      const sessionId = await seedSession(userId, minutes(30));
+      const quiz = await getSessionQuiz({ userId, sessionId });
+      const byId = new Map(deck.map((c) => [c.id, c.answer]));
+      for (const q of quiz.questions) {
+        await answerQuizQuestion({
+          userId,
+          sessionId,
+          cardId: q.cardId,
+          optionIndex: q.options.indexOf(byId.get(q.cardId)!),
+        });
+      }
+      const outcome = await finishSessionQuiz({ userId, sessionId });
+      expect(outcome.multiplier).toBe(2);
 
-    // The quiz cannot be taken once the session is over.
-    await expect(
-      finishSessionQuiz({ userId, sessionId }),
-    ).rejects.toMatchObject({
-      code: 'INVALID_STATE',
-    });
-    expect(
-      (await getSessionQuiz({ userId, sessionId })).questions,
-    ).toHaveLength(0);
-  });
+      const result = await endSession({ userId, sessionId });
+      expect(result.creditedMs).toBe(minutes(10));
+      expect(result.cappedByDailyLimit).toBe(true);
+      expect(result.quizMultiplier).toBe(2);
+      // 10 minutes x 10 Focus x 2, not 30 minutes x 10 x 2.
+      expect(result.focusAwarded).toBe(200);
+
+      // The quiz cannot be taken once the session is over.
+      await expect(
+        finishSessionQuiz({ userId, sessionId }),
+      ).rejects.toMatchObject({
+        code: 'INVALID_STATE',
+      });
+      expect(
+        (await getSessionQuiz({ userId, sessionId })).questions,
+      ).toHaveLength(0);
+    },
+  );
 
   it('reports due, done, retention, and a seven day forecast', async () => {
     const userId = await makeUser('stats');
