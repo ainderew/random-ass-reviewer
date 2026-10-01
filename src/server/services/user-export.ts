@@ -12,6 +12,8 @@ import {
   listPlacements,
 } from '@/server/repositories/island';
 import { listNoteSources } from '@/server/repositories/note';
+import { ensurePet } from '@/server/repositories/pet';
+import { countSubscriptions } from '@/server/repositories/push-subscription';
 import { findUserById } from '@/server/repositories/user';
 import { findUserStats } from '@/server/repositories/user-stats';
 
@@ -50,5 +52,8 @@ export async function exportUserData(userId: string) {
     cards,
     reviews,
     island: island ? { ...island, placements } : null,
+    // The study cat. Push addresses stay behind; only how many devices.
+    pet: await ensurePet(db, userId),
+    nudgeDevices: await countSubscriptions(db, userId),
   };
 }

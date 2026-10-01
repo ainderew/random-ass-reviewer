@@ -88,6 +88,13 @@ export const SessionResult = ({
               +{quiz.insightAwarded} Insight from the quiz
             </p>
           ) : null}
+          {result.pet && result.pet.bowlsFilled > 0 ? (
+            <p className="relative mt-1 text-lg text-ink-2">
+              +{result.pet.bowlsFilled}{' '}
+              {result.pet.bowlsFilled === 1 ? 'bowl' : 'bowls'} of kibble for{' '}
+              {result.pet.name}
+            </p>
+          ) : null}
         </div>
 
         {result.belowMinimum ? (

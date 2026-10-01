@@ -12,6 +12,11 @@ export const RATE_LIMITS = {
   'island:place': { limit: 120, windowMs: MINUTE },
   'review:answer': { limit: 300, windowMs: MINUTE },
   'settings:api-key': { limit: 5, windowMs: HOUR },
+  // The study cat. Care writes a row each time; push talks to a third party.
+  'pet:care': { limit: 60, windowMs: MINUTE },
+  'pet:update': { limit: 30, windowMs: HOUR },
+  'push:subscribe': { limit: 20, windowMs: HOUR },
+  'push:test': { limit: 5, windowMs: HOUR },
 } as const;
 
 export type RateLimitBucket = keyof typeof RATE_LIMITS;

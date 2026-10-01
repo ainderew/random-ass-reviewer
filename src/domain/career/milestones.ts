@@ -157,7 +157,11 @@ export interface CareerProgress {
 }
 
 export function isEarned(m: Milestone, p: CareerProgress): boolean {
-  const r = m.requires;
+  return meetsRequirement(m.requires, p);
+}
+
+// Shared with the cat's toys, which unlock on the same real work.
+export function meetsRequirement(r: Requirement, p: CareerProgress): boolean {
   if (r.focusHours !== undefined && p.focusMs < r.focusHours * HOUR)
     return false;
   if (r.highGrades !== undefined && p.highGrades < r.highGrades) return false;

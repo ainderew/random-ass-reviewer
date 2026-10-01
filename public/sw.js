@@ -2,7 +2,8 @@
    cache first for hashed assets and models, and an offline page when the
    network is gone. Money never comes from the cache: API calls are not
    cached at all. */
-const VERSION = 'aloft-v4-stationery';
+// v5 drops the old study character's model from every device's cache.
+const VERSION = 'aloft-v5-cat';
 const SHELL = ['/offline', '/manifest.webmanifest', '/icons/icon-192.png'];
 
 self.addEventListener('install', (event) => {
@@ -30,7 +31,6 @@ self.addEventListener('activate', (event) => {
 const isAsset = (url) =>
   url.pathname.startsWith('/_next/static/') ||
   url.pathname.startsWith('/models/') ||
-  url.pathname.startsWith('/characters/') ||
   url.pathname.startsWith('/icons/');
 
 self.addEventListener('fetch', (event) => {
@@ -62,4 +62,48 @@ self.addEventListener('fetch', (event) => {
       ),
     );
   }
+});
+
+// The study cat's nudges. The server sends { title, body, url }; showing a
+// notification for every push is what browsers require of us anyway.
+self.addEventListener('push', (event) => {
+  let message = { title: 'Aloft', body: 'Time to study!', url: '/study' };
+  try {
+    message = { ...message, ...event.data.json() };
+  } catch {
+    // An empty or unreadable push still shows the plain nudge.
+  }
+  event.waitUntil(
+    self.registration.showNotification(message.title, {
+      body: message.body,
+      icon: '/icons/icon-192.png',
+      badge: '/icons/icon-192.png',
+      tag: 'study-cat',
+      data: { url: message.url },
+    }),
+  );
+});
+
+// Tapping it opens the study tab, reusing an open Aloft window if there is one.
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  const url = new URL(
+    event.notification.data?.url ?? '/study',
+    self.location.origin,
+  ).href;
+  event.waitUntil(
+    self.clients
+      .matchAll({ type: 'window', includeUncontrolled: true })
+      .then((windows) => {
+        for (const client of windows) {
+          if (
+            client.url.startsWith(self.location.origin) &&
+            'focus' in client
+          ) {
+            return client.navigate(url).then((c) => (c ?? client).focus());
+          }
+        }
+        return self.clients.openWindow(url);
+      }),
+  );
 });

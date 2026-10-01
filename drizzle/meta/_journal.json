@@ -78,6 +78,13 @@
       "when": 1789700000001,
       "tag": "0010_review_progress",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1789700000002,
+      "tag": "0011_study_cat",
+      "breakpoints": true
     }
   ]
 }

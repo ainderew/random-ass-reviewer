@@ -9,6 +9,7 @@ import type { QuizResult as QuizResultData } from '@/domain/types';
 import { useElapsed } from '../_hooks/use-elapsed';
 import { useFocusFlag } from '../_hooks/use-focus-flag';
 import { useFocusSession } from '../_hooks/use-focus-session';
+import { usePet } from '../_hooks/use-pet';
 import { useSessionPreferences } from '../_hooks/use-session-preferences';
 import { ReadingView } from './reading-view';
 import { IdleView } from './idle-view';
@@ -28,6 +29,7 @@ export const FocusTimer = () => {
     useFocusSession();
   const { data } = useStats();
   const { data: profile } = useProfile();
+  const { data: pet } = usePet();
   const prefs = useSessionPreferences();
   const isFocused = useFocusFlag();
   const [phase, setPhase] = useState<Phase>('timer');
@@ -141,6 +143,7 @@ export const FocusTimer = () => {
       ending={status === 'ending'}
       error={error}
       breakReminderMs={profile?.breakReminderMs ?? undefined}
+      pet={pet}
       onEnd={() => setPhase('quiz')}
     />
   );

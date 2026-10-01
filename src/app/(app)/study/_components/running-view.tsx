@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { BREAK_PROMPT_MS } from '@/domain/economy/constants';
 import type { CareerProgress } from '@/domain/career/milestones';
 import type { Aim } from '@/domain/island/aim';
+import type { PetView } from '@/domain/types';
 import {
   currentRungNote,
   earningsSoFar,
@@ -12,6 +13,7 @@ import { Button } from '@/components/ui/button';
 import { formatClock, formatMinutes } from '@/lib/format-time';
 import { useRungTone } from '../_hooks/use-rung-tone';
 import { AimLine } from './aim-line';
+import { catLook } from './cat-look';
 import { FocusCircle } from './focus-circle';
 import { Lantern, lanternStage } from './lantern';
 import { TimerFrame } from './timer-frame';
@@ -32,6 +34,7 @@ export const RunningView = ({
   ending,
   error,
   breakReminderMs = BREAK_PROMPT_MS,
+  pet,
   onEnd,
 }: {
   elapsedMs: number;
@@ -45,6 +48,7 @@ export const RunningView = ({
   ending: boolean;
   error: string | null;
   breakReminderMs?: number;
+  pet?: PetView | undefined;
   onEnd: () => void;
 }) => {
   const [breakDismissed, setBreakDismissed] = useState(false);
@@ -145,6 +149,7 @@ export const RunningView = ({
           mood={isFocused ? 'studying' : 'away'}
           focusedMs={focusedMs}
           lengthMs={lengthMs}
+          {...(pet ? { name: pet.name, look: catLook(pet) } : {})}
         />
         <p
           className="flex items-center gap-2 rounded-full border border-hairline px-4 py-1.5 text-[0.9375rem] text-ink-2"

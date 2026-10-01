@@ -7,3 +7,4 @@ export * from './rate-limit';
 
 export * from './quiz';
 export * from './mistakes';
+export * from './pet';

@@ -10,6 +10,7 @@ import { AimLine } from './aim-line';
 import { CareerNext } from './career-next';
 import { CoastalHero } from '@/components/coastal-hero';
 import { LengthPicker } from './length-picker';
+import { PetPanel } from './pet-panel';
 import { TodayLanterns } from './today-lanterns';
 import { WeeklySummaryCard } from './weekly-summary';
 import { TodayPlan } from './today-plan';
@@ -57,6 +58,7 @@ export const IdleView = ({
     <div className="grid items-start gap-9 md:grid-cols-[1.4fr_1fr] lg:gap-14">
       <TodayPlan onRead={onRead} starting={starting} />
       <aside className="space-y-7 md:border-l md:border-hairline md:pl-8">
+        <PetPanel career={career} />
         <section
           aria-label="Your island goal"
           className="border-y border-hairline py-5"

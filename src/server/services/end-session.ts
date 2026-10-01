@@ -1,4 +1,6 @@
 import { readingElapsedMs } from '@/domain/session/reading';
+import { bowlsFilled } from '@/domain/pet/care';
+import { studyGain } from '@/domain/pet/happiness';
 import { MIN_SESSION_MS } from '@/domain/economy/constants';
 import { env } from '@/lib/env';
 import { applyDailyCap, calculateFocusAward } from '@/domain/economy/currency';
@@ -19,9 +21,11 @@ import { insertCache } from '@/server/repositories/cache';
 import {
   claimSessionForEnd,
   findSessionById,
+  sumCreditedAllTime,
   sumCreditedSince,
   updateFocusSession,
 } from '@/server/repositories/focus-session';
+import { studiedTogether } from '@/server/repositories/pet';
 import { listHeartbeats } from '@/server/repositories/heartbeat';
 import { findIslandByUserId } from '@/server/repositories/island';
 import { findUserById } from '@/server/repositories/user';
@@ -91,6 +95,8 @@ export async function endSession(input: {
     // A short session is a person trying. Log it, pay nothing, no error.
     if (focusedMs < (env.MIN_SESSION_MS_OVERRIDE ?? MIN_SESSION_MS)) {
       await updateFocusSession(tx, session.id, { focusedMs, creditedMs: 0 });
+      // Still time together, so she does not start missing you.
+      await studiedTogether(tx, input.userId, { gain: 0, now: endedAt });
       return {
         ...base,
         creditedMs: 0,
@@ -171,6 +177,14 @@ export async function endSession(input: {
 
     await updateFocusSession(tx, session.id, { focusedMs, creditedMs });
 
+    // The study cat: time together raises her happiness, and the credited
+    // focus fills her kibble. Derived from lifetime focus, never stored twice.
+    const focusAfterMs = await sumCreditedAllTime(tx, input.userId);
+    const cat = await studiedTogether(tx, input.userId, {
+      gain: studyGain(creditedMs),
+      now: endedAt,
+    });
+
     return {
       ...base,
       creditedMs,
@@ -187,6 +201,10 @@ export async function endSession(input: {
         milestoneInsight: bonusInsight,
       },
       cache,
+      pet: {
+        name: cat.name,
+        bowlsFilled: bowlsFilled(focusAfterMs - creditedMs, creditedMs),
+      },
     };
   });
 }

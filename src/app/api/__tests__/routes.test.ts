@@ -94,6 +94,25 @@ const AUTHED_ROUTES: Array<
   ],
   ['GET', '/api/me', () => import('@/app/api/me/route')],
   ['PATCH', '/api/me', () => import('@/app/api/me/route')],
+  ['GET', '/api/pet', () => import('@/app/api/pet/route')],
+  ['PATCH', '/api/pet', () => import('@/app/api/pet/route')],
+  ['POST', '/api/pet/care', () => import('@/app/api/pet/care/route')],
+  [
+    'GET',
+    '/api/push/subscription',
+    () => import('@/app/api/push/subscription/route'),
+  ],
+  [
+    'POST',
+    '/api/push/subscription',
+    () => import('@/app/api/push/subscription/route'),
+  ],
+  [
+    'DELETE',
+    '/api/push/subscription',
+    () => import('@/app/api/push/subscription/route'),
+  ],
+  ['POST', '/api/push/test', () => import('@/app/api/push/test/route')],
 ];
 
 async function makeUser(tag: string): Promise<string> {

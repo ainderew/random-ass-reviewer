@@ -51,6 +51,18 @@ ssh root@194.233.79.158 bash /root/studydash/deploy/vps-deploy.sh
 
 The container runs `scripts/migrate.mjs` (pg only, the same journal and hashes as drizzle-kit) on boot, then the server. Health: `https://studydash.workdash.site/api/healthz`. Watch the first boot with `docker logs -f studydash-web`.
 
+## Study cat nudges (push notifications)
+
+The cat's "misses you" nudges need VAPID keys. Once, from a workstation:
+
+```bash
+ssh root@194.233.79.158 'bash -s' -- mailto:you@example.com < deploy/add-vapid-keys.sh
+```
+
+It makes the key pair on the server, appends `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` and `VAPID_SUBJECT` to `.env.production` (backing the file up first), and never prints the private key. Then restart (`bash /root/studydash/deploy/vps-deploy.sh`) or push to `main`. Never rotate the keys: every device that turned nudges on would silently stop receiving them.
+
+There is no cron. A timer inside the app (`src/server/push/nudge-clock.ts`, started from `src/instrumentation.ts`) runs every 15 minutes in production when the keys are present. Each nudge is claimed in the database before it is sent, so a restart cannot double-send. Without the keys the opt-in stays hidden and nothing runs. On iPhone and iPad, nudges only work once Aloft is added to the Home Screen.
+
 ## Still to decide
 
 - Google OAuth: create a client with redirect URI `https://studydash.workdash.site/api/auth/callback/google`, put the id and secret in `.env.production`, restart. The button appears on its own.

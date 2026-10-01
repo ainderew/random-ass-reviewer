@@ -9,3 +9,5 @@ export const reviewStatsKey = ['review', 'stats'] as const;
 export const sessionQuizKey = (sessionId: string) =>
   ['session-quiz', sessionId] as const;
 export const profileQueryKey = ['profile'] as const;
+export const petQueryKey = ['pet'] as const;
+export const pushQueryKey = ['push'] as const;

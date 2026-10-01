@@ -7,7 +7,8 @@ import {
   rungsWithin,
 } from '@/domain/session/rungs';
 import { useReducedMotion } from '@/lib/use-reduced-motion';
-import type { CharacterMood } from '@/game/character/whisker-scholar';
+import type { CatMood } from '@/game/character/cat-brain';
+import type { CareCue, CatLook } from '@/game/character/study-cat';
 import { CharacterView } from './character-view';
 
 const R = 47.5;
@@ -16,39 +17,55 @@ const CIRCUMFERENCE = 2 * Math.PI * R;
 const ROOM_LABEL = {
   bedroom: 'a bedroom desk',
   clinic: 'a clinic',
-  office: 'her own office',
+  office: 'your own office',
 } as const;
 const WEAR_LABEL = {
   hoodie: '',
   scrubs: 'scrubs on the shelf',
   coat: 'white coat on the hook',
 } as const;
-const MOOD_LABEL: Record<CharacterMood, string> = {
-  wandering: 'Up and about.',
-  studying: 'Studying.',
-  away: 'Looking up.',
-  resting: 'Resting.',
+const MOOD_LABEL: Record<CatMood, string> = {
+  wandering: 'is up and about',
+  studying: 'is keeping you company',
+  away: 'is waiting for you',
+  resting: 'is napping',
 };
+const FEELING_LABEL = { sad: ' She looks sad.', lonely: ' She looks lonely.' };
 
-// The one shape on the study tab. A ring for the session around a disc with
-// her room in it. Before a session the ring only shows the rungs the chosen
-// length will pass; during one it fills toward the end, and she works inside.
+// The one shape on the study tab. A ring around a disc with the room in it
+// and the cat on her cushion. During a session the ring fills toward the end
+// and the cat keeps you company inside; between sessions, `ring` lets it show
+// something else, like her next bowl of kibble.
 export const FocusCircle = ({
   progress,
   mood,
   focusedMs = 0,
   lengthMs = null,
+  name = 'Your cat',
+  look,
+  cue = null,
+  ring,
 }: {
   progress: CareerProgress;
-  mood: CharacterMood;
+  mood: CatMood;
   focusedMs?: number;
   lengthMs?: number | null;
+  name?: string;
+  look?: CatLook;
+  cue?: CareCue | null;
+  ring?: { fill: number; label: string };
 }) => {
   const scene = sceneState(progress);
   const reducedMotion = useReducedMotion();
-  const fill = ringProgress(focusedMs, lengthMs);
-  const rungs = lengthMs === null ? [] : rungsWithin(lengthMs);
+  const fill = ring
+    ? Math.min(1, Math.max(0, ring.fill))
+    : ringProgress(focusedMs, lengthMs);
+  const rungs = ring || lengthMs === null ? [] : rungsWithin(lengthMs);
   const pct = Math.round(fill * 100);
+  const feeling =
+    look && (look.feeling === 'sad' || look.feeling === 'lonely')
+      ? FEELING_LABEL[look.feeling]
+      : '';
   const label = [
     `At ${ROOM_LABEL[scene.room]}`,
     WEAR_LABEL[scene.wardrobe],
@@ -69,7 +86,8 @@ export const FocusCircle = ({
         aria-valuemax={100}
         aria-valuenow={pct}
         aria-label={
-          lengthMs === null ? 'Progress to the next rung' : 'Session progress'
+          ring?.label ??
+          (lengthMs === null ? 'Progress to the next rung' : 'Session progress')
         }
       >
         <circle
@@ -111,14 +129,16 @@ export const FocusCircle = ({
         })}
       </svg>
       <div
-        className="absolute inset-[6.5%] overflow-hidden rounded-full bg-ground-2"
+        className="absolute inset-[6.5%] overflow-hidden rounded-full bg-[radial-gradient(120%_90%_at_50%_15%,#f6e9f1,#ecd7e0)]"
         role="img"
-        aria-label={`${label}. ${MOOD_LABEL[mood]}`}
+        aria-label={`${label}. ${name} ${MOOD_LABEL[mood]}.${feeling}`}
       >
         <CharacterView
           scene={scene}
           mood={mood}
           reducedMotion={reducedMotion}
+          {...(look ? { look } : {})}
+          cue={cue}
         />
       </div>
     </div>

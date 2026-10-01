@@ -27,6 +27,20 @@ const snapshot = {
   career: { focusMs: 0, highGrades: 0, cardsRecalled: 0 },
 };
 
+const pet = {
+  name: 'Toast',
+  coat: 'ginger',
+  grams: 3_600,
+  roundness: 0,
+  stage: 'Slim',
+  happiness: 70,
+  mood: 'happy',
+  missesYou: false,
+  kibble: { bowls: 0, minutesToNext: 25 },
+  treats: 0,
+  toys: [],
+};
+
 const activeSession = {
   sessionId: 's1',
   startedAt: new Date(Date.now() - 90_000).toISOString(),
@@ -89,6 +103,10 @@ beforeEach(() => {
     },
   });
   routes['/api/stats'] = () => ({ data: snapshot });
+  routes['/api/pet'] = () => ({ data: pet });
+  routes['/api/push/subscription'] = () => ({
+    data: { publicKey: null, devices: 0 },
+  });
   routes['/api/me'] = () => ({
     data: {
       timeZone: 'UTC',
@@ -370,19 +388,21 @@ describe('FocusTimer session shape', () => {
 describe('FocusTimer career scene', () => {
   const label = (id: string) => MILESTONES.find((m) => m.id === id)!.label;
 
-  it('draws her studying while the session runs and looking up when the tab is away', async () => {
+  it('shows the cat keeping you company while the session runs and waiting when the tab is away', async () => {
     render(<FocusTimer />, { wrapper });
     await userEvent.click(
       await screen.findByRole('button', { name: 'Start focusing' }),
     );
     expect(
       await screen.findByRole('img', {
-        name: /At a bedroom desk\. Studying\.$/,
+        name: /At a bedroom desk\. Toast is keeping you company\.$/,
       }),
     ).toBeInTheDocument();
     setVisibility('hidden');
     expect(
-      await screen.findByRole('img', { name: /Looking up\.$/ }),
+      await screen.findByRole('img', {
+        name: /Toast is waiting for you\.$/,
+      }),
     ).toBeInTheDocument();
   });
 

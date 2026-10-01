@@ -93,6 +93,8 @@ export interface SessionResult {
   streak: SessionStreak | null;
   // Only the id. Contents come from /api/cache/:id/open so the reveal stays a reveal.
   cache: { id: string } | null;
+  // The study cat's share: bowls of kibble this session filled.
+  pet?: { name: string; bowlsFilled: number } | null;
 }
 
 export interface DailySummary {

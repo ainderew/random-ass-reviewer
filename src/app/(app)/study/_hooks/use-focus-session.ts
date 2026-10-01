@@ -9,7 +9,7 @@ import type {
   StartSessionRequest,
 } from '@/domain/types';
 import { ApiError } from '@/lib/api-client';
-import { statsQueryKey } from '@/lib/query-keys';
+import { petQueryKey, statsQueryKey } from '@/lib/query-keys';
 import { withRetry } from '@/lib/retry';
 import {
   fetchActiveSession,
@@ -43,6 +43,8 @@ export function useFocusSession() {
       Promise.all([
         queryClient.invalidateQueries({ queryKey: statsQueryKey }),
         queryClient.invalidateQueries({ queryKey: ['today-plan'] }),
+        // The cat's kibble and happiness come from the session too.
+        queryClient.invalidateQueries({ queryKey: petQueryKey }),
       ]),
     [queryClient],
   );

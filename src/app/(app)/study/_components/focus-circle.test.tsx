@@ -6,7 +6,7 @@ jest.mock('./character-view', () => ({ CharacterView: () => null }));
 const H = 3_600_000;
 
 describe('FocusCircle', () => {
-  it('starts as a bedroom desk and says what she is doing', () => {
+  it('starts as a bedroom desk and says what the cat is doing', () => {
     render(
       <FocusCircle
         progress={{ focusMs: 0, highGrades: 0, cardsRecalled: 0 }}
@@ -14,7 +14,7 @@ describe('FocusCircle', () => {
       />,
     );
     expect(screen.getByRole('img')).toHaveAccessibleName(
-      'At a bedroom desk. Up and about.',
+      'At a bedroom desk. Your cat is up and about.',
     );
     expect(screen.getByRole('progressbar')).toHaveAttribute(
       'aria-valuenow',
@@ -30,7 +30,7 @@ describe('FocusCircle', () => {
       />,
     );
     expect(screen.getByRole('img')).toHaveAccessibleName(
-      'At a clinic, white coat on the hook, car outside. Looking up.',
+      'At a clinic, white coat on the hook, car outside. Your cat is waiting for you.',
     );
   });
 

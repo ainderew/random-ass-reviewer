@@ -42,6 +42,21 @@ const envSchema = z
       .default('development'),
     // Optional CDN prefix for optimised GLBs. Empty means same-origin /models.
     NEXT_PUBLIC_ASSET_BASE_URL: z.string().default(''),
+    // The study cat's push nudges. base64url keys from
+    // `npx web-push generate-vapid-keys`; all three or none. Without them the
+    // opt-in stays hidden and nothing is sent.
+    VAPID_PUBLIC_KEY: z
+      .string()
+      .regex(/^[A-Za-z0-9_-]{80,100}$/)
+      .optional(),
+    VAPID_PRIVATE_KEY: z
+      .string()
+      .regex(/^[A-Za-z0-9_-]{40,50}$/)
+      .optional(),
+    VAPID_SUBJECT: z
+      .string()
+      .regex(/^(mailto:|https:\/\/)/)
+      .optional(),
   })
   // A terms-of-service boundary, not a feature flag: the local CLI backs the
   // developer's own subscription and may never serve other users. `next build`
@@ -89,6 +104,21 @@ const envSchema = z
     {
       message: 'MIN_SESSION_MS_OVERRIDE needs E2E_TEST_MODE=true in production',
       path: ['MIN_SESSION_MS_OVERRIDE'],
+    },
+  )
+  // Half a key pair would fail on the first send; refuse it at boot instead.
+  .refine(
+    (e) =>
+      [e.VAPID_PUBLIC_KEY, e.VAPID_PRIVATE_KEY, e.VAPID_SUBJECT].every(
+        (v) => v === undefined,
+      ) ||
+      [e.VAPID_PUBLIC_KEY, e.VAPID_PRIVATE_KEY, e.VAPID_SUBJECT].every(
+        (v) => v !== undefined,
+      ),
+    {
+      message:
+        'VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY and VAPID_SUBJECT go together',
+      path: ['VAPID_PUBLIC_KEY'],
     },
   );
 
