@@ -6,7 +6,7 @@ test('going offline shows the banner and keeps the timer on screen', async ({
   context,
 }) => {
   await signInAsSmokeUser(context);
-  await page.goto('/study');
+  await page.goto('/focus');
   await page.waitForLoadState('networkidle');
   const start = page.getByRole('button', { name: 'Start focusing' });
   const end = page.getByRole('button', { name: 'End session' });

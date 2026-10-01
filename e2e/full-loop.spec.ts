@@ -12,7 +12,7 @@ test('study to earn, build, and keep it', async ({ page, context }) => {
       data: { sessionId: active.data.sessionId },
     });
 
-  await page.goto('/study');
+  await page.goto('/focus');
   await page.getByRole('button', { name: 'Start focusing' }).click();
   await expect(page.getByRole('timer')).toBeVisible();
   // One heartbeat interval, so the server has something to count.

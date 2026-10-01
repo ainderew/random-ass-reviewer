@@ -13,6 +13,7 @@
   --color-focus-deep: #9b3023;
   --color-insight: #735095;
   --color-warn: #a12d37;
+  --color-done: #3f7d5b;
 
   --font-serif: var(--font-display-face), var(--font-geist-sans), sans-serif;
 
@@ -181,6 +182,23 @@ p {
   font-size: 1.125rem;
   color: var(--color-insight);
   animation-duration: 1.1s;
+}
+
+/* Today's next step pulses gently until it is done. */
+@keyframes agenda-pulse {
+  50% {
+    box-shadow: 0 0 0 6px rgba(189, 64, 47, 0.2);
+  }
+}
+
+.agenda-pulse {
+  animation: agenda-pulse 1.8s var(--ease-out-quart) infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .agenda-pulse {
+    animation: none;
+  }
 }
 
 /* Reward vocabulary: one spring for everything that appears. */

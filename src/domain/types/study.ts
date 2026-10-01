@@ -102,6 +102,8 @@ export interface NoteSourceSummary {
   createdAt: Date;
   chunkCount: number;
   cardCount: number;
+  // Drafts and flagged cards still waiting for the student's check.
+  toCheck: number;
 }
 
 export interface GenerationStatus {

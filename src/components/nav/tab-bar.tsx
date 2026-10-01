@@ -13,7 +13,7 @@ export const TabBar = () => {
       aria-label="Primary"
       className="fixed inset-x-0 bottom-0 z-(--z-sticky) border-t border-hairline bg-ground/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-sm lg:hidden"
     >
-      <ul className="grid grid-cols-4">
+      <ul className="grid grid-cols-5">
         {navLinks.map(({ href, label, Icon }) => {
           const active = isActivePath(pathname, href);
           return (

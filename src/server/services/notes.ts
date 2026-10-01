@@ -11,6 +11,7 @@ import { AppError } from '@/server/errors';
 import type { LlmProvider } from '@/server/llm/provider';
 import {
   countCardsBySource,
+  countCardsToCheckBySource,
   listCardsBySource,
 } from '@/server/repositories/card';
 import {
@@ -96,10 +97,11 @@ export async function runGeneration(input: {
 }
 
 export async function listNotes(userId: string): Promise<NoteSourceSummary[]> {
-  const [sources, chunkCounts, cardCounts] = await Promise.all([
+  const [sources, chunkCounts, cardCounts, toCheck] = await Promise.all([
     listNoteSources(db, userId, { limit: 200 }),
     countChunksBySource(db, userId),
     countCardsBySource(db, userId),
+    countCardsToCheckBySource(db, userId),
   ]);
   return sources.map((source) => ({
     id: source.id,
@@ -108,6 +110,7 @@ export async function listNotes(userId: string): Promise<NoteSourceSummary[]> {
     createdAt: source.createdAt,
     chunkCount: chunkCounts.get(source.id) ?? 0,
     cardCount: cardCounts.get(source.id) ?? 0,
+    toCheck: toCheck.get(source.id) ?? 0,
   }));
 }
 

@@ -154,19 +154,18 @@ function setVisibility(state: 'visible' | 'hidden') {
 }
 
 describe('FocusTimer', () => {
-  it('shows today and a start button once no session is in flight', async () => {
+  it('shows the length, one start button, and a reading block when idle', async () => {
     render(<FocusTimer />, { wrapper });
 
     expect(
       await screen.findByRole('button', { name: 'Start focusing' }),
     ).toBeInTheDocument();
     expect(
-      screen.getByText('25 min credited today across 1 session.'),
-    ).toBeInTheDocument();
-    expect(
       screen.getByRole('radiogroup', { name: 'Session length' }),
     ).toBeInTheDocument();
-    expect(screen.getByText(/Saving for/)).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Read for 15 minutes' }),
+    ).toBeInTheDocument();
   });
 
   it('clicking Start shows a running timer and sends the first heartbeat', async () => {

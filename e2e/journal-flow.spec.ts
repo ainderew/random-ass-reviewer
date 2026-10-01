@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { signInAsSmokeUser } from './helpers';
 
-test('phone Today starts a reading block that resumes after visiting notes', async ({
+test('phone Focus starts a reading block that resumes after visiting notes', async ({
   page,
   context,
 }) => {
@@ -14,12 +14,9 @@ test('phone Today starts a reading block that resumes after visiting notes', asy
       data: { sessionId: active.sessionId },
     });
   await page.goto('/study');
-  const plan = page.getByRole('region', { name: "Today's study plan" });
-  await expect(plan).toBeVisible();
-  await plan.getByRole('button', { name: '5 min', exact: true }).click();
-  await plan
-    .getByRole('button', { name: 'Start 5-minute reading block' })
-    .click();
+  await expect(page.getByRole('list', { name: "Today's plan" })).toBeVisible();
+  await page.getByRole('link', { name: 'Focus', exact: true }).first().click();
+  await page.getByRole('button', { name: 'Read for 5 minutes' }).click();
   await expect(
     page.getByRole('region', { name: 'Reading session' }),
   ).toBeVisible();
@@ -28,7 +25,7 @@ test('phone Today starts a reading block that resumes after visiting notes', asy
   ).data;
   expect(snapshot).toMatchObject({ mode: 'reading', readingLimitMs: 300000 });
   await page.getByRole('link', { name: 'Open my notes', exact: true }).click();
-  await page.goto('/study');
+  await page.goto('/focus');
   await expect(
     page.getByRole('region', { name: 'Reading session' }),
   ).toBeVisible();

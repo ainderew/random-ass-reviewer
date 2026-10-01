@@ -18,7 +18,7 @@ export const NotesList = () => {
     return (
       <EmptyState
         title="No notes yet"
-        body="Upload your lecture notes and we will turn them into flashcards. Every card shows the sentence it came from, so you can trust it. A paragraph from any textbook works as a first try."
+        body="Paste a page or add a PDF. Each card shows the line it came from."
       />
     );
   }
@@ -37,9 +37,15 @@ export const NotesList = () => {
                 {new Date(note.createdAt).toLocaleDateString()}
               </span>
             </span>
-            <span className="shrink-0 font-mono text-sm text-ink-2 tabular-nums">
-              {note.cardCount} {note.cardCount === 1 ? 'card' : 'cards'}
-            </span>
+            {note.toCheck > 0 ? (
+              <span className="shrink-0 rounded-full border-[1.5px] border-focus px-3 py-1.5 text-sm font-semibold text-focus">
+                Check {note.toCheck}
+              </span>
+            ) : (
+              <span className="shrink-0 font-mono text-sm text-ink-2 tabular-nums">
+                {note.cardCount} {note.cardCount === 1 ? 'card' : 'cards'}
+              </span>
+            )}
           </Link>
         </li>
       ))}

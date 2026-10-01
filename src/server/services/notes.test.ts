@@ -92,7 +92,8 @@ describe('notes service', () => {
     expect(again.calls).toHaveLength(0);
 
     list = await listNotes(userId);
-    expect(list[0]).toMatchObject({ cardCount: 1 });
+    // A freshly generated card is a draft, so it waits for a check.
+    expect(list[0]).toMatchObject({ cardCount: 1, toCheck: 1 });
     const detail = await getNoteDetail({ userId, sourceId: created.sourceId });
     expect(detail.cards).toHaveLength(1);
     expect(detail.status.finished).toBe(true);

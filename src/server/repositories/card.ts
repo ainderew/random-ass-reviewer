@@ -8,6 +8,7 @@ import {
   gte,
   isNull,
   lte,
+  ne,
   sql,
 } from 'drizzle-orm';
 import type {
@@ -174,6 +175,20 @@ export async function countCardsBySource(
     .from(cards)
     .innerJoin(noteChunks, eq(noteChunks.id, cards.chunkId))
     .where(eq(cards.userId, userId))
+    .groupBy(noteChunks.sourceId);
+  return new Map(rows.map((r) => [r.sourceId, r.value]));
+}
+
+// Cards still waiting for the student's check: drafts and flagged ones.
+export async function countCardsToCheckBySource(
+  tx: DbOrTx,
+  userId: string,
+): Promise<Map<string, number>> {
+  const rows = await tx
+    .select({ sourceId: noteChunks.sourceId, value: count() })
+    .from(cards)
+    .innerJoin(noteChunks, eq(noteChunks.id, cards.chunkId))
+    .where(and(eq(cards.userId, userId), ne(cards.reviewStatus, 'approved')))
     .groupBy(noteChunks.sourceId);
   return new Map(rows.map((r) => [r.sourceId, r.value]));
 }

@@ -180,11 +180,15 @@ Again, Hard, Good, and Easy share the same warm white treatment and 102px minimu
 
 ### Progress charts
 
-Learning progress uses a paper panel with a labeled measure selector for scored multiple-choice accuracy, multiple choice after seven or more days, and explicitly self-rated recall after seven or more days. Coral dots and straight segments share a fixed 0–100% scale; segments connect only adjacent periods with results, leaving missing periods blank. Keep the correct/total counts beside the aggregate percentage and an expandable, labeled weekly-results table below the chart. Explain that self-ratings are subjective and earlier history remains unscored. Practice patterns and subject results use plain rows with sample counts. These charts describe practice results, not exam readiness.
+Learning progress uses a paper panel with a labeled measure selector for scored multiple-choice accuracy, multiple choice after seven or more days, and explicitly self-rated recall after seven or more days. Coral dots and straight segments share a fixed 0–100% scale; segments connect only adjacent periods with results, leaving missing periods blank. Keep the correct/total counts beside the aggregate percentage and an expandable, labeled weekly-results table below the chart. Explain that self-ratings are subjective and earlier history remains unscored. Practice patterns and subject results use plain rows with sample counts. Subject suggestions place the subject name and supporting counts before a concrete next step, separated by fine rules. Keep limited or missing evidence visible in words and explain suggestion criteria in a disclosure. These charts describe practice results, not exam readiness.
 
 ### Navigation
 
-The phone tab bar has four equal columns with icons above text and 64px minimum item height. Current-page text is coral. Desktop links place icons beside text and use a pressed background for the current page. Keep labels and current-page semantics alongside color.
+The phone tab bar has five equal columns for Today (`/study`), Focus (`/focus`), Review, Notes, and Island, with icons above text and 64px minimum item height. Progress is not a tab: it opens from the "Your progress this week" row on Today, and `/review/progress` selects Review. Current-page text is coral. The longest matching destination determines the single active item. Desktop links place icons beside text and use a pressed background for the current page. Keep labels and current-page semantics alongside color.
+
+### Today
+
+Today reads at a glance. From top to bottom: the cat in her circle (the ring fills as the day's steps are done), one short line from her naming the next step, her name and mood (opens her sheet), the day's steps, four care buttons, the weekly progress row, and one coral button that does the next step. The button stays pinned above the tab bar. Steps show one number each ("18 cards", "10 of 25 min"); the step to do now is outlined and its dot pulses. No explanatory paragraphs on Today: reasons live on How it works.
 
 ### Illustration
 

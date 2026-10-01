@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useState, type ReactNode } from 'react';
 import type {
   QuizResult,
@@ -46,9 +47,17 @@ export const SessionResult = ({
     <TimerFrame
       label="Session result"
       actions={
-        <Button onClick={onDone} size="lg" block>
-          Start another
-        </Button>
+        <div className="grid gap-2">
+          <Link
+            href="/study"
+            className="flex min-h-14 items-center justify-center rounded-lg bg-focus text-base font-medium text-white hover:bg-focus-deep focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
+          >
+            Back to today
+          </Link>
+          <Button onClick={onDone} size="lg" block variant="ghost">
+            Start another
+          </Button>
+        </div>
       }
     >
       <div className="rise-in space-y-8">

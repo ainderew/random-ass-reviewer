@@ -12,7 +12,7 @@ import { useFocusSession } from '../_hooks/use-focus-session';
 import { usePet } from '../_hooks/use-pet';
 import { useSessionPreferences } from '../_hooks/use-session-preferences';
 import { ReadingView } from './reading-view';
-import { IdleView } from './idle-view';
+import { FocusIdle } from './focus-idle';
 import { LoadingView } from './loading-view';
 import { QuizResult } from './quiz-result';
 import { RunningView } from './running-view';
@@ -21,7 +21,7 @@ import { SessionResult } from './session-result';
 
 type Phase = 'timer' | 'quiz' | 'quiz-result';
 
-// The only client component on /study. Everything above it stays on the server.
+// The Focus tab, /focus. Everything above it stays on the server.
 // Ending a session goes timer -> quiz (optional) -> result. The quiz runs
 // before /api/session/end so the payout is computed once, multiplier included.
 export const FocusTimer = () => {
@@ -74,16 +74,9 @@ export const FocusTimer = () => {
 
   if (!active) {
     return (
-      <IdleView
-        creditedTodayMs={data?.today.creditedMs ?? 0}
-        todaySessions={data?.today.sessions ?? []}
+      <FocusIdle
         career={career}
-        streakDays={data?.stats.streakDays ?? 0}
-        firstVisit={data?.stats.lastSessionDate === null}
-        focusBalance={focusBalance}
-        level={level}
-        aim={aim}
-        onAimChange={prefs.setAim}
+        pet={pet}
         length={prefs.length}
         onLengthChange={prefs.setLength}
         starting={status === 'starting'}
