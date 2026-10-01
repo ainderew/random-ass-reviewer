@@ -28,7 +28,12 @@ export interface LearningProgress {
   activeDays: number;
   reviews: number;
   repeatedMisses: number;
-  subjects: { subject: string | null; choices: ScoreCount; cards: number }[];
+  subjects: {
+    subject: string | null;
+    choices: ScoreCount;
+    delayedChoices: ScoreCount;
+    cards: number;
+  }[];
 }
 const DAY = 86400000;
 const empty = (): ScoreCount => ({ correct: 0, total: 0 });
@@ -63,7 +68,7 @@ export function learningProgress(
   const misses = new Map<string, Set<string>>();
   const subjects = new Map<
     string | null,
-    { choices: ScoreCount; cards: Set<string> }
+    { choices: ScoreCount; delayedChoices: ScoreCount; cards: Set<string> }
   >();
   // Only the first completed review per card/local day contributes to scores.
   // Same-day reattempts still count as practice activity, not extra mastery evidence.
@@ -91,9 +96,11 @@ export function learningProgress(
         add([week.delayedChoices, result.delayedChoices], row.correct);
       const subject = subjects.get(row.subject) ?? {
         choices: empty(),
+        delayedChoices: empty(),
         cards: new Set<string>(),
       };
       add([subject.choices], row.correct);
+      if ((row.delayDays ?? 0) >= 7) add([subject.delayedChoices], row.correct);
       subject.cards.add(row.cardId);
       subjects.set(row.subject, subject);
       if (!row.correct) {
@@ -116,6 +123,7 @@ export function learningProgress(
     .map(([subject, value]) => ({
       subject,
       choices: value.choices,
+      delayedChoices: value.delayedChoices,
       cards: value.cards.size,
     }))
     .sort((a, b) => b.choices.total - a.choices.total);

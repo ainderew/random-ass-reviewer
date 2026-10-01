@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { apiFetch } from '@/lib/api-client';
 import type { LearningProgress, ScoreCount } from '@/domain/review/progress';
-import { MTLE_SUBJECTS } from '@/domain/study/medtech';
+import { NextSteps, SubjectDetails } from './next-steps';
 const percent = (s: ScoreCount) =>
   s.total ? `${Math.round((100 * s.correct) / s.total)}%` : 'No results yet';
 const date = (key: string) =>
@@ -66,6 +66,7 @@ export function ProgressView() {
         </p>
       ) : (
         <>
+          <NextSteps data={data} />
           <section
             aria-label="Progress chart"
             className="paper-panel p-5 sm:p-8"
@@ -239,34 +240,7 @@ export function ProgressView() {
               </div>
             </dl>
           </section>
-          <section aria-label="Results by subject">
-            <h2 className="text-xl font-bold">Results by subject</h2>
-            <p className="mt-2 text-sm text-ink-2">
-              First-choice results by subject. Look at the number of questions
-              as well as the percentage.
-            </p>
-            {data.subjects.length ? (
-              <ul className="mt-4 divide-y divide-hairline">
-                {data.subjects.map((s) => (
-                  <li key={s.subject ?? 'none'} className="py-4">
-                    <h3 className="font-semibold">
-                      {MTLE_SUBJECTS.find((x) => x.id === s.subject)?.label ??
-                        'Subject not set'}
-                    </h3>
-                    <p className="mt-1 text-sm text-ink-2">
-                      {percent(s.choices)} · {s.choices.correct}/
-                      {s.choices.total} reviews · {s.cards} distinct cards
-                    </p>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="mt-4 text-ink-2">
-                Subject results appear as you complete multiple-choice reviews.
-                Set subjects in Notes to make this useful.
-              </p>
-            )}
-          </section>
+          <SubjectDetails data={data} />
           <details className="border-t border-hairline pt-3">
             <summary className="min-h-11 cursor-pointer content-center font-medium">
               What these measures can tell you
