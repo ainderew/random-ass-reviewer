@@ -108,6 +108,27 @@ export const SpeakerOffIcon = (props: IconProps) => (
   </Base>
 );
 
+export const RainIcon = (props: IconProps) => (
+  <Base {...props}>
+    <path d="M7.5 14.5H17a3.5 3.5 0 0 0 .4-6.98A5 5 0 0 0 7.6 8.6a3 3 0 0 0-.1 5.9z" />
+    <path d="M8.5 17.5l-1 2.5M12.5 17.5l-1 2.5M16.5 17.5l-1 2.5" />
+  </Base>
+);
+
+export const NoiseIcon = (props: IconProps) => (
+  <Base {...props}>
+    <path d="M3 9c1.5-2 3-2 4.5 0s3 2 4.5 0 3-2 4.5 0 3 2 4.5 0" />
+    <path d="M3 15c1.5-2 3-2 4.5 0s3 2 4.5 0 3-2 4.5 0 3 2 4.5 0" />
+  </Base>
+);
+
+export const PianoIcon = (props: IconProps) => (
+  <Base {...props}>
+    <path d="M10 17.5V4.5c2.5 1.5 5 2 6.5 4.5" />
+    <ellipse cx="7.5" cy="17.5" rx="2.75" ry="2.25" />
+  </Base>
+);
+
 export const SettingsIcon = (props: IconProps) => (
   <Base {...props}>
     <circle cx="12" cy="12" r="3" />

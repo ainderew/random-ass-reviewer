@@ -1,13 +1,6 @@
 import { eq } from 'drizzle-orm';
-import { HEARTBEAT_INTERVAL_MS } from '@/domain/session/constants';
 import { closeDb, db } from '@/server/db';
-import {
-  caches,
-  focusSessions,
-  sessionHeartbeats,
-  users,
-  userStats,
-} from '@/server/db/schema';
+import { caches, focusSessions, users, userStats } from '@/server/db/schema';
 import { findUserStats } from '@/server/repositories/user-stats';
 import { openCache } from './cache';
 import { endSession } from './end-session';
@@ -33,16 +26,6 @@ async function seedSession(userId: string, spanMs: number): Promise<string> {
       startedAt: new Date(now - spanMs),
     })
     .returning();
-  const beats = [];
-  for (let at = now - spanMs, seq = 0; at <= now; at += HEARTBEAT_INTERVAL_MS) {
-    beats.push({
-      sessionId: session!.id,
-      seq: seq++,
-      at: new Date(at),
-      focused: true,
-    });
-  }
-  await db.insert(sessionHeartbeats).values(beats);
   return session!.id;
 }
 

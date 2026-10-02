@@ -26,7 +26,7 @@ Calm, warm, honest. The study interface uses warm stationery colors, rounded dis
 ## Design Principles
 
 1. **One thing on screen.** A running session shows the clock, the focus state, and a way out. Nothing else competes.
-2. **Informative, never punitive.** Away time is shown as a fact ("Away, not counting"), not a warning. Short sessions are logged with a kind line, not an error.
+2. **Informative, never punitive.** Time counts from Start to End, in Aloft or in another app; nothing pauses or forfeits it. Short sessions are logged with a kind line, not an error.
 3. **The number is the server's.** Anything the UI shows as earned came from the server. The display timer is a courtesy; the credited figure is the truth and is shown as final.
 4. **Reward is the only spectacle.** Calm everywhere, then a deliberate, contained moment when a session pays out. Spend the motion budget there.
 5. **Thumb first.** Phone in one hand, at night, tired. Primary actions sit in thumb reach; text is large; targets are 44px.

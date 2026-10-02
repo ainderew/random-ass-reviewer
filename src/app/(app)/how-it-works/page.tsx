@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { FocusSoundNotes } from './focus-sound-notes';
 import {
   FOCUS_PER_MINUTE,
   INSIGHT_PER_REVIEW,
@@ -98,28 +99,19 @@ export default function HowItWorksPage() {
       <section className="space-y-2">
         <h2 className="font-serif text-2xl text-ink">Focus</h2>
         <p className="max-w-[52ch] leading-relaxed text-ink-2">
-          In a focus session, while the timer runs and this tab is in front, you
-          earn {FOCUS_PER_MINUTE} Focus per minute. The server counts the
-          minutes from its own clock, so a changed system time or a background
-          tab earns nothing. Sessions under {MIN_SESSION_MS / 60_000} minutes
-          pay nothing. Time past your daily cap is not credited. That cap is
-          eight hours and you can lower it in settings, never raise it.
+          A focus session earns {FOCUS_PER_MINUTE} Focus per minute from Start
+          to End, whether Aloft is on screen or not, so reading your notes in a
+          PDF app or a book counts too. While Aloft is open the screen stays on.
+          The server counts the minutes from its own clock, so a changed system
+          time earns nothing. One session counts up to two hours, so a timer
+          left running overnight does not pay for the night. Sessions under{' '}
+          {MIN_SESSION_MS / 60_000} minutes pay nothing. Time past your daily
+          cap is not credited. That cap is eight hours and you can lower it in
+          settings, never raise it.
         </p>
       </section>
 
-      <section className="space-y-2">
-        <h2 className="font-serif text-2xl text-ink">
-          Reading with your notes
-        </h2>
-        <p className="max-w-[52ch] leading-relaxed text-ink-2">
-          Start a 5, 15, or 30-minute reading block before opening a PDF or a
-          book. This is self-reported study time: it continues in the
-          background, capped at the duration you chose. Return to finish early
-          or let the block settle when you next open Aloft. Reading earns the
-          same base Focus after five minutes and shares your daily limit. It
-          does not measure attention or test performance.
-        </p>
-      </section>
+      <FocusSoundNotes />
 
       <section className="space-y-2">
         <h2 className="font-serif text-2xl text-ink">Insight</h2>

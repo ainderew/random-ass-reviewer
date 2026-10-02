@@ -8,6 +8,9 @@ import {
 } from './focus-session';
 import { endSession } from './end-session';
 import { createUserWithDefaults } from './user-bootstrap';
+
+// Reading blocks are gone from the app; a block an older build started still
+// counts and settles by the limit chosen when it began.
 const ids: string[] = [];
 async function user() {
   const u = await createUserWithDefaults({
@@ -36,8 +39,6 @@ it('resumes PDF reading with no heartbeats and caps a late finish without paying
       await recordHeartbeat({
         userId,
         sessionId: session.sessionId,
-        seq: 0,
-        focused: false,
       })
     ).focusedMs,
   ).toBeGreaterThanOrEqual(600000);

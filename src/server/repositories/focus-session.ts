@@ -130,22 +130,6 @@ export async function updateFocusSession(
   return row ? toFocusSession(row) : null;
 }
 
-// SQL-side increment for the live focused counter. Returns the new total.
-export async function incrementFocusedMs(
-  tx: DbOrTx,
-  sessionId: string,
-  deltaMs: number,
-): Promise<number> {
-  const [row] = await tx
-    .update(focusSessions)
-    .set({
-      focusedMs: sql`${focusSessions.focusedMs} + ${Math.max(0, Math.round(deltaMs))}`,
-    })
-    .where(eq(focusSessions.id, sessionId))
-    .returning({ focusedMs: focusSessions.focusedMs });
-  return row?.focusedMs ?? 0;
-}
-
 export async function countSessionsSince(
   tx: DbOrTx,
   userId: string,

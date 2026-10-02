@@ -1,16 +1,9 @@
 import { eq } from 'drizzle-orm';
 import { DAILY_CREDITABLE_MS } from '@/domain/economy/constants';
-import {
-  HEARTBEAT_INTERVAL_MS,
-  MAX_SESSIONS_PER_DAY,
-} from '@/domain/session/constants';
+import { MAX_SESSIONS_PER_DAY } from '@/domain/session/constants';
+import { MAX_SESSION_MS } from '@/domain/session/elapsed';
 import { closeDb, db } from '@/server/db';
-import {
-  focusSessions,
-  sessionHeartbeats,
-  users,
-  userStats,
-} from '@/server/db/schema';
+import { focusSessions, users, userStats } from '@/server/db/schema';
 import { AppError } from '@/server/errors';
 import { endSession } from './end-session';
 import {
@@ -33,47 +26,29 @@ async function makeUser(tag: string): Promise<string> {
   return user.id;
 }
 
-// Seeds a session that started `spanMs` ago with a focused beat every 15s
-// until `endOffsetMs` before now. Timestamps are written directly because the
-// service stamps its own clock and cannot be told to backdate.
-async function seedSession(
-  userId: string,
-  spanMs: number,
-  endOffsetMs = 0,
-): Promise<string> {
-  const now = Date.now();
-  const startedAt = new Date(now - spanMs);
+// Seeds a session that started `spanMs` ago. The start is written directly
+// because the service stamps its own clock and cannot be told to backdate.
+// No check-ins: time counts from the start whether or not the app was open.
+async function seedSession(userId: string, spanMs: number): Promise<string> {
   const [session] = await db
     .insert(focusSessions)
-    .values({ userId, lootSeed: 'seed', startedAt })
+    .values({
+      userId,
+      lootSeed: 'seed',
+      startedAt: new Date(Date.now() - spanMs),
+    })
     .returning();
-  const beats = [];
-  for (
-    let at = now - spanMs, seq = 0;
-    at <= now - endOffsetMs;
-    at += HEARTBEAT_INTERVAL_MS
-  ) {
-    beats.push({
-      sessionId: session!.id,
-      seq: seq++,
-      at: new Date(at),
-      focused: true,
-    });
-  }
-  await db.insert(sessionHeartbeats).values(beats);
   return session!.id;
 }
 
+// The server clock keeps moving while a test runs.
+const about = (ms: number) => ({
+  asymmetricMatch: (actual: number) => actual >= ms && actual < ms + 5_000,
+  toString: () => `about ${ms}`,
+});
+
 async function sessionRow(id: string) {
   return db.query.focusSessions.findFirst({ where: eq(focusSessions.id, id) });
-}
-
-async function beatCount(sessionId: string): Promise<number> {
-  const rows = await db
-    .select()
-    .from(sessionHeartbeats)
-    .where(eq(sessionHeartbeats.sessionId, sessionId));
-  return rows.length;
 }
 
 describe('focus session service', () => {
@@ -102,7 +77,7 @@ describe('focus session service', () => {
     expect(first).not.toHaveProperty('lootSeed');
   });
 
-  it('awards zero when a session ends with no heartbeats', async () => {
+  it('pays nothing for a session ended straight away', async () => {
     const { sessionId } = await startSession(userId);
 
     const result = await endSession({ userId, sessionId });
@@ -115,39 +90,54 @@ describe('focus session service', () => {
     expect((await sessionRow(sessionId))?.status).toBe('completed');
   });
 
-  it('ignores a replayed heartbeat seq', async () => {
-    const { sessionId } = await startSession(userId);
+  it('keeps counting with the app in the background, no check-ins at all', async () => {
+    // Users of their own, so these payouts do not move the shared user's level.
+    const away = await makeUser('away');
+    created.push(away);
+    const sessionId = await seedSession(away, minutes(40));
 
-    await recordHeartbeat({ userId, sessionId, seq: 0, focused: true });
-    await recordHeartbeat({ userId, sessionId, seq: 0, focused: true });
+    const snapshot = await getActiveSession(away);
+    expect(snapshot).toMatchObject({
+      sessionId,
+      focusedMs: about(minutes(40)),
+    });
 
-    expect(await beatCount(sessionId)).toBe(1);
+    const result = await endSession({ userId: away, sessionId });
+    expect(result).toMatchObject({
+      focusedMs: about(minutes(40)),
+      focusAwarded: 400,
+    });
   });
 
-  it('credits at most one interval for 200 heartbeats in a burst', async () => {
+  it('reports the server count on a check-in, whatever arrives or how often', async () => {
+    const checker = await makeUser('checker');
+    created.push(checker);
+    const sessionId = await seedSession(checker, minutes(10));
+
+    const checks = await Promise.all(
+      Array.from({ length: 50 }, () =>
+        recordHeartbeat({ userId: checker, sessionId }),
+      ),
+    );
+
+    for (const { focusedMs } of checks)
+      expect(focusedMs).toEqual(about(minutes(10)));
+    const result = await endSession({ userId: checker, sessionId });
+    expect(result.focusAwarded).toBe(100);
+  });
+
+  it('refuses a check-in on a session that is not yours or has ended', async () => {
+    const other = await makeUser('peek');
+    created.push(other);
     const { sessionId } = await startSession(userId);
 
-    const startedAt = Date.now();
-    let focusedMs = 0;
-    for (let seq = 0; seq < 200; seq += 1) {
-      ({ focusedMs } = await recordHeartbeat({
-        userId,
-        sessionId,
-        seq,
-        focused: true,
-      }));
-    }
-
-    // Credit can never exceed real elapsed time, however fast the beats came.
-    // Under coverage instrumentation the loop itself takes real seconds, so
-    // the bound is the wall clock, not a constant.
-    const elapsed = Date.now() - startedAt;
-    expect(focusedMs).toBeLessThanOrEqual(
-      Math.max(HEARTBEAT_INTERVAL_MS, elapsed),
-    );
-    expect(await beatCount(sessionId)).toBeLessThanOrEqual(
-      2 + Math.ceil(elapsed / HEARTBEAT_INTERVAL_MS),
-    );
+    await expect(
+      recordHeartbeat({ userId: other, sessionId }),
+    ).rejects.toMatchObject({ code: 'NOT_FOUND' });
+    await endSession({ userId, sessionId });
+    await expect(recordHeartbeat({ userId, sessionId })).rejects.toMatchObject({
+      code: 'INVALID_STATE',
+    });
   });
 
   it('completes a short session with zero payout and no error', async () => {
@@ -172,8 +162,8 @@ describe('focus session service', () => {
     });
 
     expect(result).toMatchObject({
-      focusedMs: minutes(10),
-      creditedMs: minutes(10),
+      focusedMs: about(minutes(10)),
+      creditedMs: about(minutes(10)),
       focusAwarded: 100,
     });
     expect(after!.focusBalance - before!.focusBalance).toBe(100);
@@ -196,7 +186,7 @@ describe('focus session service', () => {
     const result = await endSession({ userId, sessionId });
 
     expect(result).toMatchObject({
-      focusedMs: minutes(10),
+      focusedMs: about(minutes(10)),
       creditedMs: minutes(6),
       focusAwarded: 60,
       cappedByDailyLimit: true,
@@ -249,23 +239,22 @@ describe('focus session service', () => {
     expect((await sessionRow(sessionId))?.status).toBe('active');
   });
 
-  it('sweeps a stale session and credits only up to its last heartbeat', async () => {
-    const sessionId = await seedSession(userId, minutes(20), minutes(10));
+  it('settles a timer left running overnight at two hours', async () => {
+    const sessionId = await seedSession(userId, minutes(9 * 60));
 
     expect(await getActiveSession(userId)).toBeNull();
 
     const row = await sessionRow(sessionId);
-    expect(row?.status).toBe('completed');
-    expect(row?.focusedMs).toBe(minutes(10));
-    expect(row?.creditedMs).toBe(minutes(10));
+    expect(row).toMatchObject({
+      status: 'completed',
+      focusedMs: MAX_SESSION_MS,
+      creditedMs: MAX_SESSION_MS,
+    });
   });
 
-  it('exposes the last accepted seq so a reload can continue', async () => {
-    const { sessionId } = await startSession(userId);
-    await recordHeartbeat({ userId, sessionId, seq: 0, focused: true });
+  it('keeps a session open just under the limit', async () => {
+    const sessionId = await seedSession(userId, MAX_SESSION_MS - minutes(1));
 
-    const snapshot = await getActiveSession(userId);
-
-    expect(snapshot).toMatchObject({ sessionId, lastSeq: 0 });
+    expect(await getActiveSession(userId)).toMatchObject({ sessionId });
   });
 });

@@ -1,12 +1,6 @@
 import { eq } from 'drizzle-orm';
-import { HEARTBEAT_INTERVAL_MS } from '@/domain/session/constants';
 import { closeDb, db } from '@/server/db';
-import {
-  focusSessions,
-  pets,
-  sessionHeartbeats,
-  users,
-} from '@/server/db/schema';
+import { focusSessions, pets, users } from '@/server/db/schema';
 import { AppError } from '@/server/errors';
 import { endSession } from './end-session';
 import { careForPet, getPet, updatePet } from './pet';
@@ -184,20 +178,6 @@ describe('the study cat', () => {
       .insert(focusSessions)
       .values({ userId, lootSeed: 'seed', startedAt: new Date(now - 30 * MIN) })
       .returning();
-    const beats = [];
-    for (
-      let at = now - 30 * MIN, seq = 0;
-      at <= now;
-      at += HEARTBEAT_INTERVAL_MS
-    ) {
-      beats.push({
-        sessionId: session!.id,
-        seq: seq++,
-        at: new Date(at),
-        focused: true,
-      });
-    }
-    await db.insert(sessionHeartbeats).values(beats);
     const result = await endSession({ userId, sessionId: session!.id });
     expect(result.pet).toEqual({ name: 'Toast', bowlsFilled: 1 });
     const pet = await getPet(userId);

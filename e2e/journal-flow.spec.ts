@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { signInAsSmokeUser } from './helpers';
 
-test('phone Focus starts a reading block that resumes after visiting notes', async ({
+test('phone Focus keeps counting while she reads her notes elsewhere', async ({
   page,
   context,
 }) => {
@@ -16,24 +16,24 @@ test('phone Focus starts a reading block that resumes after visiting notes', asy
   await page.goto('/study');
   await expect(page.getByRole('list', { name: "Today's plan" })).toBeVisible();
   await page.getByRole('link', { name: 'Focus', exact: true }).first().click();
-  await page.getByRole('button', { name: 'Read for 5 minutes' }).click();
-  await expect(
-    page.getByRole('region', { name: 'Reading session' }),
-  ).toBeVisible();
+  await expect(page.getByRole('button', { name: /^Read for/ })).toHaveCount(0);
+  await page.getByRole('button', { name: 'Start focusing' }).click();
+  await expect(page.getByRole('timer')).toBeVisible();
+
+  // Off to the notes; the session keeps running and keeps counting.
+  await page.goto('/notes');
+  await page.waitForTimeout(2_000);
   const snapshot = (
     await (await page.request.get('/api/session/active')).json()
   ).data;
-  expect(snapshot).toMatchObject({ mode: 'reading', readingLimitMs: 300000 });
-  await page.getByRole('link', { name: 'Open my notes', exact: true }).click();
+  expect(snapshot.focusedMs).toBeGreaterThanOrEqual(2_000);
   await page.goto('/focus');
-  await expect(
-    page.getByRole('region', { name: 'Reading session' }),
-  ).toBeVisible();
-  await page.getByRole('button', { name: 'Finish reading' }).click();
-  await expect(
-    page.getByRole('heading', { name: 'Session saved' }),
-  ).toBeVisible();
-  await expect(page.getByText(/self-reported reading/)).toBeVisible();
+  await page.getByRole('button', { name: 'End session' }).click();
+  const skip = page.getByRole('button', { name: 'Skip, keep my Focus as is' });
+  const saved = page.getByRole('heading', { name: 'Session saved' });
+  await expect(skip.or(saved)).toBeVisible({ timeout: 15_000 });
+  if (await skip.isVisible()) await skip.click();
+  await expect(saved).toBeVisible({ timeout: 15_000 });
   expect(
     (await (await page.request.get('/api/session/active')).json()).data,
   ).toBeNull();

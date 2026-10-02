@@ -52,7 +52,7 @@ The thing a user can do that they couldn't before: get an immediate, tangible, *
 │  │ (must work   │   │ FSRS cards   │   │ (lazy, ssr:false)│  │
 │  │  standalone) │   │              │   │                  │  │
 │  └──────┬───────┘   └──────┬───────┘   └────────┬─────────┘  │
-│         │ heartbeat 15s    │                    │ Zustand     │
+│         │ check-in 15s     │                    │ Zustand     │
 └─────────┼──────────────────┼────────────────────┼─────────────┘
           │                  │                    │
           ▼                  ▼                    ▼
@@ -140,6 +140,8 @@ The thing a user can do that they couldn't before: get an immediate, tangible, *
 | 54 | Cat replaces the student on the study tab | A rounded cartoon cat built from three.js primitives sits on a cushion at the front of the focus circle's room. The Whisker Scholar, her GLB and `assets:character` are gone | The owner wanted a companion to touch during a focus session, drawn as a rounded cartoon, and chose to replace the student rather than add a pet beside her. Parts built in code (a lathed body, a tube tail, eye arcs that swap in) need no rig or clips and add nothing to download. She chirps at a tap, purrs and leans into a stroke, tips her chin up for a scratch, squints at a nose boop, watches a finger on the floor, looks away while the tab is away and slow-blinks on return, and naps for a minute after a lot of attention. Petting earns nothing. The room keeps its milestone props, redrawn in toon colours with the same outline; the desk lamp moved to the right end so she does not hide it. The service worker cache moved to v5 to drop the old 463 KB model. | 2026-10-01 |
 | 55 | Study cat care loop | Name, coat, weight, happiness, kibble, treats, toys and push nudges for the study cat | The owner asked for care that grows with study. Kibble (one bowl per 25 credited minutes) and treats (two per quiz at 75%+) are derived from work the server already counts, so there is no new payout to double-pay; the `pets` row counts only what was used and spends it with a conditional update. Each bowl adds 100 g, 3.6 kg to 7.2 kg, and the model widens with it. Toys unlock on milestone requirements (brush: 3 good quizzes; wand: 2 h; mouse: 150 cards; yarn: 8 h). Happiness rises with study and care and, after 12 hours apart, falls 2 points an hour. **The owner chose, against PRODUCT.md's no-punishment anti-reference, a cat that can fall all the way to sad and direct nudges that say it is time to study.** Nudges are opt-in, at most one a day after 18 hours apart, 10:00 to 21:00 on the student's clock. Web Push is implemented on node:crypto because the pinned pnpm could not add a dependency to this install; it matches the RFC 8291 vector. An in-app timer sends them instead of a cron. | 2026-10-01 |
 | 56 | Today at a glance | Tabs become Today, Focus, Review, Notes, Island. Today is the cat and the one next step; Focus is its own tab at `/focus` | The owner found the study tab too wordy: about fifteen sections, a review size picker that did not say what it sized, the cat below the fold, and the timer far down the page. Today now shows the cat, her one-line prompt from `dayAgenda` in `src/domain/study/agenda.ts` (review the due cards, retry any due quiz questions, then 25 minutes of focus), the steps, quick care, a weekly progress row, and one pinned button. The review size is a chip in cards (up to 6, 18 or 36) and is remembered. Progress left the tab bar for the weekly row. Removed from the screen: the regimen paragraphs and Why lines, the weekly regimen, the island goal, the onboarding checklist (the time zone now sets itself), the weekly summary and lanterns. The research notes moved to How it works. Reading blocks are one tap on the Focus tab. Notes show a Check N chip for cards waiting to be checked. | 2026-10-01 |
+| 57 | Focus sounds | Optional background sound while the timer runs: Rain, Brown noise and Soft piano as layers that mix (rain under the piano, say), each with its own volume, all generated in the browser with Web Audio. Silence is the default | The owner asked for music "proven to increase study effectiveness". The research does not support that claim: across 65 studies background sound slightly lowered reading comprehension, lyrics and nearby talk hurt the most, and music without words was about neutral (Vasilev 2018). Steady noise over nearby talk reduces the harm (Ellermeier and Hellbrück 1998). White or pink noise helps people with attention problems a little and slightly hurts everyone else (Nigg 2024), and brown noise is untested. So silence stays the default and each option says when it fits. How it works carries the citations. Nothing is downloaded: noise is baked into loops of whole-second length (Chromium buzzes at the seam of some fractional lengths), and the piano is a slow generative loop of four chords with a pentatonic melody over a quiet held chord. All three are calibrated to within about a dB of each other by offline rendering, with a limiter at the top of the slider. The owner asked for layers after the first version offered one sound at a time; the mix is stored as the layers on plus a volume per layer. Sound stops for the session quiz. Where Safari supports it (17+), the audio session is set to playback while a sound plays, so the ring switch on silent should not mute a sound the student chose; this is untested on a device. | 2026-10-02 |
+| 58 | Focus counts in the background | A focus session counts on the server clock from Start to End, on screen or not, up to two hours. Reading blocks are gone; the screen stays awake during a session | The owner found two timers with different rules confusing and wanted reading her notes on the same device to count. Before, time came from 15-second heartbeats that only counted while the tab was in front, and a session with no heartbeat for five minutes was closed; a phone that locked itself, or a PDF open in another app, stopped the clock. Now the server counts `ended_at − started_at` (decision 3's visibility enforcement is retired, by the owner's choice). The client still sends no time. Two hours per session stops a timer left running overnight from paying for the night (Forest-style count-up timers cap similarly), and the eight-hour daily cap still applies. A session over two hours is settled on the next visit, or closed on screen the usual way, quiz first. The open timer's check-in is now read-only, so cadence checks and the heartbeat table are no longer used. The Screen Wake Lock keeps the phone from locking while the timer is on screen; it is dropped automatically when she switches apps and taken again on return. Reading blocks an older build started still settle at their own limit. | 2026-10-02 |
 
 ---
 
@@ -169,7 +171,7 @@ The thing a user can do that they couldn't before: get an immediate, tangible, *
 - `user_id` — text, FK → `users.id`
 - `started_at` — timestamptz, not null — **server clock, never client**
 - `ended_at` — timestamptz, nullable
-- `focused_ms` — integer, not null, default 0 — accumulated from validated heartbeats
+- `focused_ms` — integer, not null, default 0 — server clock from `started_at` to `ended_at`, at most two hours (decision 58)
 - `credited_ms` — integer, not null, default 0 — after daily caps applied
 - `loot_seed` — text, not null — generated server-side at start; client cannot reroll
 - `status` — enum `('active','completed','abandoned')`, not null, default `'active'`
@@ -182,7 +184,7 @@ The thing a user can do that they couldn't before: get an immediate, tangible, *
 - `at` — timestamptz, not null — **server receipt time**
 - `focused` — boolean, not null — was the tab visible + focused
 - **Indexes:** unique `(session_id, seq)` — makes replay attacks a constraint violation
-- Append-only. Never updated.
+- Append-only. Never updated. **No longer written since decision 58**; kept for the history it holds.
 
 ### `islands`
 - `id` — uuid, PK
@@ -259,7 +261,7 @@ The thing a user can do that they couldn't before: get an immediate, tangible, *
 | Method | Path | Purpose | Auth |
 |---|---|---|---|
 | POST | `/api/session/start` | Open a focus session; returns `{ sessionId }`. Loot seed stays server-side | yes |
-| POST | `/api/session/beat` | Heartbeat `{ sessionId, seq, focused }`. Validates cadence | yes |
+| POST | `/api/session/beat` | Check-in `{ sessionId }` from the open timer. Read-only: returns the time counted so far; anything else in the body is ignored | yes |
 | POST | `/api/session/end` | Close session, apply caps, award currency, roll cache — one transaction | yes |
 | GET | `/api/session/active` | Recover an in-flight session after a refresh or crash | yes |
 | GET | `/api/island` | Island + placements for the current user | yes |
@@ -304,9 +306,9 @@ Defined here, executed in Phase 9. Each phase lists its own coverage requirement
 - **E2E — Playwright.** One test that covers the entire loop end to end, plus the three anti-cheat probes.
 
 **Anti-cheat tests are non-negotiable and belong in the integration suite**, because they are the thing most likely to silently break during a refactor:
-1. `POST /api/session/end` with zero heartbeats → awards zero
-2. Replaying a stale `seq` → rejected (unique constraint)
-3. A session whose heartbeat cadence implies fast-forwarding → credited time clamped
+1. `POST /api/session/end` straight after start → awards zero
+2. Time, focus flags or replays in a client body → change nothing; time is the server clock from start to end
+3. A session left running → counted to two hours at most, then the daily cap
 
 ---
 

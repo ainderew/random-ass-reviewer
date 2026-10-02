@@ -1,21 +1,16 @@
-import { readingElapsedMs } from '@/domain/session/reading';
+import { countedMs, isOverLimit } from '@/domain/session/elapsed';
 import {
   startSessionRequestSchema,
   type StartSessionRequest,
 } from '@/domain/types/session';
 import { MAX_SESSIONS_PER_DAY } from '@/domain/session/constants';
-import {
-  creditForGap,
-  isStale,
-  isValidNextBeat,
-} from '@/domain/session/validation';
 import type {
   FocusSession,
   HeartbeatRequest,
   HeartbeatResult,
   SessionSnapshot,
 } from '@/domain/types';
-import { db, type DbOrTx } from '@/server/db';
+import { db } from '@/server/db';
 import { isUniqueViolation } from '@/server/db/errors';
 import { AppError } from '@/server/errors';
 import {
@@ -23,55 +18,32 @@ import {
   createFocusSession,
   findActiveSession,
   findSessionById,
-  incrementFocusedMs,
   listActiveSessions,
 } from '@/server/repositories/focus-session';
-import {
-  getLastHeartbeat,
-  insertHeartbeat,
-} from '@/server/repositories/heartbeat';
 import { endSession } from './end-session';
 import { startOfUserDay } from './local-day';
 
 // The loot seed never leaves the server. Phase 5 rolls against it.
-async function toSnapshot(
-  tx: DbOrTx,
-  session: FocusSession,
-): Promise<SessionSnapshot> {
-  const last = await getLastHeartbeat(tx, session.id);
+function toSnapshot(session: FocusSession): SessionSnapshot {
   return {
     sessionId: session.id,
     startedAt: session.startedAt.toISOString(),
     mode: session.mode ?? 'focus',
     readingLimitMs: session.readingLimitMs,
-    focusedMs:
-      session.mode === 'reading'
-        ? readingElapsedMs(
-            session.startedAt.getTime(),
-            Date.now(),
-            session.readingLimitMs ?? 0,
-          )
-        : session.focusedMs,
-    lastSeq: last?.seq ?? null,
+    focusedMs: countedMs(session, Date.now()),
   };
 }
 
-// Lazy sweep. A crashed session harms nobody until its owner comes back, so
-// there is no cron. Credit stops at the last heartbeat because that is all
-// the accumulator can see.
-export async function sweepStaleSessions(
+// Lazy settle. A session that has run past its limit has nothing more to
+// count, so it is ended (and paid) the next time its owner comes back. There
+// is no cron: an open session harms nobody in the meantime.
+export async function settleExpiredSessions(
   userId: string,
   nowMs: number = Date.now(),
 ): Promise<void> {
   const active = await listActiveSessions(db, userId);
   for (const session of active) {
-    const last = await getLastHeartbeat(db, session.id);
-    const lastActivityMs = (last?.at ?? session.startedAt).getTime();
-    // PDF reading can stay in the background. Settle expired blocks on return.
-    if (session.mode === 'reading') {
-      if (nowMs < session.startedAt.getTime() + (session.readingLimitMs ?? 0))
-        continue;
-    } else if (!isStale({ lastActivityMs, nowMs })) continue;
+    if (!isOverLimit(session, nowMs)) continue;
     try {
       await endSession({ userId, sessionId: session.id });
     } catch (error) {
@@ -85,9 +57,9 @@ export async function sweepStaleSessions(
 export async function getActiveSession(
   userId: string,
 ): Promise<SessionSnapshot | null> {
-  await sweepStaleSessions(userId);
+  await settleExpiredSessions(userId);
   const session = await findActiveSession(db, userId);
-  return session ? toSnapshot(db, session) : null;
+  return session ? toSnapshot(session) : null;
 }
 
 // Returns the existing session rather than erroring when one is already
@@ -97,10 +69,10 @@ export async function startSession(
   request: StartSessionRequest = { mode: 'focus' },
 ): Promise<SessionSnapshot> {
   const options = startSessionRequestSchema.parse(request);
-  await sweepStaleSessions(userId);
+  await settleExpiredSessions(userId);
 
   const existing = await findActiveSession(db, userId);
-  if (existing) return toSnapshot(db, existing);
+  if (existing) return toSnapshot(existing);
 
   const dayStart = await startOfUserDay(db, userId);
   const startedToday = await countSessionsSince(db, userId, dayStart);
@@ -120,57 +92,26 @@ export async function startSession(
         ? { readingLimitMs: options.minutes * 60_000 }
         : {}),
     });
-    return toSnapshot(db, created);
+    return toSnapshot(created);
   } catch (error) {
     if (!isUniqueViolation(error)) throw error;
     const raced = await findActiveSession(db, userId);
     if (!raced) throw error;
-    return toSnapshot(db, raced);
+    return toSnapshot(raced);
   }
 }
 
-// Invalid cadence is dropped silently with a 200. Legitimate users hit it
-// during clock adjustments and must never see an error for it.
+// The open timer's check-in. It changes nothing: the time counted is read
+// off the server clock, so a missed or replayed check-in cannot cost or
+// earn a second. Anything else in the body is ignored.
 export async function recordHeartbeat(
   input: HeartbeatRequest & { userId: string },
 ): Promise<HeartbeatResult> {
-  return db.transaction(async (tx) => {
-    const session = await findSessionById(tx, input.sessionId);
-    if (!session || session.userId !== input.userId) {
-      throw new AppError('NOT_FOUND', 'Session not found');
-    }
-    if (session.status !== 'active')
-      throw new AppError('INVALID_STATE', 'Session already ended');
-
-    if (session.mode === 'reading')
-      return {
-        focusedMs: readingElapsedMs(
-          session.startedAt.getTime(),
-          Date.now(),
-          session.readingLimitMs ?? 0,
-        ),
-      };
-    const last = await getLastHeartbeat(tx, session.id);
-    const nowMs = Date.now();
-    const verdict = isValidNextBeat({
-      lastSeq: last?.seq ?? null,
-      nextSeq: input.seq,
-      lastAtMs: last?.at.getTime() ?? null,
-      nowMs,
-    });
-    if (!verdict.ok) return { focusedMs: session.focusedMs };
-
-    const inserted = await insertHeartbeat(tx, {
-      sessionId: session.id,
-      seq: input.seq,
-      focused: input.focused,
-    });
-    if (!inserted) return { focusedMs: session.focusedMs };
-
-    const delta = last
-      ? creditForGap(inserted.at.getTime() - last.at.getTime(), last.focused)
-      : 0;
-    const focusedMs = await incrementFocusedMs(tx, session.id, delta);
-    return { focusedMs };
-  });
+  const session = await findSessionById(db, input.sessionId);
+  if (!session || session.userId !== input.userId) {
+    throw new AppError('NOT_FOUND', 'Session not found');
+  }
+  if (session.status !== 'active')
+    throw new AppError('INVALID_STATE', 'Session already ended');
+  return { focusedMs: countedMs(session, Date.now()) };
 }

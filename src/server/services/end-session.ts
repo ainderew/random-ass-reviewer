@@ -1,4 +1,4 @@
-import { readingElapsedMs } from '@/domain/session/reading';
+import { countedMs } from '@/domain/session/elapsed';
 import { bowlsFilled } from '@/domain/pet/care';
 import { studyGain } from '@/domain/pet/happiness';
 import { MIN_SESSION_MS } from '@/domain/economy/constants';
@@ -8,14 +8,9 @@ import { rollCache } from '@/domain/economy/loot';
 import { milestoneInsight, updateStreak } from '@/domain/economy/streak';
 import { unlocksForLevel } from '@/domain/economy/unlocks';
 import { levelForXp } from '@/domain/economy/xp';
-import { MAX_HEARTBEATS_PER_SESSION } from '@/domain/session/constants';
-import {
-  accumulateFocusedMs,
-  type BeatSample,
-} from '@/domain/session/validation';
 import { localDayKey, startOfLocalDay } from '@/domain/time/local-day';
 import type { SessionResult } from '@/domain/types';
-import { db, type DbOrTx } from '@/server/db';
+import { db } from '@/server/db';
 import { AppError } from '@/server/errors';
 import { insertCache } from '@/server/repositories/cache';
 import {
@@ -26,7 +21,6 @@ import {
   updateFocusSession,
 } from '@/server/repositories/focus-session';
 import { studiedTogether } from '@/server/repositories/pet';
-import { listHeartbeats } from '@/server/repositories/heartbeat';
 import { findIslandByUserId } from '@/server/repositories/island';
 import { findUserById } from '@/server/repositories/user';
 import {
@@ -39,24 +33,8 @@ import {
 import { getOwnership } from './inventory';
 import { effectiveDailyCapMs } from './user-settings';
 
-const PAGE = 500;
-
-async function loadAllBeats(
-  tx: DbOrTx,
-  sessionId: string,
-): Promise<BeatSample[]> {
-  const beats: BeatSample[] = [];
-  for (let offset = 0; offset < MAX_HEARTBEATS_PER_SESSION; offset += PAGE) {
-    const page = await listHeartbeats(tx, sessionId, { limit: PAGE, offset });
-    for (const beat of page)
-      beats.push({ atMs: beat.at.getTime(), focused: beat.focused });
-    if (page.length < PAGE) break;
-  }
-  return beats;
-}
-
-// One transaction: claim the session, recompute focused time from the
-// heartbeats the server stamped, apply the daily cap, pay, update the
+// One transaction: claim the session, count its time on the server clock
+// from start to end (whether or not the app was on screen), apply the cap, pay, update the
 // streak, roll the cache. A crash anywhere in here rolls all of it back.
 export async function endSession(input: {
   userId: string;
@@ -72,14 +50,7 @@ export async function endSession(input: {
     const session = await claimSessionForEnd(tx, { ...input, endedAt });
     if (!session) throw new AppError('INVALID_STATE', 'Session already ended');
 
-    const focusedMs =
-      session.mode === 'reading'
-        ? readingElapsedMs(
-            session.startedAt.getTime(),
-            endedAt.getTime(),
-            session.readingLimitMs ?? 0,
-          )
-        : accumulateFocusedMs(await loadAllBeats(tx, session.id));
+    const focusedMs = countedMs(session, endedAt.getTime());
     const base = {
       sessionId: session.id,
       mode: session.mode ?? 'focus',

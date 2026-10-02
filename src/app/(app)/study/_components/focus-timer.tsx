@@ -5,13 +5,18 @@ import { useProfile } from '@/app/(app)/_hooks/use-profile';
 import { useStats } from '@/app/(app)/_hooks/use-stats';
 import { newlyEarned, type CareerProgress } from '@/domain/career/milestones';
 import { aimById, defaultAim } from '@/domain/island/aim';
+import { MAX_SESSION_MS } from '@/domain/session/elapsed';
 import type { QuizResult as QuizResultData } from '@/domain/types';
 import { useElapsed } from '../_hooks/use-elapsed';
-import { useFocusFlag } from '../_hooks/use-focus-flag';
 import { useFocusSession } from '../_hooks/use-focus-session';
+import {
+  useFocusSound,
+  useFocusSoundPlayback,
+  wakeFocusSound,
+} from '../_hooks/use-focus-sound';
 import { usePet } from '../_hooks/use-pet';
 import { useSessionPreferences } from '../_hooks/use-session-preferences';
-import { ReadingView } from './reading-view';
+import { useWakeLock } from '../_hooks/use-wake-lock';
 import { FocusIdle } from './focus-idle';
 import { LoadingView } from './loading-view';
 import { QuizResult } from './quiz-result';
@@ -31,12 +36,21 @@ export const FocusTimer = () => {
   const { data: profile } = useProfile();
   const { data: pet } = usePet();
   const prefs = useSessionPreferences();
-  const isFocused = useFocusFlag();
-  const [phase, setPhase] = useState<Phase>('timer');
+  const [chosenPhase, setPhase] = useState<Phase>('timer');
   const [quizResult, setQuizResult] = useState<QuizResultData | null>(null);
   const [careerBefore, setCareerBefore] = useState<CareerProgress | null>(null);
   const active = status === 'running' || status === 'ending';
+  // At the two-hour limit the session has nothing more to count: it closes
+  // the usual way, quiz first.
+  const full = status === 'running' && focusedMs >= MAX_SESSION_MS;
+  const phase: Phase = full && chosenPhase === 'timer' ? 'quiz' : chosenPhase;
   const elapsedMs = useElapsed(session?.startedAt ?? null, active);
+  const { mix } = useFocusSound();
+  // The mix plays with the timer and stops for the quiz: recall is best in
+  // quiet.
+  useFocusSoundPlayback(active && phase === 'timer');
+  // The screen stays on; leaving the app is fine, time counts regardless.
+  useWakeLock(active);
 
   const career = data?.career ?? {
     focusMs: 0,
@@ -81,28 +95,14 @@ export const FocusTimer = () => {
         onLengthChange={prefs.setLength}
         starting={status === 'starting'}
         error={error}
-        onRead={(minutes) => {
-          setCareerBefore(career);
-          void start({ mode: 'reading', minutes });
-        }}
         onStart={() => {
+          wakeFocusSound(mix);
           setCareerBefore(career);
           void start();
         }}
       />
     );
   }
-
-  if (session?.mode === 'reading')
-    return (
-      <ReadingView
-        elapsedMs={elapsedMs}
-        limitMs={session.readingLimitMs ?? 0}
-        ending={status === 'ending'}
-        error={error}
-        onEnd={finish}
-      />
-    );
 
   if (phase === 'quiz' && session && status === 'running') {
     return (
@@ -127,7 +127,6 @@ export const FocusTimer = () => {
     <RunningView
       elapsedMs={elapsedMs}
       focusedMs={focusedMs}
-      isFocused={isFocused}
       lengthMs={lengthMs}
       aim={aim}
       career={career}

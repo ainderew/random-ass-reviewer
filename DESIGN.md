@@ -190,6 +190,10 @@ The phone tab bar has five equal columns for Today (`/study`), Focus (`/focus`),
 
 Today reads at a glance. From top to bottom: the cat in her circle (the ring fills as the day's steps are done), one short line from her naming the next step, her name and mood (opens her sheet), the day's steps, four care buttons, the weekly progress row, and one coral button that does the next step. The button stays pinned above the tab bar. Steps show one number each ("18 cards", "10 of 25 min"); the step to do now is outlined and its dot pulses. No explanatory paragraphs on Today: reasons live on How it works.
 
+### Focus sound
+
+A 56px square beside the main button on both timer screens (Start focusing, End session). Its icons and one-word label show what is playing: Sound when silent, the layer's name when one is on (Rain, Noise, Piano), and Mix with small icons side by side when several are on. When anything is on, the square takes the pressed coral tint. It opens a bottom sheet rendered at the top of the page (a portal) so the tab bar never covers it. The sheet says "Mix one or more." A Silence row turns everything off. Under it, Rain, Brown noise and Soft piano are full-width switches, each with a one-line "when to choose it", a switch pill on the right, and its own volume slider while on. Layers keep their volume while off. Before a session the sheet plays the mix so it can be heard. Sound starts with the session, fades layers in and out as they change, fades out at the end, and stops for the quiz. Silence is the default. Research notes live on How it works, linked from the sheet only when no session is running.
+
 ### Illustration
 
 The versioned `public/illustrations/study-cards-v1.png` is decorative. Review displays it at 88px wide beside the recall prompt. It supplies no labels or facts. Generated concept lettering, handwriting, and decorative slogans are not part of the implemented type system.

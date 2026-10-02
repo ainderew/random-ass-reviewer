@@ -31,7 +31,6 @@ beforeEach(() => {
           sessionId: 's1',
           startedAt: new Date().toISOString(),
           focusedMs: 0,
-          lastSeq: null,
         });
       if (path === '/api/session/beat') return respond({ focusedMs: 15_000 });
       if (path === '/api/session/end')
@@ -51,7 +50,6 @@ beforeEach(() => {
       throw new Error(`Unmocked route ${path}`);
     },
   ) as unknown as typeof fetch;
-  jest.spyOn(document, 'hasFocus').mockReturnValue(true);
   Object.defineProperty(document, 'visibilityState', {
     configurable: true,
     get: () => 'visible',
@@ -71,8 +69,16 @@ const wrapper = ({ children }: { children: ReactNode }) => (
 
 const beats = () => calls.filter((c) => c.path === '/api/session/beat');
 
+function setVisibility(state: 'visible' | 'hidden') {
+  Object.defineProperty(document, 'visibilityState', {
+    configurable: true,
+    get: () => state,
+  });
+  document.dispatchEvent(new Event('visibilitychange'));
+}
+
 describe('useFocusSession', () => {
-  it('sends a heartbeat every interval with a sequence that only ever climbs', async () => {
+  it('checks in every interval with nothing but the session id', async () => {
     jest.useFakeTimers();
     const { result } = renderHook(() => useFocusSession(), { wrapper });
     await act(async () => {
@@ -86,43 +92,41 @@ describe('useFocusSession', () => {
     await act(async () => {
       await jest.advanceTimersByTimeAsync(HEARTBEAT_INTERVAL_MS * 3 + 10);
     });
-    const seqs = beats().map((b) => b.body?.seq);
-    expect(seqs).toEqual([0, 1, 2, 3]);
-    for (const beat of beats())
-      expect(Object.keys(beat.body ?? {})).not.toContain('elapsedMs');
+    expect(beats()).toHaveLength(4);
+    // No time, no focus flag: the server counts on its own clock.
+    for (const beat of beats()) expect(beat.body).toEqual({ sessionId: 's1' });
+    expect(result.current.focusedMs).toBe(15_000);
   });
 
-  it('reports focused: false once the tab is hidden', async () => {
+  it('catches up straight away on coming back from another app', async () => {
     jest.useFakeTimers();
     const { result } = renderHook(() => useFocusSession(), { wrapper });
     await act(async () => {
       await jest.advanceTimersByTimeAsync(0);
       await result.current.start();
     });
-    Object.defineProperty(document, 'visibilityState', {
-      configurable: true,
-      get: () => 'hidden',
-    });
+    const before = beats().length;
     await act(async () => {
-      await jest.advanceTimersByTimeAsync(HEARTBEAT_INTERVAL_MS + 10);
+      setVisibility('hidden');
+      setVisibility('visible');
+      await jest.advanceTimersByTimeAsync(0);
     });
-    const last = beats().at(-1);
-    expect(last?.body).toMatchObject({ focused: false });
+    expect(beats()).toHaveLength(before + 1);
+    expect(result.current.status).toBe('running');
   });
 
-  it('resumes an in-flight session and continues its sequence', async () => {
+  it('resumes an in-flight session after a reload', async () => {
     active = {
       sessionId: 's9',
       startedAt: new Date(Date.now() - 60_000).toISOString(),
       focusedMs: 45_000,
-      lastSeq: 7,
     };
     const { result } = renderHook(() => useFocusSession(), { wrapper });
     await waitFor(() => expect(result.current.status).toBe('running'));
     await waitFor(() => expect(beats()).toHaveLength(1));
-    expect(beats()[0]!.body).toMatchObject({ sessionId: 's9', seq: 8 });
+    expect(beats()[0]!.body).toEqual({ sessionId: 's9' });
     expect(calls.some((c) => c.path === '/api/session/start')).toBe(false);
-    // The first beat's reply replaces the snapshot's focused time.
+    // The first check-in's reply replaces the snapshot's count.
     expect(result.current.focusedMs).toBe(15_000);
   });
 

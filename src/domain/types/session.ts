@@ -18,13 +18,6 @@ export interface FocusSession {
   readingLimitMs?: number | null;
 }
 
-export interface Heartbeat {
-  sessionId: string;
-  seq: number;
-  at: Date;
-  focused: boolean;
-}
-
 // Only intent comes from the client. The server owns the clock and limit.
 export const startSessionRequestSchema = z.discriminatedUnion('mode', [
   z.object({ mode: z.literal('focus') }),
@@ -35,11 +28,11 @@ export const startSessionRequestSchema = z.discriminatedUnion('mode', [
 ]);
 export type StartSessionRequest = z.infer<typeof startSessionRequestSchema>;
 
-// No timestamp on purpose. The server stamps receipt time. Phase 2 depends on this.
+// The open timer's check-in. Only the session id: time counts on the server
+// clock, so whatever else a client sends (older builds sent a sequence
+// number and a focus flag) is stripped and ignored.
 export const heartbeatRequestSchema = z.object({
   sessionId: z.uuid(),
-  seq: z.number().int().nonnegative(),
-  focused: z.boolean(),
 });
 export type HeartbeatRequest = z.infer<typeof heartbeatRequestSchema>;
 
@@ -54,8 +47,6 @@ export interface SessionSnapshot {
   // ISO 8601 from the server clock. The client only renders a countdown from it.
   startedAt: string;
   focusedMs: number;
-  // Highest seq the server has accepted, so a reload can continue the sequence.
-  lastSeq: number | null;
   mode?: 'focus' | 'reading';
   readingLimitMs?: number | null;
 }

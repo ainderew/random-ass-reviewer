@@ -15,7 +15,7 @@ test('study to earn, build, and keep it', async ({ page, context }) => {
   await page.goto('/focus');
   await page.getByRole('button', { name: 'Start focusing' }).click();
   await expect(page.getByRole('timer')).toBeVisible();
-  // One heartbeat interval, so the server has something to count.
+  // Some real time, so the server's clock has something to count.
   await page.waitForTimeout(16_000);
   await page.getByRole('button', { name: 'End session' }).click();
   const skip = page.getByRole('button', { name: 'Skip, keep my Focus as is' });

@@ -1,8 +1,8 @@
 import { expect, test, type Page } from '@playwright/test';
 import { signInAsSmokeUser } from './helpers';
 
-// The three probes, through the real HTTP stack. Every payout is computed
-// on the server from timestamps the server stamped.
+// The three probes, through the real HTTP stack. Every payout is counted on
+// the server's clock from Start to End; nothing the client sends is time.
 async function endAnyActive(page: Page): Promise<void> {
   const active = await (await page.request.get('/api/session/active')).json();
   if (active.data)
@@ -14,7 +14,7 @@ async function endAnyActive(page: Page): Promise<void> {
 test.describe('anti-cheat probes', () => {
   test.beforeEach(async ({ context }) => signInAsSmokeUser(context));
 
-  test('a session ended with no heartbeats pays nothing', async ({ page }) => {
+  test('a session ended straight away pays nothing', async ({ page }) => {
     await endAnyActive(page);
     const started = await (
       await page.request.post('/api/session/start')
@@ -28,39 +28,33 @@ test.describe('anti-cheat probes', () => {
     expect(ended.data.creditedMs).toBe(0);
   });
 
-  test('a replayed heartbeat seq and inflated fields change nothing', async ({
+  test('time, flags and replays sent by the client change nothing', async ({
     page,
   }) => {
     await endAnyActive(page);
     const { sessionId } = (
       await (await page.request.post('/api/session/start')).json()
     ).data;
-    const first = await (
-      await page.request.post('/api/session/beat', {
-        data: { sessionId, seq: 0, focused: true },
-      })
-    ).json();
-    const replay = await (
-      await page.request.post('/api/session/beat', {
-        data: { sessionId, seq: 0, focused: true },
-      })
-    ).json();
-    expect(replay.data.focusedMs).toBe(first.data.focusedMs);
+    const checkIn = async (data: object) =>
+      (
+        await (
+          await page.request.post('/api/session/beat', {
+            data: { sessionId, ...data },
+          })
+        ).json()
+      ).data.focusedMs as number;
 
-    const inflated = await (
-      await page.request.post('/api/session/beat', {
-        data: {
-          sessionId,
-          seq: 1,
-          focused: true,
-          elapsedMs: 3_600_000,
-          focusedMs: 3_600_000,
-          at: '2020-01-01T00:00:00Z',
-        },
-      })
-    ).json();
-    // Two beats a second apart credit under one interval, whatever the body claims.
-    expect(inflated.data.focusedMs).toBeLessThan(60_000);
+    const inflated = await checkIn({
+      seq: 0,
+      focused: true,
+      elapsedMs: 3_600_000,
+      focusedMs: 3_600_000,
+      at: '2020-01-01T00:00:00Z',
+    });
+    const replay = await checkIn({ seq: 0, focused: true });
+    // Seconds since Start on the server clock, whatever the body claims.
+    expect(inflated).toBeLessThan(60_000);
+    expect(replay).toBeLessThan(60_000);
 
     const ended = await (
       await page.request.post('/api/session/end', {

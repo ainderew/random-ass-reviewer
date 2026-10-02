@@ -17,7 +17,6 @@ import {
   requestStartSession,
   sendHeartbeat,
 } from './session-api';
-import { readFocus } from './use-focus-flag';
 
 export type SessionStatus =
   'loading' | 'idle' | 'starting' | 'running' | 'ending' | 'ended';
@@ -33,9 +32,8 @@ export function useFocusSession() {
   const [focusedMs, setFocusedMs] = useState(0);
   const [result, setResult] = useState<SessionResult | null>(null);
   const [error, setError] = useState<string | null>(null);
-  // seq and sessionId live in refs: the interval callback reads them, and a
-  // state value would be frozen at the first render.
-  const seqRef = useRef(0);
+  // The interval callback reads the id, and a state value would be frozen at
+  // the first render.
   const sessionIdRef = useRef<string | null>(null);
 
   const invalidateStats = useCallback(
@@ -51,7 +49,6 @@ export function useFocusSession() {
 
   const adopt = useCallback((snapshot: SessionSnapshot) => {
     sessionIdRef.current = snapshot.sessionId;
-    seqRef.current = (snapshot.lastSeq ?? -1) + 1;
     setSession(snapshot);
     setFocusedMs(snapshot.focusedMs);
     setResult(null);
@@ -74,7 +71,7 @@ export function useFocusSession() {
         if (snapshot) adopt(snapshot);
         else {
           setStatus('idle');
-          // The active-session read may have settled an expired reading block.
+          // The active-session read may have settled a session past its limit.
           void invalidateStats();
         }
       })
@@ -86,32 +83,35 @@ export function useFocusSession() {
     };
   }, [adopt, invalidateStats]);
 
-  const beat = useCallback(async () => {
+  // A check-in refreshes the time counted so far. It is only a read: time
+  // counts on the server clock, in the background too.
+  const sync = useCallback(async () => {
     const sessionId = sessionIdRef.current;
     if (!sessionId) return;
-    const seq = seqRef.current;
-    seqRef.current += 1;
     try {
-      const response = await sendHeartbeat({
-        sessionId,
-        seq,
-        focused: readFocus(),
-      });
+      const response = await sendHeartbeat({ sessionId });
       setFocusedMs(response.focusedMs);
     } catch (caught) {
-      // Network blips are silent; the gap rule bounds the loss.
+      // Network blips are silent; nothing is lost while offline.
       if (isGone(caught)) drop();
     }
   }, [drop]);
 
-  // Hidden tabs throttle this to ~1/min. That is correct: a hidden tab is not
-  // focused time, and the server would not credit a fast cadence anyway.
+  // Every 15 seconds while running, and straight away on coming back to the
+  // tab, so the numbers catch up after time spent in another app.
   useEffect(() => {
     if (status !== 'running') return;
-    void beat();
-    const id = setInterval(() => void beat(), HEARTBEAT_INTERVAL_MS);
-    return () => clearInterval(id);
-  }, [status, beat]);
+    void sync();
+    const id = setInterval(() => void sync(), HEARTBEAT_INTERVAL_MS);
+    const onReturn = () => {
+      if (document.visibilityState === 'visible') void sync();
+    };
+    document.addEventListener('visibilitychange', onReturn);
+    return () => {
+      clearInterval(id);
+      document.removeEventListener('visibilitychange', onReturn);
+    };
+  }, [status, sync]);
 
   const start = useCallback(
     async (options?: StartSessionRequest) => {
@@ -150,9 +150,9 @@ export function useFocusSession() {
         drop();
         return null;
       }
-      // Keep the timer on screen. The stale sweeper will save it if we cannot.
+      // Keep the timer on screen. The time keeps counting on the server.
       setError(
-        'Could not reach the server. Your time is saved; it will be credited automatically, or press End again.',
+        'Could not reach the server. Your time is still counting; press End again in a moment.',
       );
       setStatus('running');
       return null;

@@ -13,6 +13,7 @@ Read `feature-plans/aloft/00-overview.md` before changing anything. Each phase f
 ## Non-negotiables
 
 - Every payout is computed on the server. The client never sends timestamps.
+- Focus time is the server clock from start to end, on screen or not, at most two hours a session (decision 58). The open timer's check-in only reads it.
 - Uniqueness lives in the database (unique indexes), never in check-then-insert code.
 - Balances update with `SET x = x + delta`, never read-modify-write.
 - Env vars come from `@/lib/env`, never `process.env` in app code.
@@ -54,6 +55,13 @@ Read `feature-plans/aloft/00-overview.md` before changing anything. Each phase f
 - The cat's food and treats are derived, never paid out: bowls of kibble = lifetime credited focus / 25 min, treats = 2 per quiz at 75%+. The `pets` row only counts what was used (`bowls_fed`, `treats_given`), and spending is a conditional `UPDATE ... WHERE bowls_fed < earned`.
 - Happiness decays in `src/domain/pet/happiness.ts` and the same formula runs in SQL in `src/server/repositories/pet.ts`. Change both together. The owner chose a cat that can reach sad and direct "time to study" nudges (decision 55).
 - Push is Web Push without a library (`src/server/push/web-push.ts`, checked against the RFC 8291 test vector). Keys are `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` (all or none); `deploy/add-vapid-keys.sh` adds them on the VPS. The in-app nudge clock replaces a cron.
+
+## Focus sounds
+
+- Background sound on the Focus tab is generated with Web Audio in `src/game/systems/focus-sound/`; there are no audio files. Rain, brown noise and piano are layers that mix, each with its own volume; the mix lives in the browser under `aloft:focus-mix`. Silence is the default (decision 57).
+- Loop buffers must be a whole number of seconds long. Chromium wraps some fractional lengths onto the last few samples and buzzes.
+- If a sound's character changes, re-check its loudness against the others by rendering offline. The levels in `voices.ts` and `piano-voice.ts` were set that way.
+- Claims about sound and studying belong in `src/app/(app)/how-it-works/focus-sound-notes.tsx`, each checked against the study. None of the options is proven to help everyone, so don't say otherwise.
 
 ## Design context
 

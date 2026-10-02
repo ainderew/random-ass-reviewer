@@ -3,10 +3,16 @@ import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { ReactNode } from 'react';
 import { MILESTONES } from '@/domain/career/milestones';
+import { MAX_SESSION_MS } from '@/domain/session/elapsed';
+import {
+  playFocusMix,
+  stopFocusSound,
+} from '@/game/systems/focus-sound/player';
 import { statsQueryKey } from '@/lib/query-keys';
 import { FocusTimer } from './focus-timer';
 
 jest.mock('./character-view', () => ({ CharacterView: () => null }));
+jest.mock('@/game/systems/focus-sound/player');
 
 const snapshot = {
   stats: {
@@ -45,7 +51,6 @@ const activeSession = {
   sessionId: 's1',
   startedAt: new Date(Date.now() - 90_000).toISOString(),
   focusedMs: 60_000,
-  lastSeq: 5,
 };
 
 const sessionResult = {
@@ -83,7 +88,6 @@ beforeEach(() => {
       sessionId: 's1',
       startedAt: new Date().toISOString(),
       focusedMs: 0,
-      lastSeq: null,
     },
   });
   routes['/api/session/beat'] = () => ({ data: { focusedMs: 15_000 } });
@@ -154,7 +158,7 @@ function setVisibility(state: 'visible' | 'hidden') {
 }
 
 describe('FocusTimer', () => {
-  it('shows the length, one start button, and a reading block when idle', async () => {
+  it('shows the length and one start button when idle, with no separate reading block', async () => {
     render(<FocusTimer />, { wrapper });
 
     expect(
@@ -163,12 +167,10 @@ describe('FocusTimer', () => {
     expect(
       screen.getByRole('radiogroup', { name: 'Session length' }),
     ).toBeInTheDocument();
-    expect(
-      screen.getByRole('button', { name: 'Read for 15 minutes' }),
-    ).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /^Read for/ })).toBeNull();
   });
 
-  it('clicking Start shows a running timer and sends the first heartbeat', async () => {
+  it('clicking Start shows a running timer and checks in with only the session id', async () => {
     render(<FocusTimer />, { wrapper });
     await userEvent.click(
       await screen.findByRole('button', { name: 'Start focusing' }),
@@ -181,11 +183,10 @@ describe('FocusTimer', () => {
     expect(await screen.findByRole('status')).toHaveTextContent('Focused');
 
     const beat = calls.find((c) => c.path === '/api/session/beat');
-    expect(beat?.body).toEqual({ sessionId: 's1', seq: 0, focused: true });
-    expect(Object.keys(beat?.body as object)).not.toContain('elapsedMs');
+    expect(beat?.body).toEqual({ sessionId: 's1' });
   });
 
-  it('switching tabs shows the Away indicator, and coming back clears it', async () => {
+  it('keeps counting while she reads in another app', async () => {
     render(<FocusTimer />, { wrapper });
     await userEvent.click(
       await screen.findByRole('button', { name: 'Start focusing' }),
@@ -193,13 +194,13 @@ describe('FocusTimer', () => {
     await screen.findByRole('button', { name: 'End session' });
 
     setVisibility('hidden');
-    expect(screen.getByRole('status')).toHaveTextContent('Away, not counting');
-
+    expect(screen.getByRole('status')).toHaveTextContent('Focused');
+    expect(screen.queryByText(/Away/)).toBeNull();
     setVisibility('visible');
     expect(screen.getByRole('status')).toHaveTextContent('Focused');
   });
 
-  it('resumes an in-flight session and continues the heartbeat sequence', async () => {
+  it('resumes an in-flight session after a reload', async () => {
     routes['/api/session/active'] = () => ({ data: activeSession });
     render(<FocusTimer />, { wrapper });
 
@@ -208,7 +209,22 @@ describe('FocusTimer', () => {
     ).toBeInTheDocument();
     expect(screen.getByTestId('elapsed')).toHaveTextContent(/^01:3\d$/);
     const beat = calls.find((c) => c.path === '/api/session/beat');
-    expect(beat?.body).toMatchObject({ sessionId: 's1', seq: 6 });
+    expect(beat?.body).toEqual({ sessionId: 's1' });
+  });
+
+  it('closes the session at two hours, the usual way', async () => {
+    routes['/api/session/beat'] = () => ({
+      data: { focusedMs: MAX_SESSION_MS },
+    });
+    render(<FocusTimer />, { wrapper });
+    await userEvent.click(
+      await screen.findByRole('button', { name: 'Start focusing' }),
+    );
+
+    expect(
+      await screen.findByRole('heading', { name: 'Session saved' }),
+    ).toBeInTheDocument();
+    expect(calls.some((c) => c.path === '/api/session/end')).toBe(true);
   });
 
   it('ending shows the credited result', async () => {
@@ -327,6 +343,41 @@ describe('FocusTimer quiz step', () => {
   });
 });
 
+describe('FocusTimer sound', () => {
+  beforeEach(() => {
+    localStorage.clear();
+    jest.mocked(playFocusMix).mockClear();
+    jest.mocked(stopFocusSound).mockClear();
+  });
+
+  const playing = () => jest.mocked(playFocusMix).mock.calls.at(-1)?.[0];
+
+  it('plays the chosen mix with the timer and stops it for the quiz', async () => {
+    localStorage.setItem(
+      'aloft:focus-mix',
+      JSON.stringify({ on: ['rain', 'piano'], volume: { piano: 0.4 } }),
+    );
+    render(<FocusTimer />, { wrapper });
+    const start = await screen.findByRole('button', { name: 'Start focusing' });
+    // Chosen, but nothing plays until the session starts.
+    expect(playing()).toEqual([]);
+    await userEvent.click(start);
+
+    await screen.findByRole('button', { name: 'End session' });
+    expect(playing()).toEqual([
+      { id: 'rain', volume: 0.6 },
+      { id: 'piano', volume: 0.4 },
+    ]);
+    expect(
+      screen.getByRole('button', { name: 'Focus sound: Rain and Soft piano' }),
+    ).toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole('button', { name: 'End session' }));
+    await screen.findByRole('heading', { name: 'Session saved' });
+    expect(playing()).toEqual([]);
+  });
+});
+
 describe('FocusTimer session shape', () => {
   beforeEach(() => localStorage.clear());
 
@@ -387,7 +438,7 @@ describe('FocusTimer session shape', () => {
 describe('FocusTimer career scene', () => {
   const label = (id: string) => MILESTONES.find((m) => m.id === id)!.label;
 
-  it('shows the cat keeping you company while the session runs and waiting when the tab is away', async () => {
+  it('shows the cat keeping you company for the whole session, in the app or out', async () => {
     render(<FocusTimer />, { wrapper });
     await userEvent.click(
       await screen.findByRole('button', { name: 'Start focusing' }),
@@ -399,9 +450,7 @@ describe('FocusTimer career scene', () => {
     ).toBeInTheDocument();
     setVisibility('hidden');
     expect(
-      await screen.findByRole('img', {
-        name: /Toast is waiting for you\.$/,
-      }),
+      screen.getByRole('img', { name: /Toast is keeping you company\.$/ }),
     ).toBeInTheDocument();
   });
 
@@ -428,20 +477,12 @@ describe('FocusTimer career scene', () => {
   });
 });
 
-it('resumes a reading block after a reload and finishes without the focus quiz', async () => {
+it('resumes a reading block an older build started as an ordinary session', async () => {
   routes['/api/session/active'] = () => ({
     data: { ...activeSession, mode: 'reading', readingLimitMs: 900000 },
   });
-  routes['/api/session/end'] = () => ({
-    data: { ...sessionResult, mode: 'reading' },
-  });
   render(<FocusTimer />, { wrapper });
   expect(
-    await screen.findByRole('region', { name: 'Reading session' }),
+    await screen.findByRole('button', { name: 'End session' }),
   ).toBeInTheDocument();
-  await userEvent.click(screen.getByRole('button', { name: 'Finish reading' }));
-  expect(await screen.findByText(/self-reported reading/)).toBeInTheDocument();
-  expect(calls.some((c) => c.path.startsWith('/api/review/session-quiz'))).toBe(
-    false,
-  );
 });

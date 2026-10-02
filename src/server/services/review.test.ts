@@ -5,15 +5,8 @@ import {
 } from '@/domain/economy/constants';
 import { initialCardState } from '@/domain/review/scheduler';
 import type { FsrsState } from '@/domain/types';
-import { HEARTBEAT_INTERVAL_MS } from '@/domain/session/constants';
 import { closeDb, db } from '@/server/db';
-import {
-  cardReviews,
-  cards,
-  focusSessions,
-  sessionHeartbeats,
-  users,
-} from '@/server/db/schema';
+import { cardReviews, cards, focusSessions, users } from '@/server/db/schema';
 import { AppError } from '@/server/errors';
 import { insertCards } from '@/server/repositories/card';
 import { insertNoteChunks, insertNoteSource } from '@/server/repositories/note';
@@ -82,16 +75,6 @@ async function seedSession(userId: string, spanMs: number): Promise<string> {
     .insert(focusSessions)
     .values({ userId, lootSeed: 'seed', startedAt: new Date(now - spanMs) })
     .returning();
-  const beats = [];
-  for (let at = now - spanMs, seq = 0; at <= now; at += HEARTBEAT_INTERVAL_MS) {
-    beats.push({
-      sessionId: session!.id,
-      seq: seq++,
-      at: new Date(at),
-      focused: true,
-    });
-  }
-  await db.insert(sessionHeartbeats).values(beats);
   return session!.id;
 }
 

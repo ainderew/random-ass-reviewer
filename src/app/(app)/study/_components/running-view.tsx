@@ -16,16 +16,15 @@ import { AimLine } from './aim-line';
 import { catLook } from './cat-look';
 import { FocusCircle } from './focus-circle';
 import { Lantern, lanternStage } from './lantern';
+import { SoundControl } from './sound-control';
 import { TimerFrame } from './timer-frame';
 
-// Away is a fact, not a warning. The lantern dims, the ring pauses, she looks
-// up from the desk, and the words say what is happening. Nothing dies.
-// Reaching the chosen length is a door, not a wall: end and collect, or
-// keep going.
+// Time counts from Start to End, in Aloft or out of it: reading the notes in
+// another app is studying. Reaching the chosen length is a door, not a wall:
+// end and collect, or keep going.
 export const RunningView = ({
   elapsedMs,
   focusedMs,
-  isFocused,
   lengthMs,
   aim,
   career,
@@ -39,7 +38,6 @@ export const RunningView = ({
 }: {
   elapsedMs: number;
   focusedMs: number;
-  isFocused: boolean;
   lengthMs: number | null;
   aim: Aim | null;
   career: CareerProgress;
@@ -63,11 +61,9 @@ export const RunningView = ({
 
   const statusLine = note
     ? note.label
-    : isFocused
-      ? next
-        ? `Focused · ${next.label.toLowerCase()} at ${next.atMs / 60_000}`
-        : 'Focused'
-      : 'Away, not counting';
+    : next
+      ? `Focused · ${next.label.toLowerCase()} at ${next.atMs / 60_000}`
+      : 'Focused';
 
   return (
     <TimerFrame
@@ -75,15 +71,9 @@ export const RunningView = ({
       top={
         <p
           role="status"
-          className={`flex items-center justify-center gap-3 text-[0.9375rem] transition-colors duration-200 ${
-            isFocused ? 'text-ink-2' : 'text-muted'
-          }`}
+          className="flex items-center justify-center gap-3 text-[0.9375rem] text-ink-2"
         >
-          <Lantern
-            stage={lanternStage(focusedMs)}
-            mode={isFocused ? 'focused' : 'away'}
-            size={22}
-          />
+          <Lantern stage={lanternStage(focusedMs)} mode="focused" size={22} />
           {statusLine}
         </p>
       }
@@ -129,16 +119,19 @@ export const RunningView = ({
             </p>
           ) : null}
           {!reached ? (
-            <Button
-              variant="ghost"
-              size="lg"
-              block
-              onClick={onEnd}
-              disabled={ending}
-              aria-busy={ending}
-            >
-              {ending ? 'Saving…' : 'End session'}
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                variant="ghost"
+                size="lg"
+                onClick={onEnd}
+                disabled={ending}
+                aria-busy={ending}
+                className="flex-1"
+              >
+                {ending ? 'Saving…' : 'End session'}
+              </Button>
+              <SoundControl live />
+            </div>
           ) : null}
         </>
       }
@@ -146,7 +139,7 @@ export const RunningView = ({
       <div className="flex flex-col items-center gap-5 text-center">
         <FocusCircle
           progress={career}
-          mood={isFocused ? 'studying' : 'away'}
+          mood="studying"
           focusedMs={focusedMs}
           lengthMs={lengthMs}
           {...(pet ? { name: pet.name, look: catLook(pet) } : {})}
@@ -167,9 +160,7 @@ export const RunningView = ({
             role="timer"
             aria-live="off"
             aria-label="Elapsed"
-            className={`font-mono text-[clamp(3.25rem,16vw,5.25rem)] leading-none font-medium tracking-[-0.03em] tabular-nums transition-colors duration-300 ${
-              isFocused ? 'text-ink' : 'text-ink-2'
-            }`}
+            className="font-mono text-[clamp(3.25rem,16vw,5.25rem)] leading-none font-medium tracking-[-0.03em] text-ink tabular-nums"
           >
             {formatClock(elapsedMs)}
           </p>
