@@ -3,7 +3,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { ReactNode } from 'react';
 import type { AnswerResult, QueuedCard, ReviewStats } from '@/domain/types';
-import { reviewQueueKey, reviewStatsKey } from '@/lib/query-keys';
+import { reviewQueueFor, reviewStatsKey } from '@/lib/query-keys';
 import { ReviewSession } from './review-session';
 
 jest.mock('@/game/systems/juice/play-pitched', () => ({
@@ -52,7 +52,7 @@ function renderSession(
   const client = new QueryClient({
     defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
   });
-  client.setQueryData(reviewQueueKey, queue);
+  client.setQueryData(reviewQueueFor(), queue);
   client.setQueryData(reviewStatsKey, stats);
   const wrapper = ({ children }: { children: ReactNode }) => (
     <QueryClientProvider client={client}>{children}</QueryClientProvider>
@@ -192,10 +192,7 @@ describe('practice modes', () => {
   it('preserves written recall beside the revealed answer without auto-grading', async () => {
     const user = userEvent.setup();
     renderSession();
-    await user.selectOptions(
-      screen.getByLabelText('Answer type for this card'),
-      'write',
-    );
+    await user.click(screen.getByRole('radio', { name: /^Write/ }));
     await user.type(
       screen.getByLabelText('Your answer'),
       'My remembered explanation',
@@ -212,10 +209,7 @@ describe('practice modes', () => {
   it('locks the first choice, explains an error, and only accepts Again', async () => {
     const user = userEvent.setup();
     renderSession([quizCard]);
-    await user.selectOptions(
-      screen.getByLabelText('Answer type for this card'),
-      'choice',
-    );
+    await user.click(screen.getByRole('radio', { name: /^Choices/ }));
     await user.keyboard(' ');
     expect(
       screen.queryByRole('region', { name: 'Answer' }),
@@ -245,15 +239,33 @@ describe('practice modes', () => {
       ).toBeInTheDocument(),
     );
   });
-  it('keeps every card in the regimen and disables unsupported multiple choice', async () => {
+  it('suggests the regimen and offers to make choices for a card without them', async () => {
+    const user = userEvent.setup();
+    global.fetch = jest.fn(async (input: RequestInfo | URL) =>
+      String(input).endsWith('/choices')
+        ? respond({ quiz: quizCard.quiz })
+        : routeResponse(input),
+    ) as unknown as typeof fetch;
     renderSession();
-    expect(
-      screen.getByRole('option', { name: 'Multiple choice' }),
-    ).toBeDisabled();
     expect(screen.getByText('First question?')).toBeInTheDocument();
-    expect(screen.getByLabelText('Answer type for this card')).toHaveValue(
-      'auto',
+    expect(
+      screen.getByRole('radio', { name: /Flashcard\s*Suggested/ }),
+    ).toBeChecked();
+    await user.click(
+      screen.getByRole('radio', { name: /Choices\s*No choices yet/ }),
     );
+    expect(screen.getByText('This card has no choices yet.')).toBeVisible();
+    expect(screen.getByText(/Just for this card/)).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Make choices' }));
+    expect(
+      await screen.findByRole('button', { name: /Alternative 1/ }),
+    ).toBeVisible();
+    expect(global.fetch).toHaveBeenCalledWith(
+      `/api/cards/${QUEUE[0]!.id}/choices`,
+      expect.objectContaining({ method: 'POST' }),
+    );
+    expect(screen.getByText(/Choices written by AI/)).toBeInTheDocument();
+    expect(screen.getByRole('radio', { name: /^Choices$/ })).toBeChecked();
   });
   it('automatically uses a saved multiple-choice preference', () => {
     renderSession([{ ...quizCard, answerType: 'choice' }]);

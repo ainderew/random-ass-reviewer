@@ -11,6 +11,7 @@ import {
   ne,
   sql,
 } from 'drizzle-orm';
+import type { QuizContent } from '@/domain/study/quiz-content';
 import type {
   Card,
   CardReview,
@@ -87,6 +88,118 @@ export async function findCardById(
 ): Promise<Card | null> {
   const row = await tx.query.cards.findFirst({ where: eq(cards.id, id) });
   return row ? toCard(row) : null;
+}
+
+// The card with the passage it was generated from, for work that needs both.
+export async function findCardWithPassage(
+  tx: DbOrTx,
+  input: { userId: string; cardId: string },
+): Promise<{ card: Card; passage: string } | null> {
+  const [row] = await tx
+    .select({ card: cards, passage: noteChunks.text })
+    .from(cards)
+    .innerJoin(noteChunks, eq(noteChunks.id, cards.chunkId))
+    .where(and(eq(cards.id, input.cardId), eq(cards.userId, input.userId)))
+    .limit(1);
+  return row ? { card: toCard(row.card), passage: row.passage } : null;
+}
+
+// Sets choices only on a card that has none, so two taps cannot overwrite
+// each other or choices the student wrote. Null means nothing changed.
+export async function setQuizIfEmpty(
+  tx: DbOrTx,
+  input: { userId: string; cardId: string; quiz: QuizContent },
+): Promise<Card | null> {
+  const [row] = await tx
+    .update(cards)
+    .set({ quiz: input.quiz })
+    .where(
+      and(
+        eq(cards.id, input.cardId),
+        eq(cards.userId, input.userId),
+        isNull(cards.quiz),
+      ),
+    )
+    .returning();
+  return row ? toCard(row) : null;
+}
+
+// Every card in study, for the progress overview.
+export async function listStudyCards(
+  tx: DbOrTx,
+  userId: string,
+): Promise<Array<{ id: string; subject: string | null; fsrsState: unknown }>> {
+  return tx
+    .select({
+      id: cards.id,
+      subject: cards.subject,
+      fsrsState: cards.fsrsState,
+    })
+    .from(cards)
+    .where(
+      and(
+        eq(cards.userId, userId),
+        eq(cards.reviewStatus, 'approved'),
+        eq(cards.suspended, false),
+      ),
+    );
+}
+
+// The latest `perCard` reviews of each card in study, newest first.
+export async function listLatestReviews(
+  tx: DbOrTx,
+  userId: string,
+  perCard: number,
+): Promise<Array<{ cardId: string; reviewedAt: Date; rating: number }>> {
+  const ranked = tx.$with('ranked').as(
+    tx
+      .select({
+        cardId: cardReviews.cardId,
+        reviewedAt: cardReviews.reviewedAt,
+        rating: cardReviews.rating,
+        n: sql<number>`row_number() over (partition by ${cardReviews.cardId} order by ${cardReviews.reviewedAt} desc)`.as(
+          'n',
+        ),
+      })
+      .from(cardReviews)
+      .innerJoin(cards, eq(cards.id, cardReviews.cardId))
+      .where(
+        and(
+          eq(cards.userId, userId),
+          eq(cards.reviewStatus, 'approved'),
+          eq(cards.suspended, false),
+        ),
+      ),
+  );
+  return tx
+    .with(ranked)
+    .select({
+      cardId: ranked.cardId,
+      reviewedAt: ranked.reviewedAt,
+      rating: ranked.rating,
+    })
+    .from(ranked)
+    .where(lte(ranked.n, perCard));
+}
+
+// Cards forgotten or missed at some point (rated Again, which a wrong choice
+// must be) and remembered later (Good or Easy).
+export async function countRecoveredCards(
+  tx: DbOrTx,
+  userId: string,
+): Promise<number> {
+  const [row] = await tx
+    .select({ n: sql<number>`count(distinct ${cardReviews.cardId})` })
+    .from(cardReviews)
+    .innerJoin(cards, eq(cards.id, cardReviews.cardId))
+    .where(
+      and(
+        eq(cards.userId, userId),
+        eq(cardReviews.rating, 1),
+        sql`exists (select 1 from card_reviews later where later.card_id = ${cardReviews.cardId} and later.reviewed_at > ${cardReviews.reviewedAt} and later.rating >= 3)`,
+      ),
+    );
+  return Number(row?.n ?? 0);
 }
 
 // Cards due at or before `now`, FSRS-ordered by due time. Uses cards_user_due_idx.

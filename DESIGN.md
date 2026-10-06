@@ -21,6 +21,10 @@ colors:
   source-link: '#654377'
   field-border: '#9e8796'
   recall-border: '#b5a2af'
+  done: '#3f7d5b'
+  stage-learning: '#e08a6f'
+  stage-new: '#f1dcd3'
+  stage-edge: '#d9bdb2'
 typography:
   display:
     fontFamily: 'Nunito Sans, sans-serif'
@@ -43,12 +47,28 @@ typography:
     lineHeight: 1.4
   mono:
     fontFamily: 'Geist Mono, ui-monospace, SF Mono, Menlo, monospace'
+  metric:
+    fontFamily: 'Nunito Sans, sans-serif'
+    fontSize: '2.25rem'
+    fontWeight: 800
+    lineHeight: 1.05
+    letterSpacing: '-0.02em'
+  metric-hero:
+    fontFamily: 'Nunito Sans, sans-serif'
+    fontSize: 'clamp(3rem, 14vw, 4rem)'
+    fontWeight: 800
+    lineHeight: 1.05
+  caption:
+    fontFamily: 'Geist, ui-sans-serif, system-ui, sans-serif'
+    fontSize: '0.75rem'
+    lineHeight: 1.4
 rounded:
   tab: '4px'
   md: '8px'
   panel: '10px'
   lg: '12px'
   editor: '14px'
+  pill: '999px'
 spacing:
   small: '0.75rem'
   regular: '1rem'
@@ -152,7 +172,7 @@ Reward animations remain in the existing game and completion UI. They include a 
 
 ## Shapes
 
-Use modest rounded rectangles. Fields use 8px corners, paper panels 10px, answer/source sections and shared buttons 12px, and the card editor 14px. The Question label has a small rectangular 4px tab. The existing full-width journal action has 7px corners. Keep imagery limited to the small fanned blank cards; avoid turning content panels into illustrated objects.
+Use modest rounded rectangles. Fields use 8px corners, paper panels 10px, answer/source sections and shared buttons 12px, and the card editor 14px. The Question label has a small rectangular 4px tab. The existing full-width journal action has 7px corners. Keep imagery limited to the small fanned blank cards and the six subject covers; avoid turning content panels into illustrated objects. Subject covers are books: 4px corners on the spine side, 12px on the open side.
 
 ## Components
 
@@ -170,7 +190,7 @@ A question appears first with its visible label. Answer and Source enter the pag
 
 ### Practice modes
 
-Flashcards, Write your answer, and Multiple choice reuse the same study field and Question / Answer / Source structure. Each card defaults to the automatic regimen unless its saved answer type in the card editor specifies a format. The review selector allows a temporary change before reveal or choice, then locks for that answer and resets to the regimen on the next card. Multiple choice is unavailable when the card lacks valid options. Writing appears below the question and becomes read-only after reveal for self-comparison. Multiple-choice options are full-width warm white buttons; the selected option gains a coral border and pressed background. Explicit "Your choice" and "Correct answer" labels distinguish states without relying on color. The first choice locks the options and reveals feedback, Answer, and Source; a wrong choice offers only Again. Written and multiple-choice modes omit the decorative recall illustration to give the response controls space.
+Flashcards, Write your answer, and Multiple choice reuse the same study field and Question / Answer / Source structure. Each card defaults to the automatic regimen unless its saved answer type in the card editor specifies a format. In review, the format is a row of three paper tabs (Flashcard, Write, Choices) on a pressed track under the card count, above the question; the chosen tab takes the coral edge, and the regimen's pick is labelled "Suggested". Another pick lasts for this card only, says so in one line, locks after reveal or choice, and resets on the next card. Choices stays selectable on a card without options and says "No choices yet"; picking it shows a tonal panel offering "Make choices" (the AI writes three wrong options from the notes) or "Write them myself" (opens that card's editor). Writing appears below the question and becomes read-only after reveal for self-comparison. Multiple-choice options are full-width warm white buttons; the selected option gains a coral border and pressed background. Explicit "Your choice" and "Correct answer" labels distinguish states without relying on color. The first choice locks the options and reveals feedback, Answer, and Source; a wrong choice offers only Again. Written and multiple-choice modes omit the decorative recall illustration to give the response controls space.
 
 ### Recall choices
 
@@ -178,9 +198,15 @@ Again, Hard, Good, and Easy share the same warm white treatment and 102px minimu
 
 **The honest rating rule.** Give all recall choices equal visual weight. Ratings affect scheduling; completed reviews earn equal credit regardless of the rating.
 
-### Progress charts
+### Progress dashboard
 
-Learning progress uses a paper panel with a labeled measure selector for scored multiple-choice accuracy, multiple choice after seven or more days, and explicitly self-rated recall after seven or more days. Coral dots and straight segments share a fixed 0–100% scale; segments connect only adjacent periods with results, leaving missing periods blank. Keep the correct/total counts beside the aggregate percentage and an expandable, labeled weekly-results table below the chart. Explain that self-ratings are subjective and earlier history remains unscored. Practice patterns and subject results use plain rows with sample counts. Subject suggestions place the subject name and supporting counts before a concrete next step, separated by fine rules. Keep limited or missing evidence visible in words and explain suggestion criteria in a disclosure. These charts describe practice results, not exam readiness.
+`/review/progress` reads top to bottom like a phone health summary, in the study stationery world: a "‹ Review" back button and a Nunito "Your progress" title, then paper tiles (14px corners, hairline border, no shadow) on the peach page. Each tile opens with a coloured icon and title in its category colour, then one number in the `metric` style with a short unit, then what feeds it, then a plain caption. Category colours are coral for memory and the exam, `insight` purple for scores, `done` green for mistakes fixed, and `source-link` plum for the week; every one clears 4.8:1 on paper.
+
+- The exam card leads: days to go in `metric-hero`, a started bar, and one sentence of pace (the date the daily new-card limit starts everything, or the daily number needed and a link to Settings). Without an exam month it asks for one.
+- Tiles run wide, two halves, wide on every screen: Solid (with the stage bar, labelled legend, and the stage definitions), After a week (four weekly bars, a flat stub for an empty week), Mistakes fixed, and This week (Monday-to-Sunday day dots: filled for studied, ringed for today, dashed for days to come).
+- Subjects are a grouped list, one notebook per row: cover thumbnail, name and after-a-week score on the top line, then a stage bar and its counts across the full width. A row opens that subject's review; an empty one opens Notes.
+- Memory stages share one coral ramp, `focus` for solid, `stage-learning`, then `stage-new` with a `stage-edge` outline, separated by 2px gaps, always with counts in words beside them. Solid is a concrete rule: remembered the last three reviews in a row (any rating but Again, or the right choice) with those three spanning a week or more. Only reviews since the card's schedule last reset count, so an edited card starts over as not started. The Solid tile's "What do these mean?" disclosure, under its caption, defines all three stages.
+- Below sit "What to work on next" and the four-week chart in paper panels. "What to work on next" is one row per subject to revisit (cover, name, "8 of 32 missed", a coral Review button that opens that subject) with every rule and caveat behind one "How this is chosen" disclosure. Then the plain-language notes on what the measures mean. Nothing on the page predicts a board score.
 
 ### Navigation
 
@@ -194,9 +220,17 @@ Today reads at a glance. From top to bottom: the cat in her circle (the ring fil
 
 A 56px square beside the main button on both timer screens (Start focusing, End session). Its icons and one-word label show what is playing: Sound when silent, the layer's name when one is on (Rain, Noise, Piano), and Mix with small icons side by side when several are on. When anything is on, the square takes the pressed coral tint. It opens a bottom sheet rendered at the top of the page (a portal) so the tab bar never covers it. The sheet says "Mix one or more." A Silence row turns everything off. Under it, Rain, Brown noise and Soft piano are full-width switches, each with a one-line "when to choose it", a switch pill on the right, and its own volume slider while on. Layers keep their volume while off. Before a session the sheet plays the mix so it can be heard. Sound starts with the session, fades layers in and out as they change, fades out at the end, and stops for the quiz. Silence is the default. Research notes live on How it works, linked from the sheet only when no session is running.
 
+### Subject shelf
+
+Plain `/review` opens on a shelf: an "All subjects" row (the blank-card illustration, a status pill, a coral arrow), then a swipeable row of notebooks, one per MTLE subject. The row scroll-snaps cover by cover; on phones it runs to the screen edges so the next cover peeks in, and a row of dots below marks the current cover (each dot jumps to its notebook). Subjects with cards to review lead, then caught-up subjects, then empty ones.
+
+Each notebook is 3:4 text-free clay art from `public/covers/` with its title set in Nunito Sans 800 over the art's plain top third, in that subject's dark ink (`SUBJECT_COVERS`; every pairing clears 6.7:1). The title scales with the cover, 1rem to 1.5rem; a subtitle is 0.75rem Geist. A fade in the cover's own paper colour guarantees the title's ground, and a soft shaded spine runs down the left edge.
+
+One status pill sits on each cover's lower left, so the state reads at a glance: a coral pill with the count ("6 to review"), a paper pill with a tick ("All done for now"), or a dashed pill with a plus ("Add notes") on a desaturated cover that links to Notes. Shape, icon, and words carry the state as well as colour. Hover lifts a cover 4px on devices that hover; press scales it to 0.98; reduced motion removes both and the dots jump instead of gliding. A session replaces the page intro with its own heading: a "Subjects" back button with a chevron at the top left (44px target), then the cover thumbnail and the subject as the page title. A finished session offers "Pick another subject" beside "Back to today". Today's `?minutes=` link skips the shelf.
+
 ### Illustration
 
-The versioned `public/illustrations/study-cards-v1.png` is decorative. Review displays it at 88px wide beside the recall prompt. It supplies no labels or facts. Generated concept lettering, handwriting, and decorative slogans are not part of the implemented type system.
+The versioned `public/illustrations/study-cards-v1.png` is decorative. Review displays it at 88px wide beside the recall prompt and on the shelf's "Everything due" row. It supplies no labels or facts. The subject covers are decorative too; their provenance and prompts are in `design/subject-covers.md`. Generated concept lettering, handwriting, and decorative slogans are not part of the implemented type system.
 
 ## Do's and Don'ts
 

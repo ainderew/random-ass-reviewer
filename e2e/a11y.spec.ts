@@ -3,7 +3,15 @@ import { expect, test } from '@playwright/test';
 import { signInAsSmokeUser } from './helpers';
 
 // The mechanical violations. The rest is checked by hand.
-for (const path of ['/study', '/focus', '/review', '/notes', '/settings']) {
+for (const path of [
+  '/study',
+  '/focus',
+  '/review',
+  '/review?subject=all',
+  '/review/progress',
+  '/notes',
+  '/settings',
+]) {
   test(`axe finds no violations on ${path}`, async ({ page, context }) => {
     await signInAsSmokeUser(context);
     await page.goto(path);

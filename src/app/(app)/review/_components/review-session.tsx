@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { reviewBatch, type StudyBudget } from '@/domain/review/today';
 import { useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import type { MedtechSubject } from '@/domain/study/medtech';
 import type { QueuedCard, Rating } from '@/domain/types';
 import { DiamondGlyph } from '@/components/icons';
 import { Button } from '@/components/ui/button';
@@ -19,12 +20,17 @@ import {
   hasChoices,
   type AnswerType,
 } from '@/domain/review/regimen';
-import { PracticePrompt, PRACTICE_MODES } from './practice-prompt';
+import { PracticePrompt } from './practice-prompt';
 import { ReviewComplete } from './review-complete';
+import { AnswerTypePicker } from './answer-type-picker';
+import { MakeChoices } from './make-choices';
 
+// A radio or checkbox holds focus without taking text, so shortcuts still work.
 const isTyping = (target: EventTarget | null) =>
   target instanceof HTMLElement &&
-  (target.tagName === 'INPUT' ||
+  ((target instanceof HTMLInputElement &&
+    target.type !== 'radio' &&
+    target.type !== 'checkbox') ||
     target.tagName === 'TEXTAREA' ||
     target.tagName === 'SELECT' ||
     target.isContentEditable);
@@ -34,8 +40,11 @@ const isTyping = (target: EventTarget | null) =>
 // shortcuts stay on screen. A failed save is queued; the student keeps moving.
 export const ReviewSession = ({
   minutes = null,
+  subject,
 }: {
   minutes?: StudyBudget | null;
+  // One MTLE subject's cards; everything due when absent.
+  subject?: MedtechSubject;
 }) => {
   const queryClient = useQueryClient();
   const {
@@ -43,7 +52,7 @@ export const ReviewSession = ({
     isPending,
     isError: queueError,
     refetch,
-  } = useReviewQueue();
+  } = useReviewQueue(subject);
   const { data: stats } = useReviewStats();
   const pop = useSpringPop();
   const [selection, setSelection] = useState<AnswerType>('auto');
@@ -59,6 +68,8 @@ export const ReviewSession = ({
   const [insight, setInsight] = useState(0);
   const [lastAward, setLastAward] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
+  // The card whose choices were just written here, to say so under them.
+  const [madeChoicesFor, setMadeChoicesFor] = useState<string | null>(null);
   const shownAt = useRef(0);
 
   const credit = useCallback((amount: number) => {
@@ -71,12 +82,9 @@ export const ReviewSession = ({
     minutes ? reviewBatch(queue ?? [], minutes) : (queue ?? [])
   ).filter((c) => !skipped.has(c.id));
   const card = cards[index];
-  const mode =
-    selection === 'auto'
-      ? card
-        ? recommendedAnswerType(card)
-        : 'recall'
-      : selection;
+  const suggested = card ? recommendedAnswerType(card) : 'recall';
+  const mode = selection === 'auto' ? suggested : selection;
+  const cardHasChoices = !!card && hasChoices(card);
   const done = !isPending && card === undefined;
 
   useEffect(() => {
@@ -223,12 +231,20 @@ export const ReviewSession = ({
             <Link href="/review/mistakes" className="journal-primary">
               Check for a mistake follow-up <span aria-hidden="true">→</span>
             </Link>
-            <Link
-              href="/study"
-              className="inline-flex min-h-11 items-center text-focus underline"
-            >
-              Back to today
-            </Link>
+            <div className="flex flex-wrap gap-x-6">
+              <Link
+                href="/review"
+                className="inline-flex min-h-11 items-center text-focus underline"
+              >
+                Pick another subject
+              </Link>
+              <Link
+                href="/study"
+                className="inline-flex min-h-11 items-center text-focus underline"
+              >
+                Back to today
+              </Link>
+            </div>
           </>
         )}
       </div>
@@ -237,42 +253,6 @@ export const ReviewSession = ({
 
   return (
     <section aria-label="Review" className="space-y-5">
-      <div className="space-y-2 border-b border-hairline pb-5">
-        <label htmlFor="practice-mode" className="card-section-label">
-          Answer type for this card
-        </label>
-        <select
-          id="practice-mode"
-          className="study-field"
-          value={selection}
-          disabled={revealed || busy}
-          onChange={(e) => setSelection(e.target.value as AnswerType)}
-        >
-          <option value="auto">Follow my regimen (recommended)</option>
-          {Object.entries(PRACTICE_MODES).map(([key, value]) => (
-            <option
-              key={key}
-              value={key}
-              disabled={key === 'choice' && !!card && !hasChoices(card)}
-            >
-              {value.title}
-            </option>
-          ))}
-        </select>
-        <p className="text-sm text-ink-2">{PRACTICE_MODES[mode].hint}</p>
-        <p className="text-xs text-muted">
-          {selection === 'auto'
-            ? `Selected for you: ${PRACTICE_MODES[mode].title}.`
-            : 'This change applies to this review only.'}{' '}
-          You can change the type before answering.
-        </p>
-        {card && !hasChoices(card) && (
-          <p className="text-xs text-muted">
-            To enable multiple choice, add alternatives and explanations in this
-            card&apos;s notes.
-          </p>
-        )}
-      </div>
       <div className="flex items-center justify-between text-sm">
         <p className="font-mono text-ink-2 tabular-nums">
           Card {index + 1} of {cards.length}
@@ -288,22 +268,42 @@ export const ReviewSession = ({
           ) : null}
         </p>
       </div>
+      <AnswerTypePicker
+        mode={mode}
+        suggested={suggested}
+        hasChoices={cardHasChoices}
+        locked={revealed || busy}
+        onSelect={setSelection}
+      />
 
       {card ? (
         <Flashcard card={card} revealed={revealed}>
-          {mode !== 'recall' && (
-            <PracticePrompt
-              key={`${card.id}:${mode}`}
+          {mode === 'choice' && !cardHasChoices ? (
+            <MakeChoices
               card={card}
-              mode={mode}
-              revealed={revealed}
-              onChoice={(correct, selected) => {
-                setSelectedAnswer(selected);
-                setChoiceCorrect(correct);
-                setRevealed(true);
-              }}
+              onMade={() => setMadeChoicesFor(card.id)}
             />
-          )}
+          ) : mode !== 'recall' ? (
+            <>
+              <PracticePrompt
+                key={`${card.id}:${mode}`}
+                card={card}
+                mode={mode}
+                revealed={revealed}
+                onChoice={(correct, selected) => {
+                  setSelectedAnswer(selected);
+                  setChoiceCorrect(correct);
+                  setRevealed(true);
+                }}
+              />
+              {mode === 'choice' && madeChoicesFor === card.id && (
+                <p className="mt-3 text-xs text-muted">
+                  Choices written by AI from your notes. Fix any of them in the
+                  card editor.
+                </p>
+              )}
+            </>
+          ) : null}
         </Flashcard>
       ) : null}
 

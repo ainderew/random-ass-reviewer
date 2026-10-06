@@ -73,7 +73,8 @@ export function PracticePrompt({
   return (
     <div className="mt-5 space-y-3">
       <fieldset disabled={revealed} className="space-y-3">
-        <legend className="card-section-label mb-3">Choose an answer</legend>
+        <legend className="card-section-label mb-1">Choose an answer</legend>
+        <p className="text-sm text-ink-2">{PRACTICE_MODES.choice.hint}</p>
         {options.map((option, i) => (
           <button
             key={i}
@@ -106,12 +107,14 @@ export function PracticePrompt({
               ? 'Correct. Check the reasoning below.'
               : 'Not quite. Read the correction, then try recalling it next time.'}
           </p>
-          <p className="mt-2 text-sm leading-relaxed">
-            {options[selected]!.explanation}
-          </p>
-          {!options[selected]!.correct && (
+          {options[selected]!.explanation && (
             <p className="mt-2 text-sm leading-relaxed">
-              {card.quiz?.explanation}
+              {options[selected]!.explanation}
+            </p>
+          )}
+          {!options[selected]!.correct && card.quiz?.explanation && (
+            <p className="mt-2 text-sm leading-relaxed">
+              {card.quiz.explanation}
             </p>
           )}
           <p className="mt-2 text-sm text-ink-2">

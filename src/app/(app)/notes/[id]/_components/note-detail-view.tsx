@@ -2,7 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { Card, NoteDetail, UpdateCardRequest } from '@/domain/types';
 import { Button } from '@/components/ui/button';
 import { apiFetch } from '@/lib/api-client';
@@ -15,13 +15,22 @@ import { CardFilters, type CardFilter } from './card-filters';
 export const NoteDetailView = ({
   sourceId,
   existing,
+  editCardId,
 }: {
   sourceId: string;
   existing: boolean;
+  // Opens one card's editor on arrival, from "Write them myself" in review.
+  editCardId?: string;
 }) => {
   const router = useRouter();
   const queryClient = useQueryClient();
-  const [editing, setEditing] = useState<string | null>(null);
+  const [editing, setEditing] = useState<string | null>(editCardId ?? null);
+  useEffect(() => {
+    if (editCardId)
+      document
+        .getElementById(`card-${editCardId}`)
+        ?.scrollIntoView({ block: 'start' });
+  }, [editCardId]);
   const [filter, setFilter] = useState<CardFilter>('all');
   const [notice, setNotice] = useState<string | null>(null);
 

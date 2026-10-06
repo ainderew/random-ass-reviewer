@@ -8,7 +8,14 @@ import {
   scheduleReview,
 } from '@/domain/review/scheduler';
 import { startOfLocalDay } from '@/domain/time/local-day';
-import type { AnswerResult, QueuedCard, Rating } from '@/domain/types';
+import { MTLE_SUBJECTS, type MedtechSubject } from '@/domain/study/medtech';
+import type {
+  AnswerResult,
+  Card,
+  QueuedCard,
+  Rating,
+  SubjectShelf,
+} from '@/domain/types';
 import { db, type DbOrTx } from '@/server/db';
 import { AppError } from '@/server/errors';
 import {
@@ -20,6 +27,7 @@ import {
   listRecentReviews,
   updateCardSchedule,
 } from '@/server/repositories/card';
+import { subjectProgress } from '@/server/repositories/study-plan';
 import { findUserById } from '@/server/repositories/user';
 import { incrementBalances } from '@/server/repositories/user-stats';
 
@@ -32,31 +40,69 @@ async function userDayStart(
   return new Date(startOfLocalDay(nowMs, user?.timezone ?? 'UTC'));
 }
 
-export async function getReviewQueue(userId: string): Promise<QueuedCard[]> {
-  const now = new Date();
-  const nowMs = now.getTime();
-  const [due, dayStart] = await Promise.all([
-    listDueCards(db, { userId, now }, { limit: 500 }),
+type Candidate = {
+  card: Card;
+  state: ReturnType<typeof parseState>;
+  nextDueAtMs: number;
+  id: string;
+};
+
+// Everything due now, plus what today's new-card allowance has left. Loaded
+// once, so a subject's session and its count on the shelf agree.
+async function loadCandidates(userId: string, nowMs: number) {
+  const [due, dayStart, user] = await Promise.all([
+    listDueCards(db, { userId, now: new Date(nowMs) }, { limit: 500 }),
     userDayStart(db, userId, nowMs),
+    findUserById(db, userId),
   ]);
   const newCardsSeenToday = await countCardsFirstReviewedSince(db, {
     userId,
     since: dayStart,
   });
-
-  const withState = due.map((card) => ({
+  const candidates: Candidate[] = due.map((card) => ({
     card,
     state: parseState(card.fsrsState, nowMs),
     nextDueAtMs: card.nextDueAt.getTime(),
     id: card.id,
   }));
-  const queue = selectQueue({
-    due: withState.filter((c) => c.state.state !== 0),
-    newCards: withState.filter((c) => c.state.state === 0),
-    newCardsSeenToday,
-    nowMs,
-    dailyNewLimit: (await findUserById(db, userId))?.dailyNewCards ?? 20,
-  });
+  const pick = (cards: Candidate[]) =>
+    selectQueue({
+      due: cards.filter((c) => c.state.state !== 0),
+      newCards: cards.filter((c) => c.state.state === 0),
+      newCardsSeenToday,
+      nowMs,
+      dailyNewLimit: user?.dailyNewCards ?? 20,
+    });
+  return { candidates, pick };
+}
+
+export async function getSubjectShelf(userId: string): Promise<SubjectShelf> {
+  const nowMs = Date.now();
+  const [{ candidates, pick }, progress] = await Promise.all([
+    loadCandidates(userId, nowMs),
+    subjectProgress(db, userId),
+  ]);
+  return {
+    due: pick(candidates).length,
+    approved: progress.reduce((sum, row) => sum + row.approved, 0),
+    subjects: MTLE_SUBJECTS.map(({ id }) => ({
+      subject: id,
+      due: pick(candidates.filter((c) => c.card.subject === id)).length,
+      approved: progress.find((p) => p.subject === id)?.approved ?? 0,
+    })),
+  };
+}
+
+// The whole deck, or one subject's share of it.
+export async function getReviewQueue(
+  userId: string,
+  subject?: MedtechSubject,
+): Promise<QueuedCard[]> {
+  const nowMs = Date.now();
+  const { candidates, pick } = await loadCandidates(userId, nowMs);
+  const queue = pick(
+    subject ? candidates.filter((c) => c.card.subject === subject) : candidates,
+  );
 
   const sources = new Map(
     (

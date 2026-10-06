@@ -90,6 +90,40 @@ describe('card generation', () => {
     expect(usage!.costCents).toBeGreaterThan(0);
   });
 
+  it('stores questions and answers without "according to the notes"', async () => {
+    const provider = new ScriptedProvider([
+      {
+        output: {
+          cards: [
+            {
+              ...GOOD_CARD,
+              question:
+                'According to the notes, which nerve innervates the muscles of facial expression?',
+              answer: 'CN VII, the facial nerve, according to the notes.',
+            },
+          ],
+        },
+      },
+    ]);
+    const created = await createNoteSource({
+      userId,
+      kind: 'paste',
+      title: 'Phrasing',
+      text: `${NOTES}\n\nA tail so this source is new.`,
+    });
+    await generateCardsForSource({
+      userId,
+      sourceId: created.sourceId,
+      provider,
+    });
+    const [card] = (await getNoteDetail({ userId, sourceId: created.sourceId }))
+      .cards;
+    expect(card).toMatchObject({
+      question: 'Which nerve innervates the muscles of facial expression?',
+      answer: 'CN VII, the facial nerve.',
+    });
+  });
+
   it('deduplicates identical content into one source', async () => {
     const again = await createNoteSource({
       userId,
@@ -217,6 +251,31 @@ describe('card generation, prompt shape and failure isolation', () => {
     expect(summary.failedChunks).toBe(1);
     expect(summary.processedChunks).toBe(summary.totalChunks);
     expect(provider.calls).toHaveLength(summary.totalChunks);
+  });
+
+  it('keeps going past a chunk whose response fails the schema', async () => {
+    const provider = new ScriptedProvider([
+      { error: ScriptedProvider.unusable() },
+      { output: { cards: [] } },
+    ]);
+    const created = await createNoteSource({
+      userId,
+      kind: 'paste',
+      title: 'Unusable',
+      text: `${LONG}\n\nOne more tail for an unusable response.`,
+    });
+    const summary = await generateCardsForSource({
+      userId,
+      sourceId: created.sourceId,
+      provider,
+    });
+    expect(summary.totalChunks).toBeGreaterThan(1);
+    expect(summary.failedChunks).toBe(1);
+    expect(summary.processedChunks).toBe(summary.totalChunks);
+    expect(
+      (await getNoteDetail({ userId, sourceId: created.sourceId })).status
+        .message,
+    ).toBeNull();
   });
 
   it('stops after a rate limit or a refusal-shaped validation error', async () => {

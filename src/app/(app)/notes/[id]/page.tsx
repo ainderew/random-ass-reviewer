@@ -14,12 +14,12 @@ export default async function NoteDetailPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ existing?: string }>;
+  searchParams: Promise<{ existing?: string; edit?: string }>;
 }) {
   const session = await auth();
   if (!session?.user?.id) redirect('/');
   const { id } = await params;
-  const { existing } = await searchParams;
+  const { existing, edit } = await searchParams;
 
   const queryClient = new QueryClient();
   queryClient.setQueryData(
@@ -29,7 +29,11 @@ export default async function NoteDetailPage({
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
-      <NoteDetailView sourceId={id} existing={existing === '1'} />
+      <NoteDetailView
+        sourceId={id}
+        existing={existing === '1'}
+        editCardId={edit}
+      />
     </HydrationBoundary>
   );
 }

@@ -94,4 +94,21 @@ describe('weekly summary and export', () => {
     expect(exported.cards).toHaveLength(1);
     expect(JSON.stringify(exported)).not.toMatch(/encrypted|sk-ant/);
   });
+  it('starts the week on Monday east of Greenwich too', async () => {
+    const manila = await createUserWithDefaults({
+      id: 'ignored',
+      email: `weekly-manila-${Date.now()}@test.local`,
+      emailVerified: null,
+    });
+    await db
+      .update(users)
+      .set({ timezone: 'Asia/Manila' })
+      .where(eq(users.id, manila.id));
+    // Tuesday morning in Manila is still Monday evening in UTC.
+    const now = Date.parse('2026-10-06T10:00:00+08:00');
+    expect((await getWeeklySummary(manila.id, now)).weekStart).toBe(
+      '2026-10-05',
+    );
+    await db.delete(users).where(eq(users.id, manila.id));
+  });
 });

@@ -18,7 +18,10 @@ export async function getWeeklySummary(
   const user = await findUserById(db, userId);
   const timeZone = user?.timezone ?? 'UTC';
   const todayStart = startOfLocalDay(nowMs, timeZone);
-  const weekday = (new Date(todayStart).getUTCDay() + 6) % 7; // Monday = 0
+  // Monday = 0, read from the local date: east of Greenwich the UTC instant
+  // of local midnight still falls on the previous day.
+  const weekday =
+    (new Date(`${localDayKey(nowMs, timeZone)}T00:00:00Z`).getUTCDay() + 6) % 7;
   const weekStartMs = todayStart - weekday * DAY_MS;
 
   const [sessions, reviews] = await Promise.all([

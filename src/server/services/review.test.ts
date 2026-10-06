@@ -1,4 +1,4 @@
-import { eq } from 'drizzle-orm';
+import { eq, inArray } from 'drizzle-orm';
 import {
   DAILY_CREDITABLE_MS,
   INSIGHT_PER_REVIEW,
@@ -12,7 +12,7 @@ import { insertCards } from '@/server/repositories/card';
 import { insertNoteChunks, insertNoteSource } from '@/server/repositories/note';
 import { findUserStats } from '@/server/repositories/user-stats';
 import { endSession } from './end-session';
-import { getReviewQueue, submitAnswer } from './review';
+import { getReviewQueue, getSubjectShelf, submitAnswer } from './review';
 import { getReviewStats } from './review-stats';
 import {
   answerQuizQuestion,
@@ -345,6 +345,43 @@ describe('review service', () => {
     expect(stats.forecast[0]!.dayOffset).toBe(0);
     expect(stats.totals.total).toBe(4);
     expect(stats.totals.new).toBe(2);
+  });
+
+  it('narrows the queue to one subject and counts each subject on the shelf', async () => {
+    const userId = await makeUser('shelf');
+    created.push(userId);
+    const deck = await seedDeck(userId, 4);
+    await db
+      .update(cards)
+      .set({ subject: 'clinical-chemistry' })
+      .where(inArray(cards.id, [deck[0]!.id, deck[1]!.id]));
+    await db
+      .update(cards)
+      .set({ subject: null })
+      .where(eq(cards.id, deck[2]!.id));
+
+    const chemistry = await getReviewQueue(userId, 'clinical-chemistry');
+    expect(chemistry.map((c) => c.id).sort()).toEqual(
+      [deck[0]!.id, deck[1]!.id].sort(),
+    );
+    expect(
+      (await getReviewQueue(userId, 'hematology')).map((c) => c.id),
+    ).toEqual([deck[3]!.id]);
+    expect(await getReviewQueue(userId)).toHaveLength(4);
+
+    const shelf = await getSubjectShelf(userId);
+    expect(shelf.due).toBe(4);
+    expect(shelf.subjects).toHaveLength(6);
+    const bySubject = new Map(shelf.subjects.map((s) => [s.subject, s]));
+    expect(bySubject.get('clinical-chemistry')).toMatchObject({
+      due: 2,
+      approved: 2,
+    });
+    expect(bySubject.get('hematology')).toMatchObject({ due: 1, approved: 1 });
+    expect(bySubject.get('clinical-microscopy')).toMatchObject({
+      due: 0,
+      approved: 0,
+    });
   });
 });
 

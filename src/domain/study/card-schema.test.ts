@@ -33,10 +33,13 @@ describe('generated card schema', () => {
     ).toBe(false);
   });
 
-  it('caps a batch at twelve cards and allows an empty one', () => {
+  it('caps a batch at twenty cards and allows an empty one', () => {
     expect(cardBatchSchema.safeParse({ cards: [] }).success).toBe(true);
     expect(
-      cardBatchSchema.safeParse({ cards: Array(13).fill(good) }).success,
+      cardBatchSchema.safeParse({ cards: Array(20).fill(good) }).success,
+    ).toBe(true);
+    expect(
+      cardBatchSchema.safeParse({ cards: Array(21).fill(good) }).success,
     ).toBe(false);
   });
 

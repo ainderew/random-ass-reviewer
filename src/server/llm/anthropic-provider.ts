@@ -132,7 +132,7 @@ function finish<T>(response: {
   }
   if (response.parsed_output === null || response.parsed_output === undefined) {
     throw new AppError(
-      'VALIDATION',
+      'INVALID_STATE',
       'The model returned an unusable response.',
     );
   }

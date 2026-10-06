@@ -8,7 +8,7 @@ test.describe('review by keyboard only', () => {
   test('Space reveals, a digit rates and advances, the mouse untouched', async ({
     page,
   }) => {
-    await page.goto('/review');
+    await page.goto('/review?subject=all');
     await page.waitForLoadState('networkidle');
     const region = page.getByRole('region', { name: 'Review', exact: true });
     const caughtUp = page.getByText(/caught up|No approved cards yet/);
@@ -51,7 +51,7 @@ test.describe('review by keyboard only', () => {
   test('tab order reaches the reveal button and the ratings', async ({
     page,
   }) => {
-    await page.goto('/review');
+    await page.goto('/review?subject=all');
     const reveal = page.getByRole('button', { name: /Show answer/ });
     test.skip(!(await reveal.isVisible().catch(() => false)), 'nothing due');
     await page.keyboard.press('Tab');

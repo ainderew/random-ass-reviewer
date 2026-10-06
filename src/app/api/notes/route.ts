@@ -5,6 +5,7 @@ import { AppError } from '@/server/errors';
 import { getProviderForUser } from '@/server/llm/factory';
 import type { ImageMediaType } from '@/server/llm/types';
 import { requireUserId } from '@/server/require-user';
+import { queueProgress } from '@/server/services/generation-progress';
 import { assertRateLimit } from '@/server/services/rate-limit';
 import { ingestImages, MAX_IMAGES } from '@/server/services/ingest/image';
 import { ingestPdf } from '@/server/services/ingest/pdf';
@@ -87,7 +88,9 @@ export const POST = handleRoute(async (req) => {
 
   const created = await createNoteSource({ userId, kind, ...ingested });
   if (!created.deduplicated) {
-    // Runs after the response is sent; the client polls /status.
+    // Runs after the response is sent; the client polls /status. Queued first
+    // so that poll sees a run in progress, not an empty finished one.
+    queueProgress(created.sourceId, created.chunkCount);
     after(() =>
       runGeneration({ userId, sourceId: created.sourceId, provider }),
     );

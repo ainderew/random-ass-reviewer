@@ -23,6 +23,9 @@ Read `feature-plans/aloft/00-overview.md` before changing anything. Each phase f
 - `src/server/llm/provider.ts` is the only LLM abstraction. Services call `getProviderForUser(userId)` and never construct a client themselves.
 - The system prompt in `src/server/llm/prompts/card-generation.ts` is frozen and cached. Per-request text goes in the user turn.
 - Every generated card passes `quoteAppearsInSource` before insert. Do not loosen it to fuzzy matching.
+- Questions already in the notes become cards in the student's own words, and no card mentions its source (decision 59). `withoutSourceReference` strips a leftover "According to the notes," before insert.
+- Quiz explanations may be blank: options copied from the student's own multiple-choice item are kept even when the notes don't explain them, and a blank is never filled with a guess. "Make choices" (`POST /api/cards/[id]/choices`, `src/server/services/card-choices.ts`) writes options for one card, explained only from its passage, and sets them only on a card that has none (decision 60).
+- Routes call `queueProgress` before `after()` starts generation, or the note page's first read reports "finished, no cards" and never polls. The progress map lives on `globalThis` because the page and the API routes load separate copies of the module.
 - `LLM_PROVIDER=local-cli` (in `.env.local`) uses the developer's own `claude` CLI. It is refused in production by both the env schema and the provider constructor.
 - `LLM_PROVIDER=claude-code` runs the owner's subscription through the Agent SDK (the tracker app's approach). Production needs `ALLOW_CLAUDE_CODE_IN_PRODUCTION=true` and `CLAUDE_CODE_OAUTH_TOKEN`; the opt-in is deliberate, because a subscription serving other people is the owner's call. This path is not metered or quota-capped.
 - BYOK keys are AES-256-GCM encrypted with `ENCRYPTION_KEY` and only ever returned masked.
@@ -73,4 +76,5 @@ Read `feature-plans/aloft/00-overview.md` before changing anything. Each phase f
 - `pnpm assets:optimize` runs dedup, weld, prune, simplify, WebP textures, meshopt, then writes `public/models/*.glb` and regenerates `src/domain/assets/manifest.generated.ts`. It fails if any asset is over 150 KB or 5,000 triangles.
 - `assets/asset-meta.json` is the hand-authored source for price, footprint, rarity, and triangle target. Add an entry before adding a model.
 - `AssetId` is the manifest's key union. Never type an asset id as `string`.
+- The Review shelf's subject covers are text-free WebPs in `public/covers/`, generated on Higgsfield. Titles are HTML. Prompts, job ids and the resize command are in `design/subject-covers.md`; a regenerated cover needs its `paper` colour re-sampled in `subject-covers.ts`.
 - The study tab's character is a cat built in code from three.js primitives (`src/game/character/cat-*.ts`), with toon shading and an ink outline from `toon.ts`. There is no model file. Her reactions to touch, idle habits and naps live in `cat-brain.ts`; the room's milestone props share the same toon look (`room-*.tsx`).

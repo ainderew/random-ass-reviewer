@@ -47,7 +47,7 @@ export class ScriptedProvider implements LlmProvider {
 
   static unusable(): Error {
     return new AppError(
-      'VALIDATION',
+      'INVALID_STATE',
       'The model returned an unusable response.',
     );
   }

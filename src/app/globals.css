@@ -14,6 +14,11 @@
   --color-insight: #735095;
   --color-warn: #a12d37;
   --color-done: #3f7d5b;
+  /* Memory stages on the progress dashboard: a coral ramp, deeper for more
+     lasting. Solid uses --color-focus. */
+  --color-stage-learning: #e08a6f;
+  --color-stage-new: #f1dcd3;
+  --color-stage-edge: #d9bdb2;
 
   --font-serif: var(--font-display-face), var(--font-geist-sans), sans-serif;
 
@@ -501,6 +506,329 @@ select.study-field {
   outline: 2px solid var(--color-focus);
   outline-offset: 3px;
 }
+/* Review: how to answer this card. Three paper tabs on a pressed track; the
+   chosen one takes the coral edge used by selected quiz options. */
+.answer-type {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.25rem;
+  padding: 0.25rem;
+  border-radius: 12px;
+  background: var(--color-ground-3);
+}
+.answer-type-option {
+  position: relative;
+  display: flex;
+  min-height: 52px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 1.5px solid transparent;
+  border-radius: 8px;
+  padding: 0.35rem 0.4rem;
+  text-align: center;
+  color: var(--color-ink-2);
+  font-size: 1rem;
+  font-weight: 650;
+  line-height: 1.25;
+  cursor: pointer;
+  transition:
+    background-color 160ms cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 160ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.answer-type-option input {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  opacity: 0;
+  cursor: inherit;
+}
+.answer-type-option:hover {
+  background: color-mix(in srgb, var(--color-ground-2) 60%, transparent);
+}
+.answer-type-option:has(input:checked) {
+  border-color: var(--color-focus);
+  background: var(--color-ground-2);
+  color: var(--color-ink);
+}
+.answer-type-option:has(input:focus-visible) {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+.answer-type-note {
+  margin-top: 0.15rem;
+  color: var(--color-ink-2);
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+.answer-type:disabled .answer-type-option {
+  cursor: default;
+}
+.answer-type:disabled .answer-type-option:not(:has(input:checked)) {
+  opacity: 0.55;
+}
+.answer-type:disabled .answer-type-option:hover {
+  background: transparent;
+}
+.answer-type:disabled .answer-type-option:has(input:checked) {
+  background: var(--color-ground-2);
+}
+@media (prefers-reduced-motion: reduce) {
+  .answer-type-option {
+    transition: none;
+  }
+}
+/* Review shelf: one notebook per subject. Text-free art with the title set
+   over its plain top third; a fade in the cover's own paper colour keeps the
+   title legible wherever the art reaches. */
+.everything-due {
+  display: flex;
+  min-height: 88px;
+  align-items: center;
+  gap: 1rem;
+  border: 1px solid var(--color-hairline);
+  border-radius: 12px;
+  background: var(--color-ground-2);
+  padding: 0.75rem 1.25rem 0.75rem 0.75rem;
+  transition: border-color 200ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.everything-due:hover {
+  border-color: var(--color-focus);
+}
+.everything-due:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 3px;
+}
+.subject-cover {
+  display: block;
+  border-radius: 12px;
+  color: var(--color-ink);
+}
+.subject-cover:focus-visible {
+  outline: none;
+}
+/* Titles scale with the cover, not the screen: three columns on a tablet are
+   narrower than two on a large phone. */
+.subject-cover-art {
+  position: relative;
+  display: block;
+  container-type: inline-size;
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+  border-radius: 4px 12px 12px 4px;
+  background: var(--cover-paper);
+  box-shadow:
+    0 1px 0 color-mix(in srgb, var(--cover-ink) 18%, transparent),
+    0 12px 20px -14px rgb(56 39 61 / 0.55);
+  transition:
+    transform 240ms cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 240ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.subject-cover-art::before {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: linear-gradient(
+    to bottom,
+    var(--cover-paper) 0%,
+    var(--cover-paper) 18%,
+    color-mix(in srgb, var(--cover-paper) 0%, transparent) 46%
+  );
+  content: '';
+}
+/* The spine: a darker band and a crease where the cover bends. */
+.subject-cover-art::after {
+  position: absolute;
+  inset: 0 auto 0 0;
+  z-index: 2;
+  width: 10px;
+  background: linear-gradient(
+    to right,
+    color-mix(in srgb, var(--cover-ink) 16%, transparent),
+    color-mix(in srgb, var(--cover-ink) 4%, transparent) 70%,
+    color-mix(in srgb, white 35%, transparent)
+  );
+  content: '';
+}
+.subject-cover-art img {
+  object-fit: cover;
+}
+.subject-cover-title {
+  position: absolute;
+  inset: 0.85rem 0.75rem auto 1.15rem;
+  z-index: 3;
+  color: var(--cover-ink);
+  font-family: var(--font-display);
+  font-size: clamp(1rem, 9cqi, 1.5rem);
+  font-weight: 800;
+  line-height: 1.12;
+  letter-spacing: -0.015em;
+  text-wrap: balance;
+  hyphens: auto;
+}
+.subject-cover-title small {
+  display: block;
+  margin-top: 0.35rem;
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: 0;
+}
+.subject-cover-status {
+  position: absolute;
+  bottom: 0.75rem;
+  left: 1rem;
+  z-index: 3;
+}
+/* Coral when there is work, paper with a tick when there is none, a dashed
+   outline when there is nothing to study yet. Never colour alone. */
+.cover-status {
+  display: inline-flex;
+  min-height: 32px;
+  align-items: center;
+  gap: 0.35rem;
+  border: 1.5px solid transparent;
+  border-radius: 999px;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+.cover-status strong {
+  font-size: 1.0625rem;
+  font-weight: 800;
+}
+.cover-status[data-state='due'] {
+  background: var(--color-focus);
+  color: white;
+}
+.cover-status[data-state='done'] {
+  border-color: var(--color-hairline);
+  background: var(--color-ground-2);
+  color: var(--color-ink);
+}
+.cover-status[data-state='empty'] {
+  border-color: var(--color-ink-2);
+  border-style: dashed;
+  background: var(--color-ground-2);
+  color: var(--color-ink-2);
+}
+/* Swipe through the notebooks. On phones the row runs to the screen edges
+   and the next cover peeks in, so the swipe announces itself. */
+.shelf-scroller {
+  display: flex;
+  gap: 1rem;
+  margin-inline: -1rem;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  padding: 0.5rem 1rem 1rem;
+  scroll-padding-inline: 1rem;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+}
+.shelf-scroller::-webkit-scrollbar {
+  display: none;
+}
+.shelf-slide {
+  flex: 0 0 clamp(13rem, 70vw, 16rem);
+  scroll-snap-align: start;
+}
+@media (min-width: 640px) {
+  .shelf-scroller {
+    margin-inline: 0;
+    padding-inline: 0;
+    scroll-padding-inline: 0;
+  }
+}
+.shelf-dots {
+  display: flex;
+  justify-content: center;
+}
+.shelf-dot {
+  display: grid;
+  width: 36px;
+  height: 44px;
+  place-items: center;
+  cursor: pointer;
+}
+.shelf-dot span {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--color-muted);
+  transition:
+    width 240ms cubic-bezier(0.16, 1, 0.3, 1),
+    background-color 240ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.shelf-dot[aria-current='true'] span {
+  width: 22px;
+  background: var(--color-focus);
+}
+.shelf-dot:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: -4px;
+  border-radius: 8px;
+}
+@media (hover: hover) {
+  .subject-cover:hover .subject-cover-art {
+    transform: translateY(-4px);
+    box-shadow:
+      0 1px 0 color-mix(in srgb, var(--cover-ink) 18%, transparent),
+      0 18px 26px -14px rgb(56 39 61 / 0.5);
+  }
+}
+.subject-cover:active .subject-cover-art {
+  transform: scale(0.98);
+}
+.subject-cover:focus-visible .subject-cover-art {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 3px;
+}
+.subject-cover[data-empty] .subject-cover-art img {
+  filter: saturate(0.45);
+  opacity: 0.7;
+}
+/* Back to the shelf: top left, chevron plus the place it returns to, and a
+   full 44px target that reaches the gutter. */
+.session-back {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  gap: 0.2rem;
+  margin-left: -0.4rem;
+  border-radius: 8px;
+  padding-right: 0.5rem;
+  color: var(--color-focus);
+  font-weight: 600;
+}
+.session-back:hover {
+  color: var(--color-focus-deep);
+}
+.session-back:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+.subject-chip-thumb {
+  width: 36px;
+  height: 48px;
+  flex-shrink: 0;
+  border-radius: 4px 8px 8px 4px;
+  object-fit: cover;
+  box-shadow: 0 6px 10px -6px rgb(56 39 61 / 0.5);
+}
+@media (prefers-reduced-motion: reduce) {
+  .everything-due,
+  .subject-cover-art,
+  .shelf-dot span {
+    transition: none;
+  }
+  .subject-cover:hover .subject-cover-art,
+  .subject-cover:active .subject-cover-art {
+    transform: none;
+  }
+}
 .recall-choice {
   display: flex;
   flex-direction: column;
@@ -562,4 +890,340 @@ select.study-field {
 }
 .review-question.is-revealed {
   min-height: 0;
+}
+
+/* Progress dashboard. Paper tiles on the peach page, each led by a coloured
+   icon and title, then the one number that matters and what feeds it. */
+.dash-hero,
+.dash-tile,
+.dash-panel,
+.dash-list {
+  border: 1px solid var(--color-hairline);
+  border-radius: 14px;
+  background: var(--color-ground-2);
+}
+.dash-hero {
+  padding: 1.25rem 1.35rem 1.35rem;
+}
+.dash-tile {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  padding: 1rem 1.1rem 1.1rem;
+}
+.dash-tile[data-wide] {
+  grid-column: span 2;
+}
+.dash-panel {
+  padding: 1.25rem;
+}
+.dash-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+@media (min-width: 640px) {
+  .dash-grid {
+    gap: 1rem;
+  }
+  .dash-panel {
+    padding: 1.75rem;
+  }
+}
+.dash-tile-head {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--tile);
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.3;
+}
+.dash-value {
+  margin-top: 0.4rem;
+  color: var(--color-ink);
+  font-family: var(--font-display);
+  font-size: 2.25rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+}
+.dash-value-hero {
+  font-size: clamp(3rem, 14vw, 4rem);
+}
+.dash-value small {
+  margin-left: 0.4rem;
+  color: var(--color-ink-2);
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 0;
+}
+.dash-caption {
+  margin-top: auto;
+  padding-top: 0.6rem;
+  color: var(--color-ink-2);
+  font-size: 0.875rem;
+  line-height: 1.45;
+}
+.dash-note {
+  margin-top: 1.1rem;
+  border-top: 1px solid var(--color-hairline);
+  padding-top: 1rem;
+  color: var(--color-ink);
+  line-height: 1.55;
+}
+.dash-link {
+  color: var(--color-focus);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.dash-section-heading {
+  color: var(--color-ink);
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: -0.015em;
+}
+/* Memory stages: one coral ramp, deeper for more lasting. */
+.stage-bar,
+.started-bar {
+  display: flex;
+  height: 10px;
+  gap: 2px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--color-stage-new);
+}
+.dash-tile .stage-bar,
+.dash-hero .started-bar {
+  margin-top: 0.85rem;
+}
+.stage-bar [data-stage='solid'],
+.stage-legend [data-stage='solid']::before {
+  background: var(--color-focus);
+}
+.stage-bar [data-stage='learning'],
+.stage-legend [data-stage='learning']::before {
+  background: var(--color-stage-learning);
+}
+.stage-bar [data-stage='new'],
+.stage-legend [data-stage='new']::before {
+  background: var(--color-stage-new);
+  box-shadow: inset 0 0 0 1px var(--color-stage-edge);
+}
+.started-bar span {
+  border-radius: 999px;
+  background: var(--color-focus);
+}
+.stage-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1rem;
+  margin-top: 0.6rem;
+  color: var(--color-ink-2);
+  font-size: 0.875rem;
+}
+.stage-legend li {
+  display: inline-flex;
+  align-items: center;
+}
+.stage-legend li::before {
+  width: 9px;
+  height: 9px;
+  margin-right: 0.35rem;
+  border-radius: 999px;
+  content: '';
+}
+.stage-legend b {
+  margin-right: 0.25rem;
+  color: var(--color-ink);
+  font-variant-numeric: tabular-nums;
+}
+/* The stage definitions, folded inside the Solid tile. */
+.stage-help {
+  margin-top: 0.6rem;
+  font-size: 0.875rem;
+}
+.stage-help summary {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  color: var(--color-focus);
+  cursor: pointer;
+  font-weight: 600;
+}
+.stage-help dl {
+  display: grid;
+  gap: 0.15rem;
+  padding-bottom: 0.25rem;
+  color: var(--color-ink-2);
+  line-height: 1.5;
+}
+.stage-help dt {
+  margin-top: 0.5rem;
+  color: var(--color-ink);
+  font-weight: 700;
+}
+/* Four weeks of after-a-week accuracy; a flat stub marks a week with none. */
+.week-bars {
+  display: flex;
+  height: 44px;
+  align-items: flex-end;
+  gap: 6px;
+  margin-top: 0.75rem;
+}
+.week-bars span {
+  flex: 1;
+  border-radius: 4px;
+  background: var(--tile);
+}
+.week-bars span[data-empty] {
+  height: 4px;
+  background: var(--color-hairline);
+}
+.day-dots {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 2.25rem));
+  justify-content: space-between;
+  gap: 0.25rem;
+  margin-top: 0.85rem;
+}
+.day-dots li {
+  display: grid;
+  aspect-ratio: 1;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--color-ground-3);
+  color: var(--color-ink-2);
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+.day-dots li[data-active] {
+  background: var(--tile);
+  color: white;
+}
+.day-dots li[data-future] {
+  border: 1px dashed var(--color-hairline);
+  background: transparent;
+  color: var(--color-muted);
+}
+.day-dots li[data-today] {
+  box-shadow:
+    0 0 0 2px var(--color-ground-2),
+    0 0 0 3.5px var(--tile);
+}
+/* Subjects: a grouped list, one notebook per row. */
+.dash-list {
+  overflow: hidden;
+}
+.dash-list li + li {
+  border-top: 1px solid var(--color-hairline);
+}
+.dash-row {
+  display: flex;
+  min-height: 76px;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.85rem 0.9rem 0.85rem 1rem;
+  color: var(--color-ink);
+  transition: background-color 200ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.dash-row:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: -3px;
+}
+@media (hover: hover) {
+  .dash-row:hover {
+    background: color-mix(in srgb, var(--color-ground-3) 60%, transparent);
+  }
+}
+/* Name and score share the top line, so the bar and counts get the width. */
+.dash-row-body {
+  display: grid;
+  min-width: 0;
+  flex: 1;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.35rem 0.75rem;
+}
+.dash-row-wide {
+  grid-column: 1 / -1;
+}
+.dash-row .stage-bar {
+  height: 8px;
+}
+.dash-row-thumb {
+  width: 40px;
+  height: 53px;
+  flex-shrink: 0;
+  border-radius: 4px 8px 8px 4px;
+  object-fit: cover;
+  box-shadow: 0 6px 10px -6px rgb(56 39 61 / 0.5);
+}
+.dash-row[data-empty] .dash-row-thumb {
+  filter: saturate(0.45);
+  opacity: 0.7;
+}
+.dash-row-score {
+  display: flex;
+  flex-shrink: 0;
+  flex-direction: column;
+  align-items: flex-end;
+  text-align: right;
+}
+.dash-row-score b {
+  color: var(--color-ink);
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 800;
+  line-height: 1.1;
+}
+.dash-row-score small {
+  color: var(--color-ink-2);
+  font-size: 0.75rem;
+  white-space: nowrap;
+}
+@media (prefers-reduced-motion: reduce) {
+  .dash-row {
+    transition: none;
+  }
+}
+/* What to work on next: one row per subject to revisit, with its button. */
+.next-step {
+  display: flex;
+  min-height: 64px;
+  align-items: center;
+  gap: 0.85rem;
+  border: 1px solid var(--color-hairline);
+  border-radius: 12px;
+  padding: 0.6rem 0.75rem;
+}
+.next-step-thumb {
+  width: 36px;
+  height: 48px;
+  flex-shrink: 0;
+  border-radius: 4px 8px 8px 4px;
+  object-fit: cover;
+}
+.next-step-action {
+  display: inline-flex;
+  min-height: 44px;
+  flex-shrink: 0;
+  align-items: center;
+  border-radius: 12px;
+  background: var(--color-focus);
+  padding: 0 1rem;
+  color: white;
+  font-weight: 700;
+}
+.next-step-action:hover {
+  background: var(--color-focus-deep);
+}
+.next-step-action:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 3px;
 }

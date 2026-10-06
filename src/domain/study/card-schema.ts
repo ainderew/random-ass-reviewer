@@ -9,7 +9,9 @@ export const generatedCardSchema = z.object({
     .string()
     .min(5)
     .max(300)
-    .describe('A clear question answerable from the passage.'),
+    .describe(
+      'A standalone question about the subject. Never mentions the notes or the passage.',
+    ),
   answer: z
     .string()
     .min(1)
@@ -32,10 +34,30 @@ export const generatedCardSchema = z.object({
 export type GeneratedCard = z.infer<typeof generatedCardSchema>;
 
 export const cardBatchSchema = z.object({
-  cards: z.array(generatedCardSchema).max(12),
+  // Room for a section that is all the student's own questions.
+  cards: z.array(generatedCardSchema).max(20),
 });
 
 export type CardBatch = z.infer<typeof cardBatchSchema>;
+
+// "Make choices" on one card. Unlike options copied from the student's own
+// item, these were written by the model, so every one must be explained.
+const choiceExplanation = z.string().trim().min(10).max(1000);
+export const generatedChoicesSchema = z.object({
+  explanation: choiceExplanation.describe(
+    'Why the correct answer is right, from the passage.',
+  ),
+  distractors: z
+    .array(
+      z.object({
+        text: z.string().trim().min(1).max(300),
+        explanation: choiceExplanation.describe(
+          'What the notes say instead of this wrong option.',
+        ),
+      }),
+    )
+    .length(3),
+});
 
 export const transcriptionSchema = z.object({
   text: z

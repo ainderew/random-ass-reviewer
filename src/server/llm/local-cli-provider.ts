@@ -42,7 +42,7 @@ export function extractJson(text: string): unknown {
     }
   }
   throw new AppError(
-    'VALIDATION',
+    'INVALID_STATE',
     'LocalCliProvider: the model did not return JSON.',
   );
 }
@@ -114,7 +114,7 @@ export class LocalCliProvider implements LlmProvider {
     const data = schema.safeParse(parsed);
     if (!data.success)
       throw new AppError(
-        'VALIDATION',
+        'INVALID_STATE',
         'LocalCliProvider: JSON did not match the schema.',
       );
     const usage = envelope.data.usage ?? {};

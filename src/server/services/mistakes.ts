@@ -1,5 +1,6 @@
 import type { z } from 'zod';
 import type { StoredQuizQuestion } from '@/domain/types';
+import { joinExplanations } from '@/domain/study/quiz-content';
 import {
   mistakeAnswerSchema,
   type MistakeCheck,
@@ -36,7 +37,10 @@ function feedback(
     correctAnswer: snapshot.correctAnswer,
     explanation: attempt.correct
       ? snapshot.explanation
-      : `${snapshot.optionExplanations[attempt.optionIndex]} ${snapshot.explanation}`,
+      : joinExplanations(
+          snapshot.optionExplanations[attempt.optionIndex],
+          snapshot.explanation,
+        ),
     sourceQuote: snapshot.sourceQuote,
     nextDueAt: attempt.correct
       ? null

@@ -28,13 +28,13 @@ export async function editCard(
     if (next.answerType === 'choice' && !next.quiz) {
       throw new AppError(
         'VALIDATION',
-        'Add three explained alternatives before choosing Multiple choice.',
+        'Add three alternatives before choosing Multiple choice.',
       );
     }
     if (next.quiz && !validQuizContent(next.answer, next.quiz)) {
       throw new AppError(
         'VALIDATION',
-        'Quiz choices must be distinct, with three explained alternatives.',
+        'Quiz choices must be four different options, and any explanation at least 10 characters.',
       );
     }
     if (Object.keys(input).length <= 2) return current;

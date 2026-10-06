@@ -22,7 +22,9 @@ export const GenerationProgress = ({
       <p className="text-sm text-ink">
         {status.finished
           ? `${status.cardsCreated} ${status.cardsCreated === 1 ? 'card' : 'cards'} from ${status.processedChunks} ${status.processedChunks === 1 ? 'section' : 'sections'}`
-          : `Generating cards… ${status.processedChunks} of ${status.totalChunks} sections`}
+          : status.totalChunks === 0
+            ? 'Generating cards…'
+            : `Generating cards… ${status.processedChunks} of ${status.totalChunks} sections`}
       </p>
       {!status.finished ? (
         <div className="h-1 w-full overflow-hidden rounded-full bg-ground-3">

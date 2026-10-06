@@ -112,7 +112,7 @@ export const MistakePractice = () => {
               : 'One more chance to learn it.'}
           </h3>
           <p className="font-medium">{feedback.correctAnswer}</p>
-          <p>{feedback.explanation}</p>
+          {feedback.explanation && <p>{feedback.explanation}</p>}
           <blockquote className="border-l-2 border-insight/40 pl-4 text-sm text-ink-2">
             {feedback.sourceQuote}
           </blockquote>

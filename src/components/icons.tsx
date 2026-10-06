@@ -141,3 +141,48 @@ export const ProgressIcon = (props: IconProps) => (
     <path d="M4 4v16h16M8 15v-4M12 15V7M16 15v-6" />
   </Base>
 );
+
+export const ArrowRightIcon = (props: IconProps) => (
+  <Base {...props}>
+    <path d="M5 12h14M13 6l6 6-6 6" />
+  </Base>
+);
+
+export const CheckIcon = (props: IconProps) => (
+  <Base {...props}>
+    <path d="m5 12.5 4.5 4.5L19 7.5" />
+  </Base>
+);
+
+export const PlusIcon = (props: IconProps) => (
+  <Base {...props}>
+    <path d="M12 5v14M5 12h14" />
+  </Base>
+);
+
+export const ChevronLeftIcon = (props: IconProps) => (
+  <Base {...props}>
+    <path d="m15 5-7 7 7 7" />
+  </Base>
+);
+
+export const CalendarIcon = (props: IconProps) => (
+  <Base {...props}>
+    <rect x="3.5" y="5" width="17" height="15.5" rx="2" />
+    <path d="M3.5 10h17M8 3v4M16 3v4" />
+  </Base>
+);
+
+// A miss turned around: the arrow comes back to where it started.
+export const RecoverIcon = (props: IconProps) => (
+  <Base {...props}>
+    <path d="M4 12a8 8 0 1 0 2.5-5.8" />
+    <path d="M4 4v4.5h4.5" />
+  </Base>
+);
+
+export const ChevronRightIcon = (props: IconProps) => (
+  <Base {...props}>
+    <path d="m9 5 7 7-7 7" />
+  </Base>
+);

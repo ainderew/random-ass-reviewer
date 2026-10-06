@@ -8,18 +8,38 @@ import { listChunksBySource } from '@/server/repositories/note';
 
 // In-memory progress keyed by source id. Losing it is cosmetic: the database
 // fallback below is authoritative for what actually got generated.
-const progress = new Map<string, GenerationStatus>();
+// The build gives the note page and the API routes separate copies of this
+// module, and dev reloads re-run it, so the one map lives on globalThis.
+const globalForProgress = globalThis as unknown as {
+  aloftGenerationProgress?: Map<string, GenerationStatus>;
+};
+const progress = (globalForProgress.aloftGenerationProgress ??= new Map());
 
-export function startProgress(sourceId: string, totalChunks: number): void {
-  progress.set(sourceId, {
+function blank(sourceId: string, totalChunks: number): GenerationStatus {
+  return {
     sourceId,
     totalChunks,
     processedChunks: 0,
     failedChunks: 0,
     cardsCreated: 0,
     rejectedCards: 0,
-    finished: totalChunks === 0,
+    finished: false,
     message: null,
+  };
+}
+
+// Called before the route responds. The work runs after the response, so
+// without this the page's first read can beat it and the database fallback
+// reports "finished, no cards", which stops the page from polling.
+export function queueProgress(sourceId: string, totalChunks = 0): void {
+  if (progress.get(sourceId)?.finished === false) return;
+  progress.set(sourceId, blank(sourceId, totalChunks));
+}
+
+export function startProgress(sourceId: string, totalChunks: number): void {
+  progress.set(sourceId, {
+    ...blank(sourceId, totalChunks),
+    finished: totalChunks === 0,
   });
 }
 
@@ -43,8 +63,11 @@ export function finishProgress(
   if (!current) return;
   current.finished = true;
   current.message = message;
-  // Keep it around briefly for late pollers, then let the DB answer.
-  setTimeout(() => progress.delete(sourceId), 5 * 60_000).unref?.();
+  // Keep it around briefly for late pollers, then let the DB answer. A retry
+  // inside that window replaces the entry, and its run must not be dropped.
+  setTimeout(() => {
+    if (progress.get(sourceId) === current) progress.delete(sourceId);
+  }, 5 * 60_000).unref?.();
 }
 
 export async function getProgress(

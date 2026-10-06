@@ -195,7 +195,11 @@ export const SessionQuiz = ({
                 : 'Review the correction. Your earned Focus is safe.'}
             </p>
             <p className="text-insight">{progress.correctAnswer}</p>
-            <p className="text-ink-2 leading-relaxed">{progress.explanation}</p>
+            {progress.explanation && (
+              <p className="text-ink-2 leading-relaxed">
+                {progress.explanation}
+              </p>
+            )}
             <blockquote className="text-ink-2 border-l border-hairline pl-3">
               {progress.sourceQuote}
             </blockquote>

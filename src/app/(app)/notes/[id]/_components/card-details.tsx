@@ -99,12 +99,14 @@ export const CardDetails = ({
           <summary className="min-h-11 cursor-pointer content-center font-medium">
             Multiple-choice practice · check choices
           </summary>
-          <p className="mt-3">{card.quiz.explanation}</p>
+          {card.quiz.explanation && (
+            <p className="mt-3">{card.quiz.explanation}</p>
+          )}
           <ol className="mt-4 list-decimal space-y-3 pl-5">
             {card.quiz.distractors.map((d, i) => (
               <li key={i}>
                 <p className="font-medium">{d.text}</p>
-                <p>{d.explanation}</p>
+                <p>{d.explanation || 'Your notes do not explain this one.'}</p>
               </li>
             ))}
           </ol>

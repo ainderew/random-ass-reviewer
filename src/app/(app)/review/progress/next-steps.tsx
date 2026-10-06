@@ -1,126 +1,81 @@
+import Image from 'next/image';
 import Link from 'next/link';
-import { progressAdvice } from '@/domain/review/progress-advice';
 import type { LearningProgress } from '@/domain/review/progress';
+import { progressAdvice } from '@/domain/review/progress-advice';
+import { coverSrc, SUBJECT_COVERS } from '../_components/subject-covers';
 
+// One glance: which subjects to go back to, and a button for each. The rules
+// and caveats wait behind one disclosure.
 export function NextSteps({ data }: { data: LearningProgress }) {
   const subjects = progressAdvice(data);
   const focus = subjects.filter((s) => s.status === 'focus').slice(0, 2);
   const tracked = subjects.filter((s) => s.choices.total > 0).length;
+  const anyExtend = subjects.some((s) => s.status === 'extend');
   return (
-    <section
-      aria-labelledby="next-steps-heading"
-      className="border-y border-hairline py-5"
-    >
-      <h2 id="next-steps-heading" className="text-2xl font-bold">
+    <section aria-labelledby="next-steps-heading" className="dash-panel">
+      <h2 id="next-steps-heading" className="dash-section-heading">
         What to work on next
       </h2>
-      <p className="mt-2 text-sm text-ink-2">
-        Based on your last 28 days of multiple-choice reviews.
-      </p>
       {focus.length ? (
-        <ul className="mt-4 space-y-5">
+        <ul className="mt-4 space-y-3">
           {focus.map((s) => (
-            <li key={s.id}>
-              <h3 className="text-lg font-semibold">Revisit {s.label}</h3>
-              <p className="mt-1 text-sm text-ink-2">
-                {s.missed} of {s.choices.total} first choices were missed across{' '}
-                {s.cards} distinct cards.
-              </p>
-              <p className="mt-2">
-                Check the source for a missed idea. Explain it without looking,
-                then retry when the card is due.
-              </p>
+            <li key={s.id} className="next-step">
+              <Image
+                src={coverSrc(s.id)}
+                alt=""
+                width={600}
+                height={800}
+                sizes="36px"
+                className="next-step-thumb"
+              />
+              <span className="min-w-0 flex-1">
+                <span className="block truncate font-display font-extrabold text-ink">
+                  {SUBJECT_COVERS[s.id].title}
+                </span>
+                <span className="block text-sm text-ink-2 tabular-nums">
+                  {s.missed} of {s.choices.total} missed
+                </span>
+              </span>
+              <Link
+                href={`/review?subject=${s.id}`}
+                className="next-step-action"
+                aria-label={`Review ${SUBJECT_COVERS[s.id].title}`}
+              >
+                Review
+              </Link>
             </li>
           ))}
         </ul>
       ) : (
-        <p className="mt-4">
-          {subjects.some((s) => s.status === 'extend')
-            ? 'Your subjects with enough results have no recorded misses. Try unfamiliar questions from a trusted question bank to check whether you can apply the ideas.'
-            : 'Complete reviews across a few different cards. There is not enough scored evidence yet to choose a subject to focus on.'}
+        <p className="mt-3 text-ink">
+          {anyExtend
+            ? 'Nothing missed lately. Try new questions from a question bank to stretch yourself.'
+            : 'Not enough multiple-choice answers yet. Keep reviewing.'}
         </p>
       )}
-      <Link href="/review" className="journal-primary mt-5">
-        Continue scheduled review
-      </Link>
-      <p className="mt-3 text-sm text-ink-2">
-        {tracked} of 6 subjects have scored results. Untracked subjects are gaps
-        in the data, not proof that you do not know them.
-      </p>
-      {data.subjects.some((s) => !s.subject) && (
-        <p className="mt-2 text-sm text-ink-2">
-          Some results have no subject. Label cards in Notes so future reviews
-          count toward the right subject.
-        </p>
-      )}
-    </section>
-  );
-}
-
-export function SubjectDetails({ data }: { data: LearningProgress }) {
-  const subjects = progressAdvice(data);
-  return (
-    <section aria-labelledby="subjects-heading">
-      <h2 id="subjects-heading" className="text-xl font-bold">
-        Your subjects, with next steps
-      </h2>
-      <p className="mt-2 text-sm text-ink-2">
-        Subjects with missed answers and broader samples appear first.
-      </p>
-      <ul className="mt-4 divide-y divide-hairline">
-        {subjects.map((s) => (
-          <li key={s.id} className="py-5">
-            <h3 className="font-semibold">{s.label}</h3>
-            <p className="mt-1 text-sm text-ink-2">
-              {s.choices.total
-                ? `${Math.round((100 * s.choices.correct) / s.choices.total)}% correct · ${s.choices.correct}/${s.choices.total} reviews · ${s.cards} distinct cards`
-                : 'No scored reviews in this period'}
-            </p>
-            <p className="mt-1 text-sm text-ink-2">
-              After 7+ days:{' '}
-              {s.delayed.total
-                ? `${s.delayed.correct}/${s.delayed.total} correct`
-                : 'no scored results yet'}
-            </p>
-            <p className="mt-3 font-medium">
-              {s.status === 'focus'
-                ? 'Next: revisit the ideas you missed.'
-                : s.status === 'extend'
-                  ? 'Next: try unfamiliar questions.'
-                  : s.status === 'limited'
-                    ? 'Next: practise a wider range of cards.'
-                    : 'Next: add and review cards for this subject.'}
-            </p>
-            <p className="mt-1 text-sm text-ink-2">
-              {s.status === 'focus'
-                ? 'Check the explanation, recall it without notes, and keep the next scheduled review.'
-                : s.status === 'extend'
-                  ? 'Correct answers on familiar cards do not prove you can solve new exam questions.'
-                  : s.status === 'limited'
-                    ? 'This sample is too small or too narrow to rank the subject. Keep reviewing as cards become due.'
-                    : 'Approve source-backed cards in Notes and set their subject. Multiple-choice results will appear here.'}
-            </p>
-          </li>
-        ))}
-      </ul>
-      <Link
-        href="/notes"
-        className="inline-flex min-h-11 items-center text-focus underline"
-      >
-        Open notes and card sources
-      </Link>
       <details className="mt-3">
-        <summary className="min-h-11 cursor-pointer content-center text-sm font-medium">
-          How suggestions are chosen
+        <summary className="min-h-11 cursor-pointer content-center text-sm font-medium text-ink-2">
+          How this is chosen
         </summary>
-        <p className="py-3 text-sm text-ink-2">
-          We need at least 5 scored reviews across 3 distinct cards before
-          ranking a subject. Of those with misses, lower accuracy comes first.
-          These are practical display rules, not board-exam cutoffs. Small
-          samples, question difficulty, and repeated cards affect the results. A
-          suggestion does not change your review schedule. Written and
-          self-rated recall are shown separately in the chart.
-        </p>
+        <div className="space-y-2 pb-1 text-sm leading-relaxed text-ink-2">
+          <p>
+            From your multiple-choice answers in the last 28 days. A subject
+            needs at least 5 answers across 3 cards to be ranked; the lowest
+            score comes first.
+          </p>
+          <p>
+            {data.repeatedMisses > 0 &&
+              `${data.repeatedMisses} ${data.repeatedMisses === 1 ? 'card was' : 'cards were'} missed on two or more days. `}
+            {tracked} of 6 subjects have scored answers so far; the rest are
+            gaps in the data, not proof of what you know.
+            {data.subjects.some((s) => !s.subject) &&
+              ' Some answers have no subject; label those cards in Notes.'}
+          </p>
+          <p>
+            These are display rules, not board-exam cutoffs, and they do not
+            change your review schedule.
+          </p>
+        </div>
       </details>
     </section>
   );

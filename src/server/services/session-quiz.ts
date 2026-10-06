@@ -3,6 +3,7 @@ import { calculateQuizMultiplier } from '@/domain/economy/insight';
 import { QUIZ_CARD_COUNT } from '@/domain/review/constants';
 import { selectQuizCards } from '@/domain/review/queue';
 import { buildQuizQuestion } from '@/domain/review/quiz';
+import { joinExplanations } from '@/domain/study/quiz-content';
 import type { QuizProgress, QuizResult, SessionQuiz } from '@/domain/types';
 import { db, type DbOrTx } from '@/server/db';
 import { AppError } from '@/server/errors';
@@ -52,7 +53,10 @@ function feedback(row: QuizRow, rows: QuizRow[]): QuizProgress {
     correctAnswer: row.snapshot.correctAnswer,
     explanation: row.correct
       ? row.snapshot.explanation
-      : `${row.snapshot.optionExplanations[row.optionIndex!]} ${row.snapshot.explanation}`,
+      : joinExplanations(
+          row.snapshot.optionExplanations[row.optionIndex!],
+          row.snapshot.explanation,
+        ),
     sourceQuote: row.snapshot.sourceQuote,
     correctSoFar: result.correct,
     answered: rows.filter((r) => r.answeredAt).length,

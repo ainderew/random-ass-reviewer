@@ -10,3 +10,5 @@ export const MODELS = {
 // Non-streaming ceiling. Covers adaptive thinking plus the card batch.
 export const CARD_MAX_TOKENS = 16_000;
 export const OCR_MAX_TOKENS = 8_000;
+// Three options and four short explanations for one card.
+export const CHOICE_MAX_TOKENS = 8_000;

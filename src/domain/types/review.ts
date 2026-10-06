@@ -1,5 +1,7 @@
 import { z } from 'zod';
 import type { AnswerType } from '../review/regimen';
+import type { ExamPace, StageCounts } from '../review/overview';
+import type { MedtechSubject } from '../study/medtech';
 import type { QuizContent } from '../study/quiz-content';
 import type { Rating } from './study';
 
@@ -18,6 +20,32 @@ export interface QueuedCard {
   dueAt: Date;
   // Projected interval per rating, in days. Fractional under a day.
   intervals: Record<Rating, number>;
+}
+
+// What each subject has ready to review now, for the Review shelf.
+export interface SubjectShelf {
+  due: number;
+  // Approved cards across the deck, including any without a subject.
+  approved: number;
+  subjects: Array<{ subject: MedtechSubject; due: number; approved: number }>;
+}
+
+// The progress dashboard: what is learned, how fast, and this week's work.
+export interface ProgressOverview {
+  // 'YYYY-MM-DD' in the student's own time zone.
+  today: string;
+  cards: StageCounts;
+  subjects: Array<{ subject: MedtechSubject; stages: StageCounts }>;
+  examMonth: string | null;
+  exam: ExamPace | null;
+  dailyNewLimit: number;
+  // Cards missed or forgotten once and remembered later.
+  recovered: number;
+  week: {
+    days: Array<{ date: string; active: boolean; future: boolean }>;
+    focusMinutes: number;
+    reviews: number;
+  };
 }
 
 export interface AnswerResult {

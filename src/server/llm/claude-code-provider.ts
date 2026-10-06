@@ -111,7 +111,7 @@ export class ClaudeCodeProvider implements LlmProvider {
         const parsed = schema.safeParse(raw);
         if (!parsed.success) {
           throw new AppError(
-            'VALIDATION',
+            'INVALID_STATE',
             'The model returned an unusable response.',
           );
         }

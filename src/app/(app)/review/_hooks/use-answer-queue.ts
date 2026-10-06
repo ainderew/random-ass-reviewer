@@ -4,7 +4,12 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { AnswerResult, ReviewAnswerRequest } from '@/domain/types';
 import { ApiError, postJson } from '@/lib/api-client';
-import { reviewStatsKey, statsQueryKey } from '@/lib/query-keys';
+import {
+  learningProgressKey,
+  progressOverviewKey,
+  reviewStatsKey,
+  statsQueryKey,
+} from '@/lib/query-keys';
 
 export const MAX_QUEUED_ANSWERS = 20;
 const RETRY_MS = 3000;
@@ -32,7 +37,8 @@ export function useAnswerQueue(onFlushed: (result: AnswerResult) => void) {
     void queryClient.invalidateQueries({ queryKey: reviewStatsKey });
     void queryClient.invalidateQueries({ queryKey: ['study-plan'] });
     void queryClient.invalidateQueries({ queryKey: ['today-plan'] });
-    void queryClient.invalidateQueries({ queryKey: ['learning-progress'] });
+    void queryClient.invalidateQueries({ queryKey: learningProgressKey });
+    void queryClient.invalidateQueries({ queryKey: progressOverviewKey });
   }, [queryClient]);
 
   const flush = useCallback(async () => {

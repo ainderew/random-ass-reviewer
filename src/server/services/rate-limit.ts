@@ -5,10 +5,12 @@ import { hitWindow } from '@/server/repositories/rate-limit';
 const MINUTE = 60_000;
 const HOUR = 60 * MINUTE;
 
-// Per user, per window, on the endpoints where abuse is expensive. The
-// notes limit is the one that matters: it is the only call that costs money.
+// Per user, per window, on the endpoints where abuse is expensive. The notes
+// and choices limits are the ones that matter: they are the calls that cost money.
 export const RATE_LIMITS = {
   'notes:create': { limit: 20, windowMs: HOUR },
+  // One model call per card that has no multiple-choice options yet.
+  'cards:choices': { limit: 60, windowMs: HOUR },
   'island:place': { limit: 120, windowMs: MINUTE },
   'review:answer': { limit: 300, windowMs: MINUTE },
   'settings:api-key': { limit: 5, windowMs: HOUR },

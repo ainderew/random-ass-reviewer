@@ -55,7 +55,7 @@ test('notes become cards with quotes, and reviewing them pays Insight', async ({
 
   const before = (await (await page.request.get('/api/stats')).json()).data
     .stats.insightBalance;
-  await page.goto('/review');
+  await page.goto('/review?subject=all');
   const reveal = page.getByRole('button', { name: /Show answer/ });
   await expect(reveal).toBeVisible();
   let answered = 0;

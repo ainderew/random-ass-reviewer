@@ -1,5 +1,6 @@
 import { validQuizContent } from '@/domain/study/quiz-content';
 import { cardBatchSchema } from '@/domain/study/card-schema';
+import { withoutSourceReference } from '@/domain/study/source-reference';
 import { quoteAppearsInSource } from '@/domain/study/verify-quote';
 import { env } from '@/lib/env';
 import { initialCardState } from '@/domain/review/scheduler';
@@ -72,8 +73,8 @@ async function generateForChunk(input: {
     kept.map((card) => ({
       userId,
       chunkId: chunk.id,
-      question: card.question,
-      answer: card.answer,
+      question: withoutSourceReference(card.question),
+      answer: withoutSourceReference(card.answer),
       sourceQuote: card.sourceQuote,
       reviewStatus: 'draft',
       subject: card.subject,
@@ -90,13 +91,30 @@ async function generateForChunk(input: {
   return { created: kept.length, rejected };
 }
 
-export async function generateCardsForSource(input: {
+type GenerationInput = {
   userId: string;
   sourceId: string;
   provider: LlmProvider;
   // Retry path: skip chunks that already produced cards.
   onlyEmptyChunks?: boolean;
-}): Promise<GenerationSummary> {
+};
+
+export async function generateCardsForSource(
+  input: GenerationInput,
+): Promise<GenerationSummary> {
+  try {
+    return await generateChunks(input);
+  } catch (error) {
+    // Chunk failures are caught per chunk. This is everything around them; a
+    // queued run that never finishes would leave the page polling forever.
+    finishProgress(input.sourceId, 'Card generation stopped. Try again.');
+    throw error;
+  }
+}
+
+async function generateChunks(
+  input: GenerationInput,
+): Promise<GenerationSummary> {
   let chunks = await listChunksBySource(db, input.sourceId, { limit: 500 });
   if (input.onlyEmptyChunks) {
     const done = new Set(await listChunkIdsWithCards(db, input.sourceId));
@@ -130,7 +148,8 @@ export async function generateCardsForSource(input: {
       summary.failedChunks += 1;
       advanceProgress(input.sourceId, { failed: true });
       console.error(`[cards] chunk ${chunk.id} failed`, error);
-      // Quota or a bad key will fail every remaining chunk the same way.
+      // Quota or a bad key will fail every remaining chunk the same way. A
+      // response that fails the schema is this chunk's problem (INVALID_STATE).
       if (
         error instanceof AppError &&
         (error.code === 'RATE_LIMITED' || error.code === 'VALIDATION')

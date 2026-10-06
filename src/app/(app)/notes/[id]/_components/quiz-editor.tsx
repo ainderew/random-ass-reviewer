@@ -37,12 +37,12 @@ export const QuizEditor = ({
       <>
         <p className="text-ink-2">
           The flashcard answer is the correct choice. Check that each
-          alternative is plausible but incorrect for this question.
+          alternative is plausible but incorrect for this question. Leave an
+          explanation blank rather than guess.
         </p>
         <label className="block text-ink-2">
-          Why the answer is correct
+          Why the answer is correct (optional)
           <textarea
-            required
             minLength={10}
             maxLength={1000}
             className={field}
@@ -70,9 +70,8 @@ export const QuizEditor = ({
               />
             </label>
             <label className="block text-ink-2">
-              Why alternative {i + 1} is incorrect
+              Why alternative {i + 1} is incorrect (optional)
               <textarea
-                required
                 minLength={10}
                 maxLength={1000}
                 className={field}

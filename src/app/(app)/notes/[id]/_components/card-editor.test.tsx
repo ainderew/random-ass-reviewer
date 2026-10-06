@@ -97,7 +97,9 @@ it('offers a persistent answer type and opens alternatives when multiple choice 
   );
   expect(screen.getByLabelText('Answer type')).toHaveValue('auto');
   await userEvent.selectOptions(screen.getByLabelText('Answer type'), 'choice');
-  expect(screen.getByLabelText('Why the answer is correct')).toBeVisible();
+  expect(
+    screen.getByLabelText('Why the answer is correct (optional)'),
+  ).toBeVisible();
   expect(screen.getByLabelText('Alternative 1')).toBeVisible();
   await userEvent.click(
     screen.getByLabelText('Include reviewed multiple-choice practice'),
