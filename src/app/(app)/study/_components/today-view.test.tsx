@@ -153,6 +153,20 @@ describe('TodayView', () => {
     expect(localStorage.getItem('aloft:review-minutes')).toBe('5');
   });
 
+  it('keeps music off until it is chosen, then remembers it', async () => {
+    render(<TodayView />, { wrapper });
+    const music = await screen.findByRole('button', {
+      name: 'Background music',
+    });
+    expect(music).toHaveAttribute('aria-pressed', 'false');
+    await userEvent.click(music);
+    expect(music).toHaveAttribute('aria-pressed', 'true');
+    expect(localStorage.getItem('aloft:today-music')).toBe('on');
+    await userEvent.click(music);
+    expect(music).toHaveAttribute('aria-pressed', 'false');
+    expect(localStorage.getItem('aloft:today-music')).toBeNull();
+  });
+
   it('points at focus once the cards are done', async () => {
     plan = { ...plan, batches: batches(0), reviewedToday: 12 };
     creditedMs = 10 * MIN;

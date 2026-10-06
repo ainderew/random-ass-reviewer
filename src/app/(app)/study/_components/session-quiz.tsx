@@ -4,7 +4,13 @@ import { useEffect, useState } from 'react';
 import { MAX_QUIZ_MULTIPLIER } from '@/domain/review/constants';
 import type { QuizResult } from '@/domain/types';
 import { Button } from '@/components/ui/button';
-import { playPitched } from '@/game/systems/juice/play-pitched';
+import {
+  AnswerVerdict,
+  ChoiceButton,
+  choiceState,
+  useAnswerCue,
+  type ChoiceState,
+} from '@/components/study/answer-feedback';
 import { useSessionQuiz } from '../_hooks/use-session-quiz';
 import { TimerFrame } from './timer-frame';
 
@@ -30,6 +36,7 @@ export const SessionQuiz = ({
   const [index, setIndex] = useState(0);
   const [picked, setPicked] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const cue = useAnswerCue();
   const questions = quiz.data?.questions ?? [];
   const question = questions[index];
   const progress = question
@@ -77,19 +84,29 @@ export const SessionQuiz = ({
     answer.mutate(
       { cardId: question.cardId, optionIndex },
       {
-        onSuccess: (result) => {
-          if (result.correct)
-            playPitched({
-              frequency: 659.25,
-              semitones: result.correctSoFar - 1,
-            });
-        },
+        onSuccess: (result) => cue(result.correct, result.correctSoFar - 1),
         onError: () => {
           setPicked(null);
           setError('Could not check that answer. Try again, or skip.');
         },
       },
     );
+  };
+
+  // The server says which option was right only once one is picked. A
+  // question answered before a reload shows the answer and dims the rest.
+  const correctIndex =
+    answered && progress
+      ? question.options.indexOf(progress.correctAnswer)
+      : null;
+  const stateOf = (optionIndex: number): ChoiceState => {
+    if (answered && picked === null)
+      return optionIndex === correctIndex ? 'answer' : 'dim';
+    return choiceState({
+      index: optionIndex,
+      picked,
+      correct: correctIndex,
+    });
   };
 
   const next = () => {
@@ -159,55 +176,34 @@ export const SessionQuiz = ({
             : `Optional. Skipping keeps what you earned. Answer ${questions.length} questions from your own notes for up to ×${MAX_QUIZ_MULTIPLIER.toFixed(1)} on this session's Focus.`}
         </p>
         <p className="text-xl leading-relaxed text-ink">{question.question}</p>
-        <ol className="space-y-2" aria-label="Options">
-          {question.options.map((option, optionIndex) => {
-            const isPicked = picked === optionIndex;
-            const graded = isPicked && progress && !answer.isPending;
-            const tone = graded
-              ? progress.correct
-                ? 'border-insight text-insight'
-                : 'border-warn text-warn'
-              : isPicked
-                ? 'border-focus text-ink'
-                : 'border-hairline text-ink hover:bg-ground-3';
-            return (
-              <li key={optionIndex}>
-                <button
-                  type="button"
-                  onClick={() => choose(optionIndex)}
-                  disabled={picked !== null || answered}
-                  className={`w-full min-h-12 rounded-md border bg-ground-2 px-4 py-3 text-left leading-relaxed transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus disabled:cursor-default ${tone}`}
-                >
-                  {option}
-                </button>
-              </li>
-            );
-          })}
+        <ol className="space-y-2.5" aria-label="Options">
+          {question.options.map((option, optionIndex) => (
+            <li key={optionIndex}>
+              <ChoiceButton
+                index={optionIndex}
+                state={stateOf(optionIndex)}
+                disabled={picked !== null || answered}
+                onPick={() => choose(optionIndex)}
+              >
+                {option}
+              </ChoiceButton>
+            </li>
+          ))}
         </ol>
         {answered && progress ? (
-          <div
-            role="status"
-            className="space-y-3 border-t border-hairline pt-4"
-          >
-            <p className="text-ink">
-              {progress.correct
-                ? 'Correct.'
-                : 'Review the correction. Your earned Focus is safe.'}
-            </p>
-            <p className="text-insight">{progress.correctAnswer}</p>
+          <AnswerVerdict correct={progress.correct}>
             {progress.explanation && (
-              <p className="text-ink-2 leading-relaxed">
+              <p className="leading-relaxed text-ink-2">
                 {progress.explanation}
               </p>
             )}
-            <blockquote className="text-ink-2 border-l border-hairline pl-3">
+            <blockquote className="border-l-2 border-hairline pl-3 text-sm text-ink-2">
               {progress.sourceQuote}
             </blockquote>
-            <p className="text-sm text-muted">
-              From your approved notes. Quiz scores are separate from your
-              flashcard ratings.
-            </p>
-          </div>
+            {!progress.correct && (
+              <p className="text-sm text-ink-2">Your earned Focus is safe.</p>
+            )}
+          </AnswerVerdict>
         ) : null}
         {error ? (
           <p role="alert" className="text-sm text-warn">

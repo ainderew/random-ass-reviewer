@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { useAutoTimeZone } from '@/app/(app)/_hooks/use-auto-time-zone';
 import { useStats } from '@/app/(app)/_hooks/use-stats';
-import { ProgressIcon } from '@/components/icons';
+import { MusicIcon, ProgressIcon } from '@/components/icons';
 import { Skeleton } from '@/components/ui/skeleton';
 import { PET_MOOD_LABEL } from '@/domain/pet/happiness';
 import type { TodayPlan } from '@/domain/review/today';
@@ -20,6 +20,7 @@ import type { CareCue } from '@/game/character/study-cat';
 import { apiFetch } from '@/lib/api-client';
 import { useCare, usePet } from '../_hooks/use-pet';
 import { useReviewSize } from '../_hooks/use-review-size';
+import { useTodayMusic } from '../_hooks/use-today-music';
 import { AgendaList } from './agenda-list';
 import { catLook, cueFor } from './cat-look';
 import { FocusCircle } from './focus-circle';
@@ -49,6 +50,7 @@ export const TodayView = () => {
   const [cue, setCue] = useState<CareCue | null>(null);
   const [greeted, setGreeted] = useState(false);
   const [sheet, setSheet] = useState(false);
+  const music = useTodayMusic();
 
   if (!pet.data || !plan.data) {
     return (
@@ -109,6 +111,17 @@ export const TodayView = () => {
             fill: done / steps.length,
             label: `Today: ${done} of ${steps.length} done`,
           }}
+          corner={
+            <button
+              type="button"
+              className="music-toggle"
+              aria-pressed={music.on}
+              aria-label="Background music"
+              onClick={music.toggle}
+            >
+              <MusicIcon size={20} />
+            </button>
+          }
         />
       </div>
 

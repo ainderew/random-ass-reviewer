@@ -317,7 +317,7 @@ describe('FocusTimer quiz step', () => {
       await screen.findByRole('button', { name: 'Facial' }),
     );
 
-    expect(await screen.findByRole('status')).toHaveTextContent('Correct.');
+    expect(await screen.findByRole('status')).toHaveTextContent('Correct!');
     expect(screen.getByLabelText('Bonus multiplier 2.0')).toBeInTheDocument();
     await userEvent.click(screen.getByRole('button', { name: 'See my bonus' }));
     expect(

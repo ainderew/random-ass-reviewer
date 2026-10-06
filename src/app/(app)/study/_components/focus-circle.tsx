@@ -1,5 +1,5 @@
 'use client';
-
+import type { ReactNode } from 'react';
 import { sceneState, type CareerProgress } from '@/domain/career/milestones';
 import {
   ringProgress,
@@ -45,6 +45,7 @@ export const FocusCircle = ({
   look,
   cue = null,
   ring,
+  corner,
 }: {
   progress: CareerProgress;
   mood: CatMood;
@@ -54,6 +55,8 @@ export const FocusCircle = ({
   look?: CatLook;
   cue?: CareCue | null;
   ring?: { fill: number; label: string };
+  // A small control on the ring's lower right, such as Today's music.
+  corner?: ReactNode;
 }) => {
   const scene = sceneState(progress);
   const reducedMotion = useReducedMotion();
@@ -141,6 +144,9 @@ export const FocusCircle = ({
           cue={cue}
         />
       </div>
+      {corner && (
+        <div className="absolute right-[2%] bottom-[2%]">{corner}</div>
+      )}
     </div>
   );
 };

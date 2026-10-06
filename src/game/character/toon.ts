@@ -5,6 +5,7 @@ import {
   DataTexture,
   LatheGeometry,
   Mesh,
+  MeshPhysicalMaterial,
   MeshToonMaterial,
   NearestFilter,
   RedFormat,
@@ -15,6 +16,7 @@ import {
   type BufferGeometry,
   type Side,
 } from 'three';
+import { CLAY } from './look';
 
 // The study scene's look: flat bands of colour from a three-step ramp and an
 // ink outline in the plum of the stationery, so the cat and her room read as
@@ -24,16 +26,36 @@ ramp.minFilter = NearestFilter;
 ramp.magFilter = NearestFilter;
 ramp.needsUpdate = true;
 
-export function toonMaterial(color: string, side?: Side): MeshToonMaterial {
-  const material = new MeshToonMaterial({ color, gradientMap: ramp });
+export type SurfaceMaterial = MeshToonMaterial | MeshPhysicalMaterial;
+
+// Clay: matte, with a soft sheen that lifts the edges the way felt or fur
+// catches light, so rounded parts read as solid without an outline.
+// True-colour light shows the room's paints at full strength, so clay softens
+// them a touch to keep the room calm. The cat's coat is painted afterwards,
+// richer, so she stays the warmest thing in it.
+function clayMaterial(color: string): MeshPhysicalMaterial {
+  return new MeshPhysicalMaterial({
+    color: new Color(color).offsetHSL(0, -0.12, 0.025),
+    roughness: 0.8,
+    metalness: 0,
+    sheen: 0.4,
+    sheenRoughness: 0.55,
+    sheenColor: new Color('#ffe2cf'),
+  });
+}
+
+export function toonMaterial(color: string, side?: Side): SurfaceMaterial {
+  const material = CLAY
+    ? clayMaterial(color)
+    : new MeshToonMaterial({ color, gradientMap: ramp });
   if (side !== undefined) material.side = side;
   return material;
 }
 
 // Room props share one material per colour. The cat makes her own, because
 // her coat changes.
-const shared = new Map<string, MeshToonMaterial>();
-export function toon(color: string): MeshToonMaterial {
+const shared = new Map<string, SurfaceMaterial>();
+export function toon(color: string): SurfaceMaterial {
   let material = shared.get(color);
   if (!material) {
     material = toonMaterial(color);
@@ -65,6 +87,8 @@ export const OUTLINE = new ShaderMaterial({
     }`,
   side: BackSide,
 });
+// Clay draws form with light instead of a line.
+OUTLINE.visible = !CLAY;
 
 // Adds the ink line as a child that shares the geometry and never takes a tap.
 export function outlined<T extends Mesh>(mesh: T): T {

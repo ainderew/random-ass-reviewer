@@ -186,3 +186,18 @@ export const ChevronRightIcon = (props: IconProps) => (
     <path d="m9 5 7 7-7 7" />
   </Base>
 );
+
+export const CrossIcon = (props: IconProps) => (
+  <Base {...props}>
+    <path d="M6.5 6.5l11 11M17.5 6.5l-11 11" />
+  </Base>
+);
+
+// Two beamed notes: background music.
+export const MusicIcon = (props: IconProps) => (
+  <Base {...props}>
+    <path d="M9 18V6l11-2v12" />
+    <circle cx="6.5" cy="18" r="2.5" />
+    <circle cx="17.5" cy="16" r="2.5" />
+  </Base>
+);

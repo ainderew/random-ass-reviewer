@@ -1,3 +1,4 @@
+import { SHAPE } from './look';
 import { Vector3, type Camera, type Ray } from 'three';
 import { flickOf, type Action, type ActionName } from './cat-actions';
 import {
@@ -119,9 +120,11 @@ export function createCatBrain(
       kick,
       fx: (kind, at, drift) => !s.reduced && emit(kind, at, drift),
     });
-    const breath = s.napping
-      ? Math.sin(t * 1.05) * 0.024
-      : Math.sin(t * 1.7) * 0.012;
+    // A slow swell rides on the breath while she purrs.
+    const breath =
+      (s.napping ? Math.sin(t * 1.05) * 0.024 : Math.sin(t * 1.7) * 0.012) *
+        SHAPE.breath +
+      Math.sin(t * 7) * SHAPE.purrSwell * s.purr;
     poseCat(rig, cur, {
       t,
       eyes: g.eyes,

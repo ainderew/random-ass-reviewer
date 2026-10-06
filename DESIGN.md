@@ -22,6 +22,9 @@ colors:
   field-border: '#9e8796'
   recall-border: '#b5a2af'
   done: '#3f7d5b'
+  done-tint: '#e7f2eb'
+  done-ink: '#316349'
+  warn-tint: '#fbe9e8'
   stage-learning: '#e08a6f'
   stage-new: '#f1dcd3'
   stage-edge: '#d9bdb2'
@@ -190,7 +193,11 @@ A question appears first with its visible label. Answer and Source enter the pag
 
 ### Practice modes
 
-Flashcards, Write your answer, and Multiple choice reuse the same study field and Question / Answer / Source structure. Each card defaults to the automatic regimen unless its saved answer type in the card editor specifies a format. In review, the format is a row of three paper tabs (Flashcard, Write, Choices) on a pressed track under the card count, above the question; the chosen tab takes the coral edge, and the regimen's pick is labelled "Suggested". Another pick lasts for this card only, says so in one line, locks after reveal or choice, and resets on the next card. Choices stays selectable on a card without options and says "No choices yet"; picking it shows a tonal panel offering "Make choices" (the AI writes three wrong options from the notes) or "Write them myself" (opens that card's editor). Writing appears below the question and becomes read-only after reveal for self-comparison. Multiple-choice options are full-width warm white buttons; the selected option gains a coral border and pressed background. Explicit "Your choice" and "Correct answer" labels distinguish states without relying on color. The first choice locks the options and reveals feedback, Answer, and Source; a wrong choice offers only Again. Written and multiple-choice modes omit the decorative recall illustration to give the response controls space.
+Flashcards, Write your answer, and Multiple choice reuse the same study field and Question / Answer / Source structure. Each card defaults to the automatic regimen unless its saved answer type in the card editor specifies a format. In review, the format is a row of three paper tabs (Flashcard, Write, Choices) on a pressed track under the card count, above the question; the chosen tab takes the coral edge, and the regimen's pick is labelled "Suggested". Another pick lasts for this card only, says so in one line, locks after reveal or choice, and resets on the next card. Choices stays selectable on a card without options and says "No choices yet"; picking it shows a tonal panel offering "Make choices" (the AI writes three wrong options from the notes) or "Write them myself" (opens that card's editor). Writing appears below the question and becomes read-only after reveal for self-comparison. Multiple-choice options follow the Answer feedback pattern below. The first choice locks the options and reveals feedback, Answer, and Source; a wrong choice offers only Again. Option order is shuffled from the card and its review count, so it is stable between server and browser and changes with each review. Written and multiple-choice modes omit the decorative recall illustration to give the response controls space.
+
+### Answer feedback
+
+Every graded choice (Review multiple choice, the focus-session quiz, and mistake follow-ups) uses one pattern from `src/components/study/answer-feedback.tsx`. Options are full-width paper rows with a letter in a round badge. The moment one is picked, the row says right or wrong at a glance: right turns `done-tint` with a `done` border, a white tick in a green badge, "Correct" under the text in `done-ink`, and one soft 380ms pop; wrong turns `warn-tint` with a `warn` border, a white cross, "Your answer", and a small 360ms shake, while the correct option lights up green with "Correct answer". The rest fade to half opacity. Under the options, a verdict banner in the same tint carries one word in Nunito 800 ("Correct!" or "Not quite") and then only what explains it; the right answer is never repeated, because it is already lit above. A two-note chime (rising a semitone per correct answer in a row) or one low note plays only when sounds are switched on, and phones that can buzz give a light tick or a double tap. Reduced motion removes the pop, the shake and the buzz. Colour never carries the result alone: icon and words always accompany it.
 
 ### Recall choices
 
@@ -214,7 +221,7 @@ The phone tab bar has five equal columns for Today (`/study`), Focus (`/focus`),
 
 ### Today
 
-Today reads at a glance. From top to bottom: the cat in her circle (the ring fills as the day's steps are done), one short line from her naming the next step, her name and mood (opens her sheet), the day's steps, four care buttons, the weekly progress row, and one coral button that does the next step. The button stays pinned above the tab bar. Steps show one number each ("18 cards", "10 of 25 min"); the step to do now is outlined and its dot pulses. No explanatory paragraphs on Today: reasons live on How it works.
+Today reads at a glance. From top to bottom: the cat in her circle (the ring fills as the day's steps are done; a 44px round music button sits on the ring's lower right, paper when off and the pressed coral tint when on), one short line from her naming the next step, her name and mood (opens her sheet), the day's steps, four care buttons, the weekly progress row, and one coral button that does the next step. The button stays pinned above the tab bar. Steps show one number each ("18 cards", "10 of 25 min"); the step to do now is outlined and its dot pulses. No explanatory paragraphs on Today: reasons live on How it works.
 
 ### Focus sound
 
@@ -227,6 +234,10 @@ Plain `/review` opens on a shelf: an "All subjects" row (the blank-card illustra
 Each notebook is 3:4 text-free clay art from `public/covers/` with its title set in Nunito Sans 800 over the art's plain top third, in that subject's dark ink (`SUBJECT_COVERS`; every pairing clears 6.7:1). The title scales with the cover, 1rem to 1.5rem; a subtitle is 0.75rem Geist. A fade in the cover's own paper colour guarantees the title's ground, and a soft shaded spine runs down the left edge.
 
 One status pill sits on each cover's lower left, so the state reads at a glance: a coral pill with the count ("6 to review"), a paper pill with a tick ("All done for now"), or a dashed pill with a plus ("Add notes") on a desaturated cover that links to Notes. Shape, icon, and words carry the state as well as colour. Hover lifts a cover 4px on devices that hover; press scales it to 0.98; reduced motion removes both and the dots jump instead of gliding. A session replaces the page intro with its own heading: a "Subjects" back button with a chevron at the top left (44px target), then the cover thumbnail and the subject as the page title. A finished session offers "Pick another subject" beside "Back to today". Today's `?minutes=` link skips the shelf.
+
+### Study cat
+
+The cat and her room are soft clay, matching the subject covers: matte surfaces with a warm velvet sheen, a soft studio light built in code with a warm rim from behind, a contact shadow under the cushion, neutral tone mapping so colours stay true, and no ink outline. Room paints are softened a touch so the cat's richer coat stays the warmest thing in view. She is chibi: head about 12% larger and eyes about 18% larger than the original build, with rosy cheeks. Her squash on a tap is a third bouncier, her head squashes with her body, she breathes deeper, and she swells gently while purring; reduced motion stills all of it.
 
 ### Illustration
 

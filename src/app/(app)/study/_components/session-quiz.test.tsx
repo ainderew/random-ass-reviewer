@@ -136,16 +136,14 @@ describe('SessionQuiz', () => {
     expect(screen.getByLabelText('Bonus multiplier 1.0')).toBeInTheDocument();
 
     await userEvent.click(screen.getByRole('button', { name: 'wrong' }));
-    expect(await screen.findByRole('status')).toHaveTextContent(
-      'Review the correction.',
-    );
+    expect(await screen.findByRole('status')).toHaveTextContent('Not quite');
     expect(screen.getByLabelText('Bonus multiplier 1.0')).toBeInTheDocument();
     await userEvent.click(screen.getByRole('button', { name: 'Next' }));
 
     await screen.findByText('Q2?');
     expect(screen.queryByRole('status')).not.toBeInTheDocument();
     await userEvent.click(screen.getByRole('button', { name: 'right2' }));
-    expect(await screen.findByRole('status')).toHaveTextContent('Correct.');
+    expect(await screen.findByRole('status')).toHaveTextContent('Correct!');
     await userEvent.click(screen.getByRole('button', { name: 'See my bonus' }));
     await waitFor(() =>
       expect(onFinished).toHaveBeenCalledWith(

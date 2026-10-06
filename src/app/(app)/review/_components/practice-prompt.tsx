@@ -2,6 +2,12 @@
 import { useState } from 'react';
 import type { QueuedCard } from '@/domain/types';
 import { shuffleWithSeed } from '@/domain/review/queue';
+import {
+  AnswerVerdict,
+  ChoiceButton,
+  choiceState,
+  useAnswerCue,
+} from '@/components/study/answer-feedback';
 
 export type PracticeMode = 'recall' | 'write' | 'choice';
 export const PRACTICE_MODES = {
@@ -30,9 +36,9 @@ export function PracticePrompt({
   revealed: boolean;
   onChoice: (correct: boolean, selectedAnswer: string) => void;
 }) {
-  const [seed] = useState(() => crypto.randomUUID());
   const [draft, setDraft] = useState('');
   const [selected, setSelected] = useState<number | null>(null);
+  const cue = useAnswerCue();
   const options = card.quiz
     ? shuffleWithSeed(
         [
@@ -43,7 +49,9 @@ export function PracticePrompt({
           },
           ...card.quiz.distractors.map((d) => ({ ...d, correct: false })),
         ],
-        `practice:${seed}:${card.id}`,
+        // Same on the server and in the browser, so the page hydrates; new
+        // with each review of the card, so positions cannot be memorised.
+        `practice:${card.id}:${card.reviewCount ?? 0}`,
       )
     : [];
   if (mode === 'write')
@@ -70,59 +78,51 @@ export function PracticePrompt({
       </div>
     );
   if (mode !== 'choice') return null;
+  const correctIndex = options.findIndex((o) => o.correct);
+  const picked = selected === null ? null : options[selected]!;
   return (
     <div className="mt-5 space-y-3">
-      <fieldset disabled={revealed} className="space-y-3">
+      <fieldset disabled={revealed} className="space-y-2.5">
         <legend className="card-section-label mb-1">Choose an answer</legend>
-        <p className="text-sm text-ink-2">{PRACTICE_MODES.choice.hint}</p>
+        <p className="pb-1 text-sm text-ink-2">{PRACTICE_MODES.choice.hint}</p>
         {options.map((option, i) => (
-          <button
+          <ChoiceButton
             key={i}
-            type="button"
-            aria-pressed={selected === i}
-            className={`w-full rounded-xl border p-4 text-left text-base leading-relaxed focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus ${selected === i ? 'border-focus bg-ground-3' : 'border-hairline bg-ground-2'}`}
-            onClick={() => {
+            index={i}
+            state={choiceState({
+              index: i,
+              picked: selected,
+              correct: selected === null ? null : correctIndex,
+            })}
+            onPick={() => {
               if (selected !== null) return;
               setSelected(i);
+              cue(option.correct);
               onChoice(option.correct, option.text);
             }}
           >
-            <span className="mr-3 font-semibold">
-              {String.fromCharCode(65 + i)}.
-            </span>
             {option.text}
-            {revealed && option.correct && (
-              <span className="mt-2 block font-semibold">Correct answer</span>
-            )}
-            {selected === i && (
-              <span className="mt-2 block text-sm">Your choice</span>
-            )}
-          </button>
+          </ChoiceButton>
         ))}
       </fieldset>
-      {selected !== null && (
-        <div role="status" className="rounded-xl bg-ground-3 p-4">
-          <p className="font-semibold">
-            {options[selected]!.correct
-              ? 'Correct. Check the reasoning below.'
-              : 'Not quite. Read the correction, then try recalling it next time.'}
-          </p>
-          {options[selected]!.explanation && (
-            <p className="mt-2 text-sm leading-relaxed">
-              {options[selected]!.explanation}
+      {picked && (
+        <AnswerVerdict correct={picked.correct}>
+          {picked.explanation && (
+            <p className="text-sm leading-relaxed text-ink-2">
+              {picked.explanation}
             </p>
           )}
-          {!options[selected]!.correct && card.quiz?.explanation && (
-            <p className="mt-2 text-sm leading-relaxed">
+          {!picked.correct && card.quiz?.explanation && (
+            <p className="text-sm leading-relaxed text-ink-2">
               {card.quiz.explanation}
             </p>
           )}
-          <p className="mt-2 text-sm text-ink-2">
-            {options[selected]!.correct
-              ? 'If you guessed, rate Again. Recognizing an option is different from recalling it without help.'
-              : 'Use Again to bring this card back sooner.'}
+          <p className="text-sm text-ink-2">
+            {picked.correct
+              ? 'Guessed? Rate Again so it comes back sooner.'
+              : 'Rate Again and it comes back sooner.'}
           </p>
-        </div>
+        </AnswerVerdict>
       )}
     </div>
   );

@@ -1,5 +1,6 @@
-import { MeshBasicMaterial, type MeshToonMaterial } from 'three';
-import { toonMaterial } from './toon';
+import { MeshBasicMaterial, type Color } from 'three';
+import { CLAY } from './look';
+import { toonMaterial, type SurfaceMaterial } from './toon';
 
 // Her coats. Ginger for now; the others are ready for when she can be chosen.
 // A dark coat draws her closed eyes and whiskers in a light line.
@@ -44,11 +45,11 @@ export const COATS = {
 export type CoatName = keyof typeof COATS;
 
 export interface CatMaterials {
-  coat: MeshToonMaterial;
-  belly: MeshToonMaterial;
-  earIn: MeshToonMaterial;
-  stripe: MeshToonMaterial;
-  nose: MeshToonMaterial;
+  coat: SurfaceMaterial;
+  belly: SurfaceMaterial;
+  earIn: SurfaceMaterial;
+  stripe: SurfaceMaterial;
+  nose: SurfaceMaterial;
   iris: MeshBasicMaterial;
   ink: MeshBasicMaterial;
   pupil: MeshBasicMaterial;
@@ -73,20 +74,24 @@ export function catMaterials(): CatMaterials {
     shine: new MeshBasicMaterial({ color: '#ffffff' }),
     mouth: new MeshBasicMaterial({ color: '#9b4150' }),
     blush: new MeshBasicMaterial({
-      color: '#f2909a',
+      color: CLAY ? '#f2848f' : '#f2909a',
       transparent: true,
-      opacity: 0.45,
+      opacity: CLAY ? 0.62 : 0.45,
       depthWrite: false,
     }),
   };
 }
 
+// Soft light on clay pales a colour, so clay coats start a little richer.
+const richen = (color: Color) =>
+  CLAY ? color.offsetHSL(0, 0.1, -0.035) : color;
+
 export function paintCoat(m: CatMaterials, name: CoatName): void {
   const c = COATS[name];
-  m.coat.color.set(c.coat);
+  richen(m.coat.color.set(c.coat));
   m.belly.color.set(c.belly);
-  m.earIn.color.set(c.ear);
+  richen(m.earIn.color.set(c.ear));
   m.iris.color.set(c.eye);
   m.ink.color.set(c.line);
-  if (c.stripes) m.stripe.color.set(c.stripes);
+  if (c.stripes) richen(m.stripe.color.set(c.stripes));
 }

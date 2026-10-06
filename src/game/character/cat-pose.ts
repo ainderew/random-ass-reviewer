@@ -1,3 +1,4 @@
+import { SHAPE } from './look';
 import { poseLimbs, type Swat } from './cat-limbs';
 import type { CatRig } from './cat-model';
 import { poseTail } from './cat-tail';
@@ -83,8 +84,9 @@ export interface PoseFrame {
 
 export function poseCat(rig: CatRig, c: Channels, f: PoseFrame): void {
   const st = c.stretch * 0.12;
-  const sx = 1 - f.squash * 0.45 + f.breathe - st * 0.3;
-  const sy = 1 + f.squash - f.breathe * 0.4 + st;
+  const squash = f.squash * SHAPE.squash;
+  const sx = 1 - squash * 0.45 + f.breathe - st * 0.3;
+  const sy = 1 + squash - f.breathe * 0.4 + st;
   const wide = 1 + 0.42 * f.round;
   const tall = 1 + 0.05 * f.round;
   rig.torso.scale.set(sx * wide, sy * tall, sx * wide);
@@ -92,11 +94,18 @@ export function poseCat(rig: CatRig, c: Channels, f: PoseFrame): void {
   // A rounder cat's head sits lower in her fluff and her face is broader.
   rig.headPivot.position.set(
     f.jitter,
-    0.56 * sy * tall - c.drop * 0.06 - 0.04 * f.round,
+    0.56 * sy * tall - c.drop * 0.06 - 0.04 * f.round + SHAPE.headLift,
     0.03 + c.drop * 0.03 + 0.03 * f.round,
   );
   rig.headPivot.rotation.set(c.pitch, c.yaw, c.roll, 'YXZ');
-  rig.head.scale.set(1 + 0.1 * f.round, 1 + 0.02 * f.round, 1 + 0.05 * f.round);
+  // The head follows the body's squash a little, so a bounce reads as one
+  // soft creature rather than a body under a rigid ball.
+  const follow = squash * SHAPE.headFollow;
+  rig.head.scale.set(
+    SHAPE.head * (1 + 0.1 * f.round) * (1 - follow * 0.45),
+    SHAPE.head * (1 + 0.02 * f.round) * (1 + follow),
+    SHAPE.head * (1 + 0.05 * f.round) * (1 - follow * 0.45),
+  );
   rig.root.position.y = c.hop;
 
   // Ears flatten back when she is content or low, and tip forward when she
@@ -111,7 +120,7 @@ export function poseCat(rig: CatRig, c: Channels, f: PoseFrame): void {
     eye.open.visible = f.eyes === 'open';
     eye.happy.visible = f.eyes === 'happy' || f.eyes === 'squint';
     eye.closed.visible = f.eyes === 'closed';
-    const w = 1 + c.wide * 0.12;
+    const w = (1 + c.wide * 0.12) * SHAPE.eyes;
     eye.open.scale.set(w, Math.max(0.06, c.open) * w, 1);
     eye.open.position.set(c.lookX * 0.016, c.lookY * 0.012, 0);
     eye.happy.rotation.z = f.eyes === 'squint' ? eye.side * 1.15 : 0;
