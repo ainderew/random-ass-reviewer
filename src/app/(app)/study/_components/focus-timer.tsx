@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useProfile } from '@/app/(app)/_hooks/use-profile';
 import { useStats } from '@/app/(app)/_hooks/use-stats';
 import { newlyEarned, type CareerProgress } from '@/domain/career/milestones';
@@ -63,6 +63,22 @@ export const FocusTimer = () => {
     (prefs.aimAssetId ? aimById(prefs.aimAssetId, level) : null) ??
     defaultAim(level, focusBalance);
   const lengthMs = prefs.length === null ? null : prefs.length * 60_000;
+
+  // A session recovered already past its chosen length was finished while she
+  // was in another app (the tab was backgrounded or discarded, so nothing
+  // here could press End). Bank it and feed the cat instead of resuming a
+  // stale timer she has to end by hand. A freshly started session sits at ~0,
+  // and one that crosses the line while she is watching keeps the usual
+  // "collect or keep going" choice. Open-ended sessions have no line to cross.
+  const autoCollectedRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (status !== 'running' || !session) return;
+    if (autoCollectedRef.current === session.sessionId) return;
+    autoCollectedRef.current = session.sessionId;
+    if (lengthMs !== null && focusedMs >= lengthMs) {
+      void end();
+    }
+  }, [status, session, focusedMs, lengthMs, end]);
 
   const finish = useCallback(() => {
     setPhase('timer');

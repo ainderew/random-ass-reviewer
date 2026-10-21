@@ -10,7 +10,16 @@ export function useElapsed(startedAt: string | null, active: boolean): number {
   useEffect(() => {
     if (!active) return;
     const id = setInterval(() => setNow(Date.now()), 1000);
-    return () => clearInterval(id);
+    // Background tabs throttle the interval, so the clock looks frozen while
+    // she is in another app. Snap it to the truth the instant she returns.
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') setNow(Date.now());
+    };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => {
+      clearInterval(id);
+      document.removeEventListener('visibilitychange', onVisible);
+    };
   }, [active]);
 
   if (!active || !startedAt) return 0;

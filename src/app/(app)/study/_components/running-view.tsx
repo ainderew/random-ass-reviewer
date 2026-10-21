@@ -8,6 +8,7 @@ import {
   earningsSoFar,
   nextRung,
 } from '@/domain/session/rungs';
+import { bowlsFilled, minutesToNextBowl } from '@/domain/pet/care';
 import { BoltGlyph } from '@/components/icons';
 import { Button } from '@/components/ui/button';
 import { formatClock, formatMinutes } from '@/lib/format-time';
@@ -56,7 +57,15 @@ export const RunningView = ({
     lengthMs === null && elapsedMs >= breakReminderMs && !breakDismissed;
   const note = currentRungNote(focusedMs);
   const next = nextRung(focusedMs, lengthMs);
-  const earned = earningsSoFar(focusedMs);
+  // Points and kibble preview off the 1-second wall clock, not the 15-second
+  // heartbeat, so the cat visibly fills while she focuses and nothing looks
+  // frozen when she comes back from another app. The credited number at the
+  // end is still the server's; this never shows less than it has confirmed.
+  const liveMs = Math.max(focusedMs, elapsedMs);
+  const earned = earningsSoFar(liveMs);
+  const sessionBowls = bowlsFilled(career.focusMs, liveMs);
+  const toNextBowl = minutesToNextBowl(career.focusMs + liveMs);
+  const catName = pet?.name ?? 'the cat';
   useRungTone(note, true);
 
   const statusLine = note
@@ -153,6 +162,18 @@ export const RunningView = ({
             {earned}
           </span>
           <span className="text-muted">so far</span>
+        </p>
+        <p
+          className="flex items-center gap-2 rounded-full border border-hairline px-4 py-1.5 text-[0.9375rem] text-ink-2"
+          aria-live="polite"
+        >
+          <span className="font-mono text-focus tabular-nums">
+            +{sessionBowls}
+          </span>
+          <span className="text-muted">
+            {sessionBowls === 1 ? 'bowl' : 'bowls'} for {catName} · next in{' '}
+            {toNextBowl}m
+          </span>
         </p>
         <div>
           <p
