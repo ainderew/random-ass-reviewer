@@ -1,4 +1,4 @@
-import { withoutSourceReference } from './source-reference';
+import { mentionsNotes, withoutSourceReference } from './source-reference';
 
 describe('withoutSourceReference', () => {
   it('drops a leading reference and capitalises what follows', () => {
@@ -53,6 +53,23 @@ describe('withoutSourceReference', () => {
   it('never empties a card', () => {
     expect(withoutSourceReference('According to the notes, ')).toBe(
       'According to the notes,',
+    );
+  });
+});
+
+describe('mentionsNotes', () => {
+  it('finds a reference left in the middle of a sentence', () => {
+    expect(mentionsNotes('The notes state only that it is run.')).toBe(true);
+    expect(mentionsNotes('No reason appears in the passage here.')).toBe(true);
+  });
+
+  it('ignores a reference the strip removes', () => {
+    expect(mentionsNotes('According to the notes, EDTA.')).toBe(false);
+  });
+
+  it('leaves ordinary medical wording alone', () => {
+    expect(mentionsNotes('The source of the bleeding was the reading.')).toBe(
+      false,
     );
   });
 });

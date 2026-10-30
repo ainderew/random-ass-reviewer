@@ -23,6 +23,7 @@ function blank(sourceId: string, totalChunks: number): GenerationStatus {
     failedChunks: 0,
     cardsCreated: 0,
     rejectedCards: 0,
+    unansweredQuestions: 0,
     finished: false,
     message: null,
   };
@@ -45,7 +46,12 @@ export function startProgress(sourceId: string, totalChunks: number): void {
 
 export function advanceProgress(
   sourceId: string,
-  delta: { failed?: boolean; cards?: number; rejected?: number },
+  delta: {
+    failed?: boolean;
+    cards?: number;
+    rejected?: number;
+    unanswered?: number;
+  },
 ): void {
   const current = progress.get(sourceId);
   if (!current) return;
@@ -53,6 +59,7 @@ export function advanceProgress(
   if (delta.failed) current.failedChunks += 1;
   current.cardsCreated += delta.cards ?? 0;
   current.rejectedCards += delta.rejected ?? 0;
+  current.unansweredQuestions += delta.unanswered ?? 0;
 }
 
 export function finishProgress(
@@ -88,6 +95,7 @@ export async function getProgress(
     failedChunks: 0,
     cardsCreated: cards.length,
     rejectedCards: 0,
+    unansweredQuestions: 0,
     finished: true,
     message:
       chunksWithCards === 0 && chunks.length > 0

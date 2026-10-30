@@ -1,4 +1,4 @@
-import { chunkText } from './chunking';
+import { chunkNotes, chunkText } from './chunking';
 
 // Four characters per token is close enough for a unit test.
 const estimateTokens = (s: string) => Math.ceil(s.length / 4);
@@ -116,5 +116,30 @@ describe('chunkText', () => {
     for (const p of paragraphs)
       for (const w of p.split(' ')) expect(joined).toContain(w);
     expect(joined.indexOf('q0w0')).toBeLessThan(joined.indexOf('q9w0'));
+  });
+
+  it('splits a page of short questions at the item limit', () => {
+    const text = Array.from(
+      { length: 60 },
+      (_, i) =>
+        `${i + 1}. Which of these describes question number ${i + 1}?\nA. The first option\nB. The second option`,
+    ).join('\n');
+    const chunks = chunkNotes(text);
+    expect(chunks).toHaveLength(3);
+    expect(chunks[1]!.text.startsWith('26. Which')).toBe(true);
+    expect(chunks.map((c) => c.text).join('\n')).toBe(text);
+  });
+
+  it('counts Q and A pairs as items too', () => {
+    const text = Array.from(
+      { length: 30 },
+      (_, i) =>
+        `Q: Which of these describes question number ${i}?\nA: The answer to question number ${i}`,
+    ).join('\n');
+    expect(chunkNotes(text)).toHaveLength(2);
+  });
+
+  it('leaves short numbered lists alone', () => {
+    expect(chunkNotes('1. One\n2. Two\n3. Three')).toHaveLength(1);
   });
 });

@@ -1,4 +1,4 @@
-import { ClaudeCodeProvider } from './claude-code-provider';
+import { ClaudeCodeProvider, isLoginFailure } from './claude-code-provider';
 
 describe('ClaudeCodeProvider', () => {
   it('refuses production without the explicit opt-in, and accepts it with', () => {
@@ -9,5 +9,14 @@ describe('ClaudeCodeProvider', () => {
     expect(new ClaudeCodeProvider('development', false).name).toBe(
       'claude-code',
     );
+  });
+
+  it('recognises an expired login returned as a successful result', () => {
+    expect(
+      isLoginFailure(
+        'Failed to authenticate: OAuth session expired and could not be refreshed',
+      ),
+    ).toBe(true);
+    expect(isLoginFailure('{"cards":[]}')).toBe(false);
   });
 });

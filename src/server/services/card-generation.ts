@@ -1,7 +1,11 @@
 import { validQuizContent } from '@/domain/study/quiz-content';
 import { cardBatchSchema } from '@/domain/study/card-schema';
+import {
+  passageContexts,
+  type PassageContext,
+} from '@/domain/study/passage-context';
 import { withoutSourceReference } from '@/domain/study/source-reference';
-import { quoteAppearsInSource } from '@/domain/study/verify-quote';
+import { verifiedCards } from '@/domain/study/verified-cards';
 import { env } from '@/lib/env';
 import { initialCardState } from '@/domain/review/scheduler';
 import type { NoteChunk } from '@/domain/types';
@@ -14,7 +18,10 @@ import {
 } from '@/server/llm/prompts/card-generation';
 import type { LlmProvider } from '@/server/llm/provider';
 import { insertCards, listChunkIdsWithCards } from '@/server/repositories/card';
-import { listChunksBySource } from '@/server/repositories/note';
+import {
+  findNoteSourceById,
+  listChunksBySource,
+} from '@/server/repositories/note';
 import {
   advanceProgress,
   finishProgress,
@@ -28,21 +35,24 @@ export interface GenerationSummary {
   failedChunks: number;
   cardsCreated: number;
   rejectedCards: number;
+  unansweredQuestions: number;
 }
 
 // One chunk, isolated. A failure here never aborts the others.
 async function generateForChunk(input: {
   userId: string;
+  title: string;
   chunk: NoteChunk;
+  context: PassageContext;
   provider: LlmProvider;
-}): Promise<{ created: number; rejected: number }> {
-  const { userId, chunk, provider } = input;
+}): Promise<{ created: number; rejected: number; unanswered: number }> {
+  const { userId, title, chunk, context, provider } = input;
   // The quota bounds platform-key spend. BYOK bills the user; local-cli bills the developer.
   if (provider.name === 'anthropic-api') await assertWithinQuota(userId);
 
   const { data, usage } = await provider.generateStructured({
     system: CARD_GENERATION_SYSTEM,
-    userText: cardGenerationUserText(chunk.text),
+    userText: cardGenerationUserText({ title, context, passage: chunk.text }),
     schema: cardBatchSchema,
     model: MODELS.cardGeneration,
     maxTokens: CARD_MAX_TOKENS,
@@ -58,13 +68,11 @@ async function generateForChunk(input: {
   }
 
   // The hallucination guard. A quote not in the source means an invented card.
-  const kept = data.cards.filter((card) =>
-    quoteAppearsInSource(card.sourceQuote, chunk.text),
-  );
+  const kept = verifiedCards(data.cards, chunk.text, context.keyLetters);
   const rejected = data.cards.length - kept.length;
   if (rejected > 0)
     console.warn(
-      `[cards] chunk ${chunk.id}: dropped ${rejected} card(s) failing the quote check`,
+      `[cards] chunk ${chunk.id}: dropped ${rejected} card(s) failing the card checks`,
     );
 
   const now = new Date();
@@ -83,12 +91,16 @@ async function generateForChunk(input: {
         card.quiz && validQuizContent(card.answer, card.quiz)
           ? card.quiz
           : null,
-      tags: [...new Set([...card.tags, card.difficulty])],
+      tags: [...new Set([...card.tags, card.difficulty, card.questionType])],
       nextDueAt: now,
       fsrsState: initialCardState(now.getTime()),
     })),
   );
-  return { created: kept.length, rejected };
+  return {
+    created: kept.length,
+    rejected,
+    unanswered: Math.max(0, data.unanswered),
+  };
 }
 
 type GenerationInput = {
@@ -115,11 +127,23 @@ export async function generateCardsForSource(
 async function generateChunks(
   input: GenerationInput,
 ): Promise<GenerationSummary> {
-  let chunks = await listChunksBySource(db, input.sourceId, { limit: 500 });
-  if (input.onlyEmptyChunks) {
-    const done = new Set(await listChunkIdsWithCards(db, input.sourceId));
-    chunks = chunks.filter((chunk) => !done.has(chunk.id));
-  }
+  const source = await findNoteSourceById(db, {
+    userId: input.userId,
+    sourceId: input.sourceId,
+  });
+  if (!source) throw new AppError('NOT_FOUND', 'Those notes are gone.');
+  // Context comes from every chunk, even on a retry that skips some: the
+  // answer key usually sits in a chunk that already finished.
+  const allChunks = await listChunksBySource(db, input.sourceId, {
+    limit: 500,
+  });
+  const contexts = passageContexts(allChunks);
+  const done = new Set(
+    input.onlyEmptyChunks
+      ? await listChunkIdsWithCards(db, input.sourceId)
+      : [],
+  );
+  const chunks = allChunks.filter((chunk) => !done.has(chunk.id));
   startProgress(input.sourceId, chunks.length);
   const summary: GenerationSummary = {
     totalChunks: chunks.length,
@@ -127,6 +151,7 @@ async function generateChunks(
     failedChunks: 0,
     cardsCreated: 0,
     rejectedCards: 0,
+    unansweredQuestions: 0,
   };
   let stopReason: string | null = null;
 
@@ -135,14 +160,18 @@ async function generateChunks(
     try {
       const result = await generateForChunk({
         userId: input.userId,
+        title: source.title,
         chunk,
+        context: contexts[allChunks.indexOf(chunk)]!,
         provider: input.provider,
       });
       summary.cardsCreated += result.created;
       summary.rejectedCards += result.rejected;
+      summary.unansweredQuestions += result.unanswered;
       advanceProgress(input.sourceId, {
         cards: result.created,
         rejected: result.rejected,
+        unanswered: result.unanswered,
       });
     } catch (error) {
       summary.failedChunks += 1;

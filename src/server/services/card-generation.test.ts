@@ -124,6 +124,62 @@ describe('card generation', () => {
     });
   });
 
+  it('keeps the good cards when one card in the batch breaks a limit', async () => {
+    const provider = new ScriptedProvider([
+      {
+        output: {
+          cards: [
+            GOOD_CARD,
+            { ...GOOD_CARD, sourceQuote: 'x'.repeat(501) },
+            {
+              ...GOOD_CARD,
+              question: "Which nerve is at fault in Bell's palsy?",
+              quiz: { explanation: 'Bone', distractors: [] },
+            },
+          ],
+        },
+      },
+    ]);
+    const created = await createNoteSource({
+      userId,
+      kind: 'paste',
+      title: 'Limits',
+      text: `${NOTES}\n\nA tail for a batch with a bad card.`,
+    });
+    const summary = await generateCardsForSource({
+      userId,
+      sourceId: created.sourceId,
+      provider,
+    });
+    expect(summary).toMatchObject({
+      cardsCreated: 2,
+      rejectedCards: 1,
+      failedChunks: 0,
+    });
+    const detail = await getNoteDetail({ userId, sourceId: created.sourceId });
+    expect(detail.cards.map((card) => card.quiz)).toEqual([null, null]);
+  });
+
+  it('records the question type beside the difficulty', async () => {
+    const provider = new ScriptedProvider([
+      { output: { cards: [{ ...GOOD_CARD, questionType: 'application' }] } },
+    ]);
+    const created = await createNoteSource({
+      userId,
+      kind: 'paste',
+      title: 'Types',
+      text: `${NOTES}\n\nA tail for the question type.`,
+    });
+    await generateCardsForSource({
+      userId,
+      sourceId: created.sourceId,
+      provider,
+    });
+    const [card] = (await getNoteDetail({ userId, sourceId: created.sourceId }))
+      .cards;
+    expect(card!.tags).toEqual(expect.arrayContaining(['easy', 'application']));
+  });
+
   it('deduplicates identical content into one source', async () => {
     const again = await createNoteSource({
       userId,
@@ -230,6 +286,142 @@ describe('card generation, prompt shape and failure isolation', () => {
       expect(userText).toContain('Sentence');
       expect(JSON.stringify(call.system)).not.toContain('Sentence');
     }
+  });
+
+  const HANDOUT = [
+    '# Pre-board set',
+    Array.from({ length: 30 }, (_, i) =>
+      [
+        `${i + 1}. Which tube is used for test ${i + 1}?`,
+        'A. Red',
+        'B. Gray',
+      ].join('\n'),
+    ).join('\n\n'),
+    `ANSWER KEY\n${Array.from({ length: 30 }, (_, i) => `${i + 1} B`).join('  ')}`,
+  ].join('\n\n');
+
+  it('gives every chunk the title, and earlier chunks the answer key', async () => {
+    const provider = new ScriptedProvider([{ output: { cards: [] } }]);
+    const created = await createNoteSource({
+      userId,
+      kind: 'paste',
+      title: 'Clinical Chemistry Set B',
+      text: HANDOUT,
+    });
+    const summary = await generateCardsForSource({
+      userId,
+      sourceId: created.sourceId,
+      provider,
+    });
+
+    expect(summary.totalChunks).toBe(2);
+    const [first, second] = provider.calls.map(
+      (call) => (call as { userText: string }).userText,
+    );
+    expect(first).toContain('Notes: Clinical Chemistry Set B');
+    expect(first).toMatch(/Most cards from plain notes: \d+/);
+    expect(first).toContain('Answer key from the same handout:\nANSWER KEY');
+    expect(second).toContain('Section: Pre-board set');
+    expect(second).not.toContain('Answer key from the same handout');
+  });
+
+  it('finds the answer key on a retry that skips the chunk holding it', async () => {
+    const provider = new ScriptedProvider([
+      { output: { cards: [] } },
+      {
+        output: {
+          cards: [
+            {
+              ...GOOD_CARD,
+              question: 'Which tube is used for test 26?',
+              answer: 'Gray',
+              sourceQuote: 'Which tube is used for test 26?',
+            },
+          ],
+        },
+      },
+    ]);
+    const created = await createNoteSource({
+      userId,
+      kind: 'paste',
+      title: 'Retry',
+      text: `${HANDOUT}\n\nA tail so this handout is new.`,
+    });
+    await generateCardsForSource({
+      userId,
+      sourceId: created.sourceId,
+      provider,
+    });
+
+    const retry = new ScriptedProvider([{ output: { cards: [] } }]);
+    await generateCardsForSource({
+      userId,
+      sourceId: created.sourceId,
+      provider: retry,
+      onlyEmptyChunks: true,
+    });
+    expect(retry.calls).toHaveLength(1);
+    expect((retry.calls[0] as { userText: string }).userText).toContain(
+      'ANSWER KEY',
+    );
+  });
+
+  it('stores the stem and the keyed answer from the page, not the model', async () => {
+    const provider = new ScriptedProvider([
+      {
+        output: {
+          cards: [
+            {
+              ...GOOD_CARD,
+              question: 'Which reagent tube is used for test 2?',
+              answer: 'Red',
+              sourceQuote: 'Which tube is used for test 2?\nA. Red',
+              questionType: 'own',
+            },
+          ],
+        },
+      },
+      { output: { cards: [] } },
+    ]);
+    const created = await createNoteSource({
+      userId,
+      kind: 'paste',
+      title: 'Page wins',
+      text: `${HANDOUT}\n\nA tail so the page is checked on a new source.`,
+    });
+    await generateCardsForSource({
+      userId,
+      sourceId: created.sourceId,
+      provider,
+    });
+    const [card] = (await getNoteDetail({ userId, sourceId: created.sourceId }))
+      .cards;
+    expect(card).toMatchObject({
+      question: 'Which tube is used for test 2?',
+      answer: 'Gray',
+    });
+  });
+
+  it('reports questions the notes could not answer', async () => {
+    const provider = new ScriptedProvider([
+      { output: { cards: [], unanswered: 7 } },
+    ]);
+    const created = await createNoteSource({
+      userId,
+      kind: 'paste',
+      title: 'No key',
+      text: '1. Which tube is used for a CBC?\nA. Red\nB. Lavender',
+    });
+    const summary = await generateCardsForSource({
+      userId,
+      sourceId: created.sourceId,
+      provider,
+    });
+    expect(summary.unansweredQuestions).toBe(7);
+    expect(
+      (await getNoteDetail({ userId, sourceId: created.sourceId })).status
+        .unansweredQuestions,
+    ).toBe(7);
   });
 
   it('isolates one failing chunk and keeps going', async () => {

@@ -107,6 +107,7 @@ export class ClaudeCodeProvider implements LlmProvider {
               : message.subtype,
           );
         }
+        if (isLoginFailure(message.result)) throw classify(message.result);
         const raw = message.structured_output ?? extractJson(message.result);
         const parsed = schema.safeParse(raw);
         if (!parsed.success) {
@@ -134,6 +135,12 @@ export class ClaudeCodeProvider implements LlmProvider {
       clearTimeout(timer);
     }
   }
+}
+
+// An expired login comes back as a successful result whose text is the error.
+// Caught here it stops the run; as "not JSON" it would fail every chunk in turn.
+export function isLoginFailure(result: string): boolean {
+  return /^failed to authenticate\b/i.test(result.trim());
 }
 
 // The SDK validates with a draft-07 validator that rejects the 2020-12

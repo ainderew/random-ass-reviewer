@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { answerTypeSchema, type AnswerType } from '../review/regimen';
+import { QUESTION_MAX } from '../study/card-schema';
 import { subjectSchema, type MedtechSubject } from '../study/medtech';
 import { quizContentSchema, type QuizContent } from '../study/quiz-content';
 
@@ -113,6 +114,8 @@ export interface GenerationStatus {
   failedChunks: number;
   cardsCreated: number;
   rejectedCards: number;
+  // The student's own questions with no answer in the notes or the key.
+  unansweredQuestions: number;
   finished: boolean;
   message: string | null;
 }
@@ -125,7 +128,7 @@ export interface NoteDetail {
 }
 
 export const updateCardRequestSchema = z.object({
-  question: z.string().trim().min(1).max(300).optional(),
+  question: z.string().trim().min(1).max(QUESTION_MAX).optional(),
   answer: z.string().trim().min(1).max(1000).optional(),
   reviewStatus: cardStatusSchema.optional(),
   subject: subjectSchema.nullable().optional(),

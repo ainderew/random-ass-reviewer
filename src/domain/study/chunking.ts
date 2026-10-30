@@ -13,9 +13,26 @@ export interface ChunkOptions {
   minTokens?: number;
   // Injected so the domain stays pure. The service passes a real counter.
   estimateTokens: (text: string) => number;
+  // ~25. Every numbered question comes back as a card, and a chunk has to fit
+  // in one model call, so a page of short questions splits before its tokens do.
+  maxItems?: number;
 }
 
 const HEADING = /^(#{1,3})\s+\S/;
+const QUESTION_ITEM = /^\s*(?:q(?:uestion)?\s*\d*[:.)]|\d{1,3}[.)])\s/i;
+
+// Cheap approximation for the split search.
+export const roughTokens = (s: string) => Math.ceil(s.length / 4);
+
+export function chunkNotes(text: string): Chunk[] {
+  return chunkText({
+    text,
+    targetTokens: 1500,
+    maxTokens: 2000,
+    estimateTokens: roughTokens,
+    maxItems: 25,
+  });
+}
 
 // Split priority: markdown headings, blank-line paragraphs, sentences, and a
 // hard character split as the last resort. Cutting mid-sentence produces
@@ -23,6 +40,7 @@ const HEADING = /^(#{1,3})\s+\S/;
 export function chunkText(options: ChunkOptions): Chunk[] {
   const { targetTokens, maxTokens, estimateTokens } = options;
   const minTokens = options.minTokens ?? 100;
+  const maxItems = options.maxItems ?? Number.POSITIVE_INFINITY;
   const text = options.text.replace(/\r\n/g, '\n').trim();
   if (!text) return [];
 
@@ -39,7 +57,12 @@ export function chunkText(options: ChunkOptions): Chunk[] {
     );
   }
 
-  const merged = mergeSmall(pieces, minTokens, maxTokens, estimateTokens);
+  const merged = mergeSmall(
+    pieces.flatMap((piece) => splitDenseItems(piece, maxItems)),
+    minTokens,
+    maxTokens,
+    estimateTokens,
+  );
   return merged.map((chunk, ordinal) => ({ ordinal, text: chunk }));
 }
 
@@ -123,6 +146,26 @@ function packUnits(
     bufferTokens += unitTokens;
   }
   flush();
+  return out;
+}
+
+// Breaks a chunk at the question that would exceed the limit.
+function splitDenseItems(chunk: string, maxItems: number): string[] {
+  const out: string[] = [];
+  let lines: string[] = [];
+  let items = 0;
+  for (const line of chunk.split('\n')) {
+    if (QUESTION_ITEM.test(line)) {
+      if (items === maxItems) {
+        out.push(lines.join('\n').trim());
+        lines = [];
+        items = 0;
+      }
+      items += 1;
+    }
+    lines.push(line);
+  }
+  out.push(lines.join('\n').trim());
   return out;
 }
 

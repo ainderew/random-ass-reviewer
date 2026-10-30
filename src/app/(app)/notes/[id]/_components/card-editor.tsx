@@ -1,5 +1,6 @@
 'use client';
 import { useId, useState } from 'react';
+import { QUESTION_MAX } from '@/domain/study/card-schema';
 import { MTLE_SUBJECTS, type MedtechSubject } from '@/domain/study/medtech';
 import type { AnswerType } from '@/domain/review/regimen';
 import { QuizEditor } from './quiz-editor';
@@ -113,7 +114,7 @@ export const CardEditor = ({
               aria-describedby={`${id}-question-hint`}
               required
               minLength={5}
-              maxLength={300}
+              maxLength={QUESTION_MAX}
               value={question}
               onChange={(e) => change(() => setQuestion(e.target.value))}
               rows={3}

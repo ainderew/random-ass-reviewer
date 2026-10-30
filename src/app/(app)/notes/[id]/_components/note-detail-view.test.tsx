@@ -29,6 +29,7 @@ const detail: NoteDetail = {
     failedChunks: 1,
     cardsCreated: 0,
     rejectedCards: 0,
+    unansweredQuestions: 0,
     finished: true,
     message: 'LocalCliProvider: the model did not return JSON.',
   },

@@ -43,7 +43,16 @@ export const GenerationProgress = ({
       {status.rejectedCards > 0 ? (
         <p className="text-xs text-muted">
           {status.rejectedCards} card{status.rejectedCards === 1 ? '' : 's'}{' '}
-          dropped for not quoting the source.
+          dropped for not matching the source.
+        </p>
+      ) : null}
+      {status.unansweredQuestions > 0 ? (
+        <p className="text-sm text-ink-2">
+          {status.unansweredQuestions}{' '}
+          {status.unansweredQuestions === 1 ? 'question' : 'questions'} had no
+          answer in your notes, so{' '}
+          {status.unansweredQuestions === 1 ? 'it has' : 'they have'} no card
+          yet.
         </p>
       ) : null}
       {status.message ? (

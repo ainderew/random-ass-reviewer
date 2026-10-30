@@ -29,7 +29,7 @@ export function cardsFromPassage(passage: string): Array<{
   return sentences.slice(0, 5).map((sentence, i) => {
     const subject = sentence.split(/\s+/).slice(0, 4).join(' ');
     return {
-      question: `What do your notes say about "${subject}"?`,
+      question: `What is true of "${subject}"?`,
       answer: sentence,
       sourceQuote: sentence,
       difficulty: difficulties[i % 3] ?? 'medium',
@@ -52,7 +52,7 @@ export class FakeLlmProvider implements LlmProvider {
   async generateStructured<T>(
     req: StructuredRequest<T>,
   ): Promise<LlmResult<T>> {
-    const passage = req.userText.replace(/^Passage:\s*/i, '');
+    const passage = req.userText.replace(/^[\s\S]*?Passage:\s*/i, '');
     const candidate = { cards: cardsFromPassage(passage) };
     const parsed = req.schema.safeParse(candidate);
     if (!parsed.success) {

@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import { chunkText } from '@/domain/study/chunking';
+import { chunkNotes, roughTokens } from '@/domain/study/chunking';
 import type {
   CreateNoteResponse,
   NoteDetail,
@@ -27,16 +27,9 @@ import {
 import { generateCardsForSource } from './card-generation';
 import { getProgress } from './generation-progress';
 
-const TARGET_TOKENS = 1500;
-const MAX_TOKENS = 2000;
-
 export function contentHash(text: string): string {
   return createHash('sha256').update(text).digest('hex');
 }
-
-// Cheap approximation for the split search; the real counter runs once per
-// final chunk when the provider offers one.
-const roughTokens = (s: string) => Math.ceil(s.length / 4);
 
 // Hash, dedupe, chunk, store. One transaction for source plus chunks.
 // Generation itself is the caller's job so a route can defer it.
@@ -54,12 +47,7 @@ export async function createNoteSource(input: {
   if (existing)
     return { sourceId: existing.id, deduplicated: true, chunkCount: 0 };
 
-  const chunks = chunkText({
-    text: input.text,
-    targetTokens: TARGET_TOKENS,
-    maxTokens: MAX_TOKENS,
-    estimateTokens: roughTokens,
-  });
+  const chunks = chunkNotes(input.text);
   if (chunks.length === 0)
     throw new AppError('VALIDATION', 'There is no text in these notes.');
 

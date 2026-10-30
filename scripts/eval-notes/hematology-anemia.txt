@@ -1,0 +1,60 @@
+HEMATOLOGY 2 - ANEMIAS (midterm coverage)
+transes from Dr. Santos lecture, some parts from Rodak's
+
+RED CELL INDICES
+
+MCV = (Hct % x 10) / RBC count in 10^12/L. Ref 80-100 fL. Tells cell size.
+MCH = (Hgb g/dL x 10) / RBC count. Ref 27-31 pg.
+MCHC = (Hgb g/dL x 100) / Hct %. Ref 32-36 g/dL. Tells how filled the cell is. Cant really go much above 36 because a red cell can only hold so much hgb, so a MCHC above 37 is a flag to look for a problem with the sample before releasing.
+RDW = (SD of RBC volume / MCV) x 100. Ref 11.5-14.5%. Measures anisocytosis.
+
+Rule of three: RBC x 3 = Hgb, Hgb x 3 = Hct +/- 3. Only holds for normocytic normochromic cells.
+
+Causes of falsely high MCHC:
+- cold agglutinins: RBCs clump so the analyzer counts doublets as one big cell. RBC count falsely low, MCV falsely high, Hct falsely low, MCHC high. Fix = warm sample to 37C for 30 min and rerun.
+- lipemia or icterus: turbidity falsely raises hgb. Fix = plasma replacement with saline, then rerun hgb.
+- spherocytes: this one is real, not an artifact. MCHC may truly be above 36.
+
+Reticulocyte count
+Corrected retic % = retic % x (patient Hct / 45)
+RPI = corrected retic % / maturation time. Maturation time is 1.0 at Hct 45, 1.5 at Hct 35, 2.0 at Hct 25, 2.5 at Hct 15.
+RPI above 3 means adequate marrow response. RPI below 2 means inadequate response.
+Sample: Hct 25, retic 9%. Corrected = 9 x 25/45 = 5%. RPI = 5 / 2.0 = 2.5.
+New methylene blue is the stain, supravital. Retics still have residual RNA that precipitates into a reticulum.
+
+MORPHOLOGIC CLASSIFICATION
+
+Microcytic hypochromic (MCV < 80, MCHC < 32): iron deficiency anemia, thalassemia, sideroblastic anemia, some anemia of chronic disease.
+Normocytic normochromic (MCV 80-100): acute blood loss, hemolytic anemias, aplastic anemia, anemia of renal disease.
+Macrocytic (MCV > 100): megaloblastic (B12 deficiency, folate deficiency) and non-megaloblastic (liver disease, alcoholism, reticulocytosis, hypothyroidism).
+
+Megaloblastic = impaired DNA synthesis with normal RNA synthesis, so nuclear-cytoplasmic asynchrony. Oval macrocytes and hypersegmented neutrophils (6 or more lobes, or more than 5% with 5 lobes). Non-megaloblastic macrocytes are round and neutrophils are normal.
+B12 vs folate: methylmalonic acid is elevated in B12 deficiency only, homocysteine is elevated in both. Pernicious anemia has anti-intrinsic factor antibodies, and neuro symptoms come with B12 only.
+
+MICROCYTIC ANEMIAS TABLE
+
+Test | IDA | Thal minor | ACD | Sideroblastic
+Serum iron | low | normal | low | high
+TIBC | high | normal | low | normal or low
+Ferritin | low | normal or high | normal or high | high
+Transferrin sat | low | normal | low | high
+RDW | high | normal | normal | high (dimorphic)
+FEP | high | normal | high | variable
+
+Mentzer index = MCV / RBC count. Below 13 suggests thalassemia, above 13 suggests IDA.
+Beta thal minor has HbA2 above 3.5%. Alpha thal trait has normal electrophoresis.
+Ferritin is the first lab to fall in iron deficiency. Sequence is storage iron depletion, then transport iron depletion, then functional deficiency. Ferritin is also an acute phase reactant so it can be falsely normal in inflammation.
+Sideroblastic: ring sideroblasts on bone marrow, Prussian blue stain. Pappenheimer bodies on smear. Lead poisoning belongs here too with coarse basophilic stippling.
+
+HEMOLYTIC ANEMIAS
+
+General labs: retic up, indirect bili up, LDH up, haptoglobin down.
+Intravascular: hemoglobinemia, hemoglobinuria, hemosiderinuria, schistocytes. Examples are PNH, PCH, ABO transfusion reaction, DIC, G6PD crisis.
+Extravascular: spleen and liver macrophages remove the cells. Spherocytes on smear. Examples are HS, warm AIHA, sickle cell.
+
+Hereditary spherocytosis: defect in spectrin or ankyrin. Increased osmotic fragility. DAT negative, which separates it from warm AIHA where spherocytes are also seen but DAT is positive. Eosin-5-maleimide flow is the newer test.
+G6PD deficiency: X-linked. Oxidant stress (primaquine, sulfa, fava beans) causes hgb to denature into Heinz bodies, then spleen pits them forming bite cells. Heinz bodies need supravital stain (crystal violet or brilliant green), Wright stain will not show them. G6PD assay may read falsely normal right after a crisis because the old enzyme-poor cells are already gone and retics have more enzyme.
+PNH: acquired PIGA mutation, missing GPI-anchored CD55 and CD59, complement lyses the cells. Flow cytometry for CD55 and CD59 is the confirmatory test, Ham test and sucrose hemolysis are the old screens. FLAER is the best reagent.
+Sickle cell: Hb S is beta 6 glutamic acid to valine. Solubility test with sodium dithionite, positive is a turbid tube, but does not separate SS from AS so confirm with electrophoresis.
+
+Hgb electrophoresis cellulose acetate pH 8.4, from anode to cathode: A1, F, S/D/G, C/E/O/A2. Citrate agar pH 6.2 separates S from D and G, and C from E and O.

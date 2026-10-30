@@ -27,7 +27,8 @@
     "test:integration": "NODE_OPTIONS=\"--experimental-vm-modules --no-warnings=ExperimentalWarning\" jest --selectProjects server",
     "test:ui": "jest --selectProjects ui",
     "test:coverage": "NODE_OPTIONS=\"--experimental-vm-modules --no-warnings=ExperimentalWarning\" jest --coverage",
-    "seed:smoke": "dotenv -e .env.test -- tsx scripts/seed-smoke.ts"
+    "seed:smoke": "dotenv -e .env.test -- tsx scripts/seed-smoke.ts",
+    "eval:cards": "dotenv -e .env.local -- tsx scripts/eval-cards.ts"
   },
   "dependencies": {
     "@anthropic-ai/claude-agent-sdk": "^0.3.263",
