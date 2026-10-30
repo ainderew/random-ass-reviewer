@@ -1,10 +1,10 @@
 'use client';
 
 import dynamic from 'next/dynamic';
+import { useSearchParams } from 'next/navigation';
+import { Suspense } from 'react';
 import type { StudySceneCanvasProps } from '@/game/character/study-scene-canvas';
 
-// three.js arrives only on the client and only once this mounts; the ring
-// and the disc are already on screen by then, so nothing waits on it.
 const StudySceneCanvas = dynamic(
   () =>
     import('@/game/character/study-scene-canvas').then(
@@ -12,7 +12,23 @@ const StudySceneCanvas = dynamic(
     ),
   { ssr: false, loading: () => null },
 );
+const IllustratedCat = dynamic(
+  () =>
+    import('@/game/character/illustrated-cat').then((m) => m.IllustratedCat),
+  { ssr: false, loading: () => null },
+);
+
+function CharacterVariant(props: StudySceneCanvasProps) {
+  const query = useSearchParams();
+  return query.get('cat') === 'illustrated' ? (
+    <IllustratedCat {...props} />
+  ) : (
+    <StudySceneCanvas {...props} />
+  );
+}
 
 export const CharacterView = (props: StudySceneCanvasProps) => (
-  <StudySceneCanvas {...props} />
+  <Suspense fallback={null}>
+    <CharacterVariant {...props} />
+  </Suspense>
 );

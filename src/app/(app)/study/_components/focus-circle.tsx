@@ -133,7 +133,7 @@ export const FocusCircle = ({
       </svg>
       <div
         className="absolute inset-[6.5%] overflow-hidden rounded-full bg-[radial-gradient(120%_90%_at_50%_15%,#f6e9f1,#ecd7e0)]"
-        role="img"
+        role="group"
         aria-label={`${label}. ${name} ${MOOD_LABEL[mood]}.${feeling}`}
       >
         <CharacterView

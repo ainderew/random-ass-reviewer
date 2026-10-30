@@ -13,7 +13,7 @@ describe('FocusCircle', () => {
         mood="wandering"
       />,
     );
-    expect(screen.getByRole('img')).toHaveAccessibleName(
+    expect(screen.getByRole('group', { name: /^At / })).toHaveAccessibleName(
       'At a bedroom desk. Your cat is up and about.',
     );
     expect(screen.getByRole('progressbar')).toHaveAttribute(
@@ -29,7 +29,7 @@ describe('FocusCircle', () => {
         mood="away"
       />,
     );
-    expect(screen.getByRole('img')).toHaveAccessibleName(
+    expect(screen.getByRole('group', { name: /^At / })).toHaveAccessibleName(
       'At a clinic, white coat on the hook, car outside. Your cat is waiting for you.',
     );
   });

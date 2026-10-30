@@ -444,13 +444,13 @@ describe('FocusTimer career scene', () => {
       await screen.findByRole('button', { name: 'Start focusing' }),
     );
     expect(
-      await screen.findByRole('img', {
+      await screen.findByRole('group', {
         name: /At a bedroom desk\. Toast is keeping you company\.$/,
       }),
     ).toBeInTheDocument();
     setVisibility('hidden');
     expect(
-      screen.getByRole('img', { name: /Toast is keeping you company\.$/ }),
+      screen.getByRole('group', { name: /Toast is keeping you company\.$/ }),
     ).toBeInTheDocument();
   });
 

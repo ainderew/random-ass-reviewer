@@ -249,7 +249,7 @@ describe('TodayView', () => {
     expect(
       await screen.findByText('I missed you! 18 cards to review first.'),
     ).toBeInTheDocument();
-    expect(screen.getByRole('img')).toHaveAccessibleName(
+    expect(screen.getByRole('group', { name: /^At / })).toHaveAccessibleName(
       /Toast is waiting for you\. She looks lonely\.$/,
     );
   });
