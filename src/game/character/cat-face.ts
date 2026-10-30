@@ -1,5 +1,8 @@
 import {
   CapsuleGeometry,
+  CatmullRomCurve3,
+  TubeGeometry,
+  Vector3,
   CircleGeometry,
   CylinderGeometry,
   Group,
@@ -30,8 +33,8 @@ export interface CatFace {
 const small = new SphereGeometry(1, 20, 14);
 const disc = new CircleGeometry(1, 32);
 const arc = new TorusGeometry(0.05, 0.012, 8, 24, Math.PI);
-const whisker = new CylinderGeometry(0.0045, 0.0045, 0.19, 5);
-const stripe = new CapsuleGeometry(0.016, 0.05, 4, 8);
+const whisker = new CylinderGeometry(0.002, 0.003, 0.24, 6);
+const stripe = new CapsuleGeometry(0.022, 0.07, 4, 8);
 const ear = lathe(
   [
     [0.15, -0.06],
@@ -53,7 +56,7 @@ export function buildFace(head: Group, m: CatMaterials, part: Part): CatFace {
     part(pivot, ear, m.coat, { scale: [1, 1, 0.6], zone: 'ear' });
     part(pivot, ear, m.earIn, {
       at: [0, 0.015, 0.055],
-      scale: [0.62, 0.72, 0.3],
+      scale: [0.76, 0.82, 0.3],
       line: false,
     });
     return pivot;
@@ -61,12 +64,12 @@ export function buildFace(head: Group, m: CatMaterials, part: Part): CatFace {
 
   const makeEye = (side: -1 | 1): CatEye => {
     const g = new Group();
-    g.position.set(side * 0.155, 0.02, 0.338);
-    g.rotation.y = side * 0.38;
+    g.position.set(side * 0.165, -0.005, 0.35);
+    g.rotation.y = side * 0.22;
     head.add(g);
     const open = new Group();
     g.add(open);
-    part(open, small, m.iris, { scale: [0.058, 0.078, 0.03], line: false });
+    part(open, small, m.iris, { scale: [0.075, 0.086, 0.03], line: false });
     const pupil = part(open, small, m.pupil, {
       at: [0, 0, 0.016],
       scale: [0.03, 0.058, 0.02],
@@ -90,6 +93,45 @@ export function buildFace(head: Group, m: CatMaterials, part: Part): CatFace {
     });
     return { open, pupil, happy, closed, side };
   };
+
+  // Broad cream cheeks sit behind the eyes and the fixed spectacle frames.
+  for (const side of SIDES) {
+    part(head, small, m.belly, {
+      at: [side * 0.16, -0.065, 0.275],
+      scale: [0.225, 0.205, 0.105],
+      line: false,
+      zone: 'chin',
+    });
+    part(head, new TorusGeometry(0.137, 0.012, 10, 56), m.ink, {
+      at: [side * 0.168, 0.008, 0.409],
+      turn: [0, side * 0.13, 0],
+      line: false,
+      zone: 'head',
+    });
+    part(head, new CapsuleGeometry(0.011, 0.065, 4, 8), m.ink, {
+      at: [side * 0.326, 0.025, 0.365],
+      turn: [0, side * 0.35, Math.PI / 2],
+      line: false,
+    });
+  }
+  const bridge = new CatmullRomCurve3([
+    new Vector3(-0.036, 0.025, 0.414),
+    new Vector3(0, 0.043, 0.424),
+    new Vector3(0.036, 0.025, 0.414),
+  ]);
+  part(head, new TubeGeometry(bridge, 12, 0.01, 8, false), m.ink, {
+    line: false,
+  });
+  for (const side of SIDES) {
+    const smile = new CatmullRomCurve3([
+      new Vector3(0, -0.098, 0.39),
+      new Vector3(side * 0.02, -0.13, 0.386),
+      new Vector3(side * 0.045, -0.126, 0.378),
+    ]);
+    part(head, new TubeGeometry(smile, 12, 0.004, 6, false), m.ink, {
+      line: false,
+    });
+  }
 
   for (const s of SIDES) {
     part(head, small, m.belly, {
@@ -119,8 +161,8 @@ export function buildFace(head: Group, m: CatMaterials, part: Part): CatFace {
       line: false,
     });
     for (const k of SIDES) {
-      part(head, whisker, m.ink, {
-        at: [s * 0.27, -0.1 + k * 0.025, 0.3],
+      part(head, whisker, m.shine, {
+        at: [s * 0.34, -0.1 + k * 0.027, 0.35],
         turn: [0, s * 0.35, Math.PI / 2 + s * k * 0.14],
         line: false,
       });

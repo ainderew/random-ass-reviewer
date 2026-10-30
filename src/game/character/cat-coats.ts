@@ -1,27 +1,45 @@
-import { MeshBasicMaterial, type Color } from 'three';
-import { CLAY } from './look';
-import { toonMaterial, type SurfaceMaterial } from './toon';
+import {
+  DataTexture,
+  LinearFilter,
+  MeshBasicMaterial,
+  MeshToonMaterial,
+  RedFormat,
+} from 'three';
+import type { SurfaceMaterial } from './toon';
+
+// A soft painted ramp, independent of the room's clay materials.
+const ramp = new DataTexture(
+  new Uint8Array([155, 195, 226, 255]),
+  4,
+  1,
+  RedFormat,
+);
+ramp.minFilter = LinearFilter;
+ramp.magFilter = LinearFilter;
+ramp.needsUpdate = true;
+const painted = (color: string) =>
+  new MeshToonMaterial({ color, gradientMap: ramp });
 
 // Her coats. Ginger for now; the others are ready for when she can be chosen.
 // A dark coat draws her closed eyes and whiskers in a light line.
 export const COATS = {
   ginger: {
-    coat: '#f2a766',
-    belly: '#fff3e6',
+    coat: '#b89a80',
+    belly: '#fff0d9',
     ear: '#f6b3a5',
-    stripes: '#d77f3c',
-    eye: '#2e2233',
+    stripes: '#796250',
+    eye: '#382319',
     pupil: false,
-    line: '#2e2233',
+    line: '#382319',
   },
   cream: {
     coat: '#fbf1e4',
     belly: '#ffffff',
     ear: '#f5b2ab',
     stripes: null,
-    eye: '#2e2233',
+    eye: '#382319',
     pupil: false,
-    line: '#2e2233',
+    line: '#382319',
   },
   tuxedo: {
     coat: '#3d3444',
@@ -37,9 +55,9 @@ export const COATS = {
     belly: '#f3f0f6',
     ear: '#efb2b8',
     stripes: '#8a84a0',
-    eye: '#2e2233',
+    eye: '#382319',
     pupil: false,
-    line: '#2e2233',
+    line: '#382319',
   },
 } as const;
 export type CoatName = keyof typeof COATS;
@@ -63,35 +81,31 @@ export interface CatMaterials {
 export function catMaterials(): CatMaterials {
   const c = COATS.ginger;
   return {
-    coat: toonMaterial(c.coat),
-    belly: toonMaterial(c.belly),
-    earIn: toonMaterial(c.ear),
-    stripe: toonMaterial(c.stripes),
-    nose: toonMaterial('#ec8a93'),
+    coat: painted(c.coat),
+    belly: painted(c.belly),
+    earIn: painted(c.ear),
+    stripe: painted(c.stripes),
+    nose: painted('#efa18b'),
     iris: new MeshBasicMaterial({ color: c.eye }),
     ink: new MeshBasicMaterial({ color: c.line }),
     pupil: new MeshBasicMaterial({ color: '#1f1824' }),
     shine: new MeshBasicMaterial({ color: '#ffffff' }),
     mouth: new MeshBasicMaterial({ color: '#9b4150' }),
     blush: new MeshBasicMaterial({
-      color: CLAY ? '#f2848f' : '#f2909a',
+      color: '#e8a18d',
       transparent: true,
-      opacity: CLAY ? 0.62 : 0.45,
+      opacity: 0.18,
       depthWrite: false,
     }),
   };
 }
 
-// Soft light on clay pales a colour, so clay coats start a little richer.
-const richen = (color: Color) =>
-  CLAY ? color.offsetHSL(0, 0.1, -0.035) : color;
-
 export function paintCoat(m: CatMaterials, name: CoatName): void {
   const c = COATS[name];
-  richen(m.coat.color.set(c.coat));
+  m.coat.color.set(c.coat);
   m.belly.color.set(c.belly);
-  richen(m.earIn.color.set(c.ear));
+  m.earIn.color.set(c.ear);
   m.iris.color.set(c.eye);
   m.ink.color.set(c.line);
-  if (c.stripes) richen(m.stripe.color.set(c.stripes));
+  if (c.stripes) m.stripe.color.set(c.stripes);
 }
