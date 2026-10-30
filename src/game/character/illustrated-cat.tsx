@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import type { StudySceneCanvasProps } from './study-scene-canvas';
 import { CARE_SECONDS } from './cat-care-goal';
 import styles from './illustrated-cat.module.css';
+import { illustratedActivity } from './illustrated-routine';
 
 const ASSETS = '/assets/study-cat/';
 const CARE_LABEL = {
@@ -21,13 +22,38 @@ export function IllustratedCat({
   cue,
 }: StudySceneCanvasProps) {
   const [petting, setPetting] = useState(false);
+  const [seconds, setSeconds] = useState(0);
+  const [hidden, setHidden] = useState(false);
   const [finishedCue, setFinishedCue] = useState<number | null>(null);
   const petTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const head = useRef<HTMLButtonElement>(null);
   const pressed = useRef(false);
   const activeCue = cue && cue.id !== finishedCue ? cue : null;
   const happy = petting || (activeCue !== null && activeCue.kind !== 'play');
-  const asleep = mood === 'resting';
+  const activity =
+    happy || activeCue
+      ? 'idle'
+      : reducedMotion
+        ? mood === 'resting'
+          ? 'doze'
+          : 'idle'
+        : illustratedActivity(seconds, mood);
+  const asleep =
+    !happy && !activeCue && (mood === 'resting' || activity === 'doze');
+
+  useEffect(() => {
+    const visibility = () => setHidden(document.hidden);
+    document.addEventListener('visibilitychange', visibility);
+    return () => document.removeEventListener('visibilitychange', visibility);
+  }, []);
+
+  useEffect(() => {
+    if (reducedMotion || happy || activeCue || mood === 'resting') return;
+    const timer = setInterval(() => {
+      if (!document.hidden) setSeconds((value) => value + 1);
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [reducedMotion, happy, activeCue, mood]);
 
   useEffect(() => {
     if (!cue) return;
@@ -46,6 +72,7 @@ export function IllustratedCat({
 
   function pet() {
     setPetting(true);
+    setSeconds(0);
     if (petTimer.current) clearTimeout(petTimer.current);
     petTimer.current = setTimeout(() => setPetting(false), 1600);
   }
@@ -61,7 +88,9 @@ export function IllustratedCat({
       data-reduced={reducedMotion}
       data-happy={happy}
       data-asleep={asleep}
-      data-writing={mood === 'studying' && !happy && !activeCue}
+      data-writing={activity === 'write'}
+      data-activity={activity}
+      data-hidden={hidden}
       data-care={activeCue?.kind ?? ''}
     >
       {/* Plain images keep alpha layers aligned and avoid separately lazy-loading expressions. */}
@@ -114,19 +143,21 @@ export function IllustratedCat({
           event.currentTarget.style.setProperty('--look-y', `${y}px`);
         }}
       >
-        <span className={styles.face}>
-          <img
-            className={styles.open}
-            src={`${ASSETS}head.webp`}
-            alt=""
-            draggable={false}
-          />
-          <img
-            className={styles.closed}
-            src={`${ASSETS}happy.webp`}
-            alt=""
-            draggable={false}
-          />
+        <span className={styles.gesture}>
+          <span className={styles.face}>
+            <img
+              className={styles.open}
+              src={`${ASSETS}head.webp`}
+              alt=""
+              draggable={false}
+            />
+            <img
+              className={styles.closed}
+              src={`${ASSETS}happy.webp`}
+              alt=""
+              draggable={false}
+            />
+          </span>
         </span>
       </button>
       <div className={styles.paw}>

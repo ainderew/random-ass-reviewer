@@ -46,3 +46,42 @@ test('new care cues react independently and finish', () => {
   );
   expect(screen.getByRole('status')).toHaveTextContent('That feels lovely');
 });
+
+test('dashboard runs writing, sleepy and wake-up beats without interaction', () => {
+  const { container } = render(<IllustratedCat {...props} mood="wandering" />);
+  expect(container.firstChild).toHaveAttribute('data-activity', 'idle');
+  act(() => jest.advanceTimersByTime(8000));
+  expect(container.firstChild).toHaveAttribute('data-writing', 'true');
+  act(() => jest.advanceTimersByTime(23000));
+  expect(container.firstChild).toHaveAttribute('data-activity', 'sleepy');
+  act(() => jest.advanceTimersByTime(6000));
+  expect(container.firstChild).toHaveAttribute('data-asleep', 'true');
+  act(() => jest.advanceTimersByTime(8000));
+  expect(container.firstChild).toHaveAttribute('data-activity', 'stretch');
+});
+
+test('petting wakes an autonomous nap and starts a fresh idle routine', () => {
+  const { container } = render(<IllustratedCat {...props} mood="wandering" />);
+  act(() => jest.advanceTimersByTime(37000));
+  expect(container.firstChild).toHaveAttribute('data-asleep', 'true');
+  fireEvent.click(screen.getByRole('button', { name: 'Pet the study cat' }));
+  expect(container.firstChild).toHaveAttribute('data-asleep', 'false');
+  act(() => jest.advanceTimersByTime(1600));
+  expect(container.firstChild).toHaveAttribute('data-activity', 'idle');
+});
+
+test('reduced motion disables automatic state cycling', () => {
+  const { container } = render(<IllustratedCat {...props} reducedMotion />);
+  act(() => jest.advanceTimersByTime(120000));
+  expect(container.firstChild).toHaveAttribute('data-activity', 'idle');
+});
+
+test('background tabs pause the routine', () => {
+  const { container } = render(<IllustratedCat {...props} mood="wandering" />);
+  const hidden = jest.spyOn(document, 'hidden', 'get').mockReturnValue(true);
+  act(() => jest.advanceTimersByTime(45000));
+  expect(container.firstChild).toHaveAttribute('data-activity', 'idle');
+  hidden.mockRestore();
+  act(() => jest.advanceTimersByTime(8000));
+  expect(container.firstChild).toHaveAttribute('data-writing', 'true');
+});
