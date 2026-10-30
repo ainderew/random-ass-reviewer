@@ -1,5 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { zodOutputFormat } from '@anthropic-ai/sdk/helpers/zod';
+import { env } from '@/lib/env';
 import { AppError } from '@/server/errors';
 import type { LlmProvider } from './provider';
 import type {
@@ -69,7 +70,10 @@ export class AnthropicApiProvider implements LlmProvider {
         max_tokens: req.maxTokens,
         system: toSystem(req.system),
         messages: [{ role: 'user', content: req.userText }],
-        output_config: { format: zodOutputFormat(req.schema) },
+        output_config: {
+          format: zodOutputFormat(req.schema),
+          effort: env.ANTHROPIC_EFFORT_CARDS,
+        },
       });
       return finish(response);
     } catch (error) {
@@ -99,7 +103,10 @@ export class AnthropicApiProvider implements LlmProvider {
             ],
           },
         ],
-        output_config: { format: zodOutputFormat(req.schema) },
+        output_config: {
+          format: zodOutputFormat(req.schema),
+          effort: env.ANTHROPIC_EFFORT_CARDS,
+        },
       });
       return finish(response);
     } catch (error) {

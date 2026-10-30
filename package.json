@@ -31,7 +31,7 @@
     "eval:cards": "dotenv -e .env.local -- tsx scripts/eval-cards.ts"
   },
   "dependencies": {
-    "@anthropic-ai/claude-agent-sdk": "^0.3.263",
+    "@anthropic-ai/claude-agent-sdk": "^0.3.314",
     "@anthropic-ai/sdk": "^0.124.0",
     "@auth/drizzle-adapter": "^1.11.3",
     "@react-three/drei": "^10.7.8",

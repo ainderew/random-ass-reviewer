@@ -1,6 +1,16 @@
 import { costCents } from './pricing';
 
 describe('costCents', () => {
+  it('prices Opus 5.5 below Opus 5', () => {
+    const million = {
+      inputTokens: 1_000_000,
+      outputTokens: 1_000_000,
+      cacheCreationInputTokens: 0,
+      cacheReadInputTokens: 0,
+    };
+    expect(costCents('claude-opus-5-5', million)).toBeCloseTo(2400, 5);
+  });
+
   it('prices the four usage fields separately, cache reads at a tenth', () => {
     const base = {
       inputTokens: 0,

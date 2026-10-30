@@ -15,7 +15,7 @@ const BEFORE_CHARS = 300;
 const MIN_KEY_ENTRIES = 5;
 const CHARS_PER_CARD = 80;
 const MIN_CARDS = 3;
-const MAX_CARDS = 30;
+const MAX_CARDS = 40;
 
 const HEADING_LINE = /^(?:#{1,3}\s+\S.*|[A-Z][A-Z0-9 &,'/()-]{5,80})$/;
 const KEY_LABEL =

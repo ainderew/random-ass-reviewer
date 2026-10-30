@@ -1,4 +1,4 @@
-import { ClaudeCodeProvider, isLoginFailure } from './claude-code-provider';
+import { ClaudeCodeProvider, isErrorResult } from './claude-code-provider';
 
 describe('ClaudeCodeProvider', () => {
   it('refuses production without the explicit opt-in, and accepts it with', () => {
@@ -11,12 +11,15 @@ describe('ClaudeCodeProvider', () => {
     );
   });
 
-  it('recognises an expired login returned as a successful result', () => {
+  it('recognises an error returned as a successful result', () => {
     expect(
-      isLoginFailure(
+      isErrorResult(
         'Failed to authenticate: OAuth session expired and could not be refreshed',
       ),
     ).toBe(true);
-    expect(isLoginFailure('{"cards":[]}')).toBe(false);
+    expect(
+      isErrorResult('API Error: 400 Claude Code does not support this model'),
+    ).toBe(true);
+    expect(isErrorResult('{"cards":[]}')).toBe(false);
   });
 });

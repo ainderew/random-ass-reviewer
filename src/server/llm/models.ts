@@ -7,8 +7,13 @@ export const MODELS = {
   handwritingOcr: env.ANTHROPIC_MODEL_CARDS,
 } as const;
 
-// Non-streaming ceiling. Covers adaptive thinking plus the card batch.
-export const CARD_MAX_TOKENS = 16_000;
+// A false positive from the safety classifiers should not cost the student a
+// section, so a declined passage gets one retry on the model before it.
+export const REFUSAL_FALLBACK_MODEL = 'claude-opus-5';
+
+// Thinking counts toward this as well as the card batch. A dense page runs past
+// 16,000, and the SDK refuses a non-streaming call much above 21,000.
+export const CARD_MAX_TOKENS = 20_000;
 export const OCR_MAX_TOKENS = 8_000;
 // Three options and four short explanations for one card.
 export const CHOICE_MAX_TOKENS = 8_000;

@@ -1,0 +1,33 @@
+MICROBIOLOGY AND TOXICOLOGY - final coaching notes
+
+GRAM POSITIVE RODS
+
+Bacillus anthracis: non-hemolytic on SBA, non-motile, medusa head colonies, string of pearls with penicillin. Boxcar shaped rods in chains.
+Bacillus cereus: beta hemolytic, motile. Food poisoning from fried rice.
+Corynebacterium diphtheriae: club shaped, Chinese letter arrangement, metachromatic granules with Loeffler methylene blue. Tellurite agar gives black colonies. Elek test detects the toxin.
+Listeria monocytogenes: tumbling motility at 25C, CAMP positive, grows at 4C (cold enrichment).
+Clostridium perfringens: double zone of hemolysis, Nagler test positive, stormy fermentation of milk.
+
+ACID FAST BACILLI
+
+Ziehl-Neelsen is hot stain, Kinyoun is cold. Carbol fuchsin is the primary stain, acid alcohol the decolorizer, methylene blue the counterstain. Auramine-rhodamine is the fluorescent screen, read at lower power so more fields are covered.
+Mycobacterium tuberculosis: niacin positive, nitrate reduction positive, rough buff colonies on Lowenstein-Jensen in 3 to 6 weeks.
+Report of smear: 1-9 AFB per 100 fields is reported with the exact count, 1+ is 10-99 per 100 fields, 2+ is 1-10 per field, 3+ is more than 10 per field.
+Sputum decontamination is NALC with NaOH. NALC is the mucolytic, NaOH the decontaminant.
+
+HEPATITIS B SEROLOGY
+
+HBsAg positive = current infection. Anti-HBs alone = vaccinated. Anti-HBs with anti-HBc = recovered, natural immunity. HBeAg means high infectivity.
+Window period: HBsAg gone and anti-HBs not yet detected, only IgM anti-HBc is positive.
+
+MALARIA
+
+Thick smear to detect, thin smear to identify species. P. falciparum: only ring forms and crescent gametocytes on peripheral smear, multiple rings per cell, Maurer dots. P. vivax: enlarged red cells with Schuffner dots.
+
+TOXICOLOGY AND TDM
+
+Lead: basophilic stippling, whole blood in a trace element tube, atomic absorption is the method. Zinc protoporphyrin rises.
+Carbon monoxide: measured by CO-oximetry, cherry red blood. Carboxyhemoglobin above 20% gives symptoms.
+Acetaminophen: Rumack-Matthew nomogram, draw 4 h after ingestion, earlier levels cannot be interpreted. N-acetylcysteine is the antidote.
+Ethanol: enzymatic with ADH, gas chromatography is the reference. Do not clean the arm with alcohol for the sample.
+TDM: trough is drawn just before the next dose, peak 30 min after IV infusion ends. Digoxin sample at least 6 h after the dose.

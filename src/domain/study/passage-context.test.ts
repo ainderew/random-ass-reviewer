@@ -163,6 +163,6 @@ describe('cardBudget', () => {
   it('grows with the passage, within a floor and a ceiling', () => {
     expect(cardBudget('short')).toBe(3);
     expect(cardBudget('x'.repeat(1600))).toBe(20);
-    expect(cardBudget('x'.repeat(8000))).toBe(30);
+    expect(cardBudget('x'.repeat(8000))).toBe(40);
   });
 });

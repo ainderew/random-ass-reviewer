@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { env } from '@/lib/env';
 import { AppError } from '@/server/errors';
 import { extractJson } from './local-cli-provider';
+import { REFUSAL_FALLBACK_MODEL } from './models';
 import type { LlmProvider } from './provider';
 import type {
   ImageRequest,
@@ -12,12 +13,14 @@ import type {
   TokenUsage,
 } from './types';
 
-const TIMEOUT_MS = 180_000;
+// A full section takes about two minutes at medium effort, thinking included.
+const TIMEOUT_MS = 300_000;
 
 // The owner's own Claude subscription, through the Agent SDK, the same way
 // the tracker app runs. Every call is a hermetic single turn: no tools, no
-// filesystem settings, no session persistence, thinking off. The SDK reads
-// CLAUDE_CODE_OAUTH_TOKEN from the environment (or the local login in dev).
+// filesystem settings, no session persistence. Opus 5.5 always thinks, so effort
+// is what sets how much. The SDK reads CLAUDE_CODE_OAUTH_TOKEN from the
+// environment (or the local login in dev).
 //
 // Refused in production without an explicit opt-in. A subscription serving
 // people other than its owner is the owner's decision, made in the env file,
@@ -93,12 +96,24 @@ export class ClaudeCodeProvider implements LlmProvider {
           maxTurns: 1,
           settingSources: [],
           persistSession: false,
-          thinking: { type: 'disabled' },
+          effort: env.ANTHROPIC_EFFORT_CARDS,
+          ...(model === REFUSAL_FALLBACK_MODEL
+            ? {}
+            : { fallbackModel: REFUSAL_FALLBACK_MODEL }),
           outputFormat: { type: 'json_schema', schema: draft7(schema) },
           abortController,
         },
       });
       for await (const message of stream) {
+        if (
+          message.type === 'system' &&
+          (message.subtype === 'model_refusal_fallback' ||
+            message.subtype === 'model_refusal_no_fallback')
+        ) {
+          console.warn(
+            `[claude-code] ${message.subtype}: ${message.api_refusal_category ?? 'no category'}`,
+          );
+        }
         if (message.type !== 'result') continue;
         if (message.subtype !== 'success') {
           throw classify(
@@ -107,7 +122,13 @@ export class ClaudeCodeProvider implements LlmProvider {
               : message.subtype,
           );
         }
-        if (isLoginFailure(message.result)) throw classify(message.result);
+        if (isErrorResult(message.result)) throw classify(message.result);
+        if (message.stop_reason === 'refusal') {
+          throw new AppError(
+            'INVALID_STATE',
+            'The model declined this passage.',
+          );
+        }
         const raw = message.structured_output ?? extractJson(message.result);
         const parsed = schema.safeParse(raw);
         if (!parsed.success) {
@@ -137,10 +158,11 @@ export class ClaudeCodeProvider implements LlmProvider {
   }
 }
 
-// An expired login comes back as a successful result whose text is the error.
-// Caught here it stops the run; as "not JSON" it would fail every chunk in turn.
-export function isLoginFailure(result: string): boolean {
-  return /^failed to authenticate\b/i.test(result.trim());
+// An expired login or a refused request comes back as a successful result whose
+// text is the error. Caught here it says what went wrong; as "not JSON" it
+// would hide that, and an expired login would fail every chunk in turn.
+export function isErrorResult(result: string): boolean {
+  return /^(?:failed to authenticate|api error)\b/i.test(result.trim());
 }
 
 // The SDK validates with a draft-07 validator that rejects the 2020-12

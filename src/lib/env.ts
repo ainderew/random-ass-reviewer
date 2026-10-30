@@ -15,7 +15,12 @@ const envSchema = z
       .enum(['anthropic-api', 'byok', 'local-cli', 'claude-code', 'fake'])
       .default('anthropic-api'),
     // Which Claude generates cards. Card quality is the product; keep Opus.
-    ANTHROPIC_MODEL_CARDS: z.string().default('claude-opus-5'),
+    ANTHROPIC_MODEL_CARDS: z.string().default('claude-opus-5-5'),
+    // How hard it thinks. Opus 5.5 cannot turn thinking off, so this is the
+    // control for quality, time and cost. Its own default is medium.
+    ANTHROPIC_EFFORT_CARDS: z
+      .enum(['low', 'medium', 'high', 'xhigh'])
+      .default('medium'),
     // AES-256-GCM key material for stored BYOK keys. Any string of 32+ chars.
     ENCRYPTION_KEY: z.string().min(32).optional(),
     // Per user, per calendar month, for the platform-key path. $5 by default.

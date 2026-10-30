@@ -33,6 +33,7 @@ interface ChunkResult {
   kept: GeneratedCard[];
   rejected: number;
   unanswered: number;
+  seconds: number;
   error?: string;
 }
 
@@ -46,6 +47,8 @@ async function runChunk(
   },
 ): Promise<ChunkResult> {
   const { title, text, ordinal, context } = input;
+  const startedAt = Date.now();
+  const elapsed = () => Math.round((Date.now() - startedAt) / 1000);
   const base = { ordinal, chars: text.length };
   try {
     const { data } = await provider.generateStructured({
@@ -61,10 +64,18 @@ async function runChunk(
       kept,
       rejected: data.cards.length - kept.length,
       unanswered: data.unanswered,
+      seconds: elapsed(),
     };
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    return { ...base, kept: [], rejected: 0, unanswered: 0, error: message };
+    return {
+      ...base,
+      kept: [],
+      rejected: 0,
+      unanswered: 0,
+      seconds: elapsed(),
+      error: message,
+    };
   }
 }
 
@@ -94,7 +105,7 @@ function renderCard(card: GeneratedCard): string {
 
 function renderNote(name: string, results: ChunkResult[]): string {
   const sections = results.map((result) => {
-    const head = `## Chunk ${result.ordinal} (${result.chars} chars, ${result.kept.length} kept, ${result.rejected} rejected, ${result.unanswered} unanswered)`;
+    const head = `## Chunk ${result.ordinal} (${result.chars} chars, ${result.kept.length} kept, ${result.rejected} rejected, ${result.unanswered} unanswered, ${result.seconds}s)`;
     const failure = result.error ? [`**Failed:** ${result.error}`] : [];
     return [head, ...failure, ...result.kept.map(renderCard)].join('\n');
   });
@@ -109,8 +120,11 @@ function summarize(name: string, results: ChunkResult[]): string {
     Object.groupBy(kept, (card) => card.questionType),
   ).map(([type, cards]) => `${type} ${cards?.length}`);
   const perChunk = results.map((result) => result.kept.length).join('+');
-  const failed = results.filter((result) => result.error).length;
-  return `${name}: ${kept.length} cards (${perChunk}), ${failed} failed, ${total((r) => r.rejected)} rejected, ${total((r) => r.unanswered)} unanswered, ${types.join(', ')}`;
+  const failures = results.flatMap((result) =>
+    result.error ? [`chunk ${result.ordinal}: ${result.error}`] : [],
+  );
+  const slowest = Math.max(...results.map((result) => result.seconds));
+  return `${name}: ${kept.length} cards (${perChunk}), ${failures.length} failed, ${total((r) => r.rejected)} rejected, ${total((r) => r.unanswered)} unanswered, slowest ${slowest}s, ${types.join(', ')}${failures.map((failure) => `\n  ${failure}`).join('')}`;
 }
 
 async function main(): Promise<void> {
@@ -144,6 +158,7 @@ async function main(): Promise<void> {
     );
     return summarize(name, results);
   });
+  console.log(`${MODELS.cardGeneration} at ${env.ANTHROPIC_EFFORT_CARDS}`);
   console.log(summaries.join('\n'));
 }
 
