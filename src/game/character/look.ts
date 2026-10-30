@@ -11,12 +11,12 @@ export const CLAY =
 // original numbers.
 export const SHAPE = CLAY
   ? {
-      head: 1.12,
+      head: 1.16,
       headLift: 0.035,
       eyes: 1.18,
-      squash: 1.35,
-      headFollow: 0.35,
-      breath: 1.6,
+      squash: 1.15,
+      headFollow: 0.55,
+      breath: 1.25,
       purrSwell: 0.009,
     }
   : {

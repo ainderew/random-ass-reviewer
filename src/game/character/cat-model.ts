@@ -10,7 +10,7 @@ import {
 import { COATS, catMaterials, paintCoat, type CoatName } from './cat-coats';
 import { buildFace, type CatFace } from './cat-face';
 import { partMaker } from './cat-parts';
-import { lathe, OUTLINE } from './toon';
+import { lathe } from './toon';
 
 export type { CatZone } from './cat-parts';
 export type { CoatName } from './cat-coats';
@@ -115,16 +115,6 @@ export function buildCat(): CatRig {
     for (const eye of face.eyes) eye.pupil.visible = COATS[name].pupil;
   };
   coat('ginger');
-
-  // Keep the ink silhouette on the cat even in the softly lit clay room.
-  const ink = OUTLINE.clone();
-  ink.visible = true;
-  ink.uniforms.color!.value.set('#493025');
-  ink.uniforms.thickness!.value = 0.009;
-  root.traverse((object) => {
-    const line = object.userData.outline as Mesh | undefined;
-    if (line) line.material = ink;
-  });
 
   return {
     ...face,

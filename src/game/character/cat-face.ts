@@ -69,19 +69,24 @@ export function buildFace(head: Group, m: CatMaterials, part: Part): CatFace {
     head.add(g);
     const open = new Group();
     g.add(open);
+    part(open, small, m.sclera, {
+      at: [0, 0, -0.006],
+      scale: [0.088, 0.098, 0.027],
+      line: false,
+    });
     part(open, small, m.iris, { scale: [0.075, 0.086, 0.03], line: false });
     const pupil = part(open, small, m.pupil, {
       at: [0, 0, 0.016],
-      scale: [0.03, 0.058, 0.02],
+      scale: [0.046, 0.06, 0.02],
       line: false,
     });
     part(open, small, m.shine, {
-      at: [0.018, 0.028, 0.027],
+      at: [0.02, 0.033, 0.04],
       scale: [0.019, 0.019, 0.01],
       line: false,
     });
     part(open, small, m.shine, {
-      at: [-0.016, -0.026, 0.026],
+      at: [-0.018, -0.025, 0.036],
       scale: [0.009, 0.009, 0.006],
       line: false,
     });
@@ -102,13 +107,13 @@ export function buildFace(head: Group, m: CatMaterials, part: Part): CatFace {
       line: false,
       zone: 'chin',
     });
-    part(head, new TorusGeometry(0.137, 0.012, 10, 56), m.ink, {
+    part(head, new TorusGeometry(0.137, 0.012, 10, 56), m.frames, {
       at: [side * 0.168, 0.008, 0.409],
       turn: [0, side * 0.13, 0],
       line: false,
       zone: 'head',
     });
-    part(head, new CapsuleGeometry(0.011, 0.065, 4, 8), m.ink, {
+    part(head, new CapsuleGeometry(0.011, 0.065, 4, 8), m.frames, {
       at: [side * 0.326, 0.025, 0.365],
       turn: [0, side * 0.35, Math.PI / 2],
       line: false,
@@ -119,7 +124,7 @@ export function buildFace(head: Group, m: CatMaterials, part: Part): CatFace {
     new Vector3(0, 0.043, 0.424),
     new Vector3(0.036, 0.025, 0.414),
   ]);
-  part(head, new TubeGeometry(bridge, 12, 0.01, 8, false), m.ink, {
+  part(head, new TubeGeometry(bridge, 12, 0.01, 8, false), m.frames, {
     line: false,
   });
   for (const side of SIDES) {

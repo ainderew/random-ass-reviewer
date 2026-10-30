@@ -52,6 +52,7 @@ export function composeGoal(s: GoalState): Goal {
   if (!s.reduced) {
     g.yaw = Math.sin(s.t * 0.29) * 0.07;
     g.pitch = Math.sin(s.t * 0.21) * 0.04;
+    g.roll = Math.sin(s.t * 0.33) * 0.025;
   }
   if (s.napping) {
     Object.assign(g, {
@@ -87,6 +88,7 @@ export function composeGoal(s: GoalState): Goal {
     g.pitch = clamp(-dy * 0.95, -0.4, 0.35);
     g.lookX = clamp(dx * 2.2, -1, 1);
     g.lookY = clamp(dy * 2.2, -1, 1);
+    if (!s.reduced) g.roll = clamp(-dx * 0.12, -0.075, 0.075);
     if (s.look.watching) {
       Object.assign(g, { perk: 1, wide: 1, tailSway: 0.22, tailSpeed: 7 });
     }
