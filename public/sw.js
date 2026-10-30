@@ -3,7 +3,7 @@
    network is gone. Money never comes from the cache: API calls are not
    cached at all. */
 // v5 drops the old study character's model from every device's cache.
-const VERSION = 'aloft-v5-cat';
+const VERSION = 'aloft-v6-cat-icon';
 const SHELL = ['/offline', '/manifest.webmanifest', '/icons/icon-192.png'];
 
 self.addEventListener('install', (event) => {

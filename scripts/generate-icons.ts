@@ -2,38 +2,53 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import sharp from 'sharp';
 
-// The lantern post, drawn once as SVG and rasterised at every size the
-// platforms want. Maskable variants keep the mark inside the safe zone.
-function lantern(size: number, padding: number): string {
-  const inner = size - padding * 2;
-  const s = (n: number) => padding + (n / 100) * inner;
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
-  <rect width="${size}" height="${size}" fill="#14161f"/>
-  <rect x="${s(47)}" y="${s(52)}" width="${s(6) - padding}" height="${s(96) - s(52)}" rx="${(inner / 100) * 2}" fill="#8b91a8"/>
-  <path d="M ${s(50)} ${s(10)} L ${s(66)} ${s(24)} L ${s(66)} ${s(50)} L ${s(34)} ${s(50)} L ${s(34)} ${s(24)} Z" fill="#c9932f"/>
-  <path d="M ${s(50)} ${s(16)} L ${s(61)} ${s(26)} L ${s(61)} ${s(46)} L ${s(39)} ${s(46)} L ${s(39)} ${s(26)} Z" fill="#e8b04b"/>
-  <ellipse cx="${s(50)}" cy="${s(36)}" rx="${(inner / 100) * 6}" ry="${(inner / 100) * 8}" fill="#fff1d6"/>
-  <rect x="${s(45)}" y="${s(6)}" width="${s(55) - s(45)}" height="${s(10) - s(6)}" rx="${(inner / 100) * 1.5}" fill="#8b91a8"/>
-</svg>`;
+// The study cat, drawn as a circle on transparent corners. No single file suits
+// every platform, so each size is cut from that art the way its platform needs.
+// Run with `npx tsx scripts/generate-icons.ts`, and bump the service worker's
+// VERSION afterwards: it serves /icons/ cache-first.
+const SOURCE = join(process.cwd(), 'assets', 'app-icon.webp');
+// The largest square inside the circle, which still holds the whole cat.
+const INNER_SQUARE = { left: 196, top: 198, width: 860, height: 860 };
+
+const PAPER = '#fcf2ec';
+
+const encode = (image: ReturnType<typeof sharp>) =>
+  image.png({ compressionLevel: 9 }).toBuffer();
+
+// Browsers and desktops show the art as it was drawn.
+function round(size: number): Promise<Buffer> {
+  return encode(sharp(SOURCE).resize(size, size));
+}
+
+// iOS fills transparency with black, so its icon fills the whole square.
+function fullBleed(size: number): Promise<Buffer> {
+  return encode(
+    sharp(SOURCE).extract(INNER_SQUARE).resize(size, size).flatten(),
+  );
+}
+
+// An Android mask can leave as little as the centre 80%, which the whole circle
+// keeps the cat's ears inside. Softer masks show the corners too, so they get
+// the app's paper colour, the same as the install splash.
+function maskable(size: number): Promise<Buffer> {
+  return encode(
+    sharp(SOURCE).resize(size, size).flatten({ background: PAPER }),
+  );
 }
 
 async function main(): Promise<void> {
   const dir = join(process.cwd(), 'public', 'icons');
   mkdirSync(dir, { recursive: true });
-  const jobs: Array<[string, number, number]> = [
-    ['icon-192.png', 192, 20],
-    ['icon-512.png', 512, 54],
-    ['icon-maskable-512.png', 512, 110],
-    ['apple-touch-icon.png', 180, 24],
+  const jobs: Array<[string, Promise<Buffer>]> = [
+    ['icon-192.png', round(192)],
+    ['icon-512.png', round(512)],
+    ['icon-maskable-512.png', maskable(512)],
+    ['apple-touch-icon.png', fullBleed(180)],
   ];
-  for (const [name, size, padding] of jobs) {
-    const png = await sharp(Buffer.from(lantern(size, padding)))
-      .png()
-      .toBuffer();
-    writeFileSync(join(dir, name), png);
+  for (const [name, png] of jobs) {
+    writeFileSync(join(dir, name), await png);
     console.log(`wrote public/icons/${name}`);
   }
-  writeFileSync(join(dir, 'lantern.svg'), lantern(64, 6));
 }
 
 void main();
