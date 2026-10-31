@@ -1,12 +1,12 @@
 import { expect, test } from '@playwright/test';
 import { signInAsSmokeUser } from './helpers';
 
-test('cat selection survives navigation and reloads', async ({
+test('illustrated cat is the default and selection survives navigation and reloads', async ({
   page,
   context,
 }) => {
   await signInAsSmokeUser(context);
-  await page.goto('/study?cat=illustrated');
+  await page.goto('/study');
   const cat = page.getByRole('button', { name: 'Pet the study cat' });
   await expect(cat).toBeVisible();
   await page.getByRole('link', { name: 'Focus', exact: true }).first().click();
@@ -21,4 +21,15 @@ test('cat selection survives navigation and reloads', async ({
   await page.getByRole('link', { name: 'Today', exact: true }).first().click();
   await expect(page).toHaveURL(/\/study$/);
   await expect(cat).toHaveCount(0);
+});
+
+test('Focus defaults to the illustrated cat in a fresh browser', async ({
+  page,
+  context,
+}) => {
+  await signInAsSmokeUser(context);
+  await page.goto('/focus');
+  await expect(
+    page.getByRole('button', { name: 'Pet the study cat' }),
+  ).toBeVisible();
 });

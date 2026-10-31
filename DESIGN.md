@@ -259,3 +259,9 @@ The versioned `public/illustrations/study-cards-v1.png` is decorative. Review di
 - Don't put illustration behind study text or let it displace the question.
 - Don't reintroduce the tropical field-journal treatment into study pages.
 - Don't replace the retained island game or its saved progress as part of a visual extension.
+
+### Illustrated study companion
+
+Today and Focus default to the orange illustrated cat at a study desk. Separate raster layers animate breathing, head movement, writing, sleepy nods, dozing and waking; tapping or stroking the head triggers a happy reaction. Reduced motion stops animation and the automatic routine. Background tabs pause it. The background remains still.
+
+The browser remembers an explicit character selection. `?cat=3d` retains the earlier clay character, earned room visuals and full care animations described above. The illustrated version currently acknowledges care with expressions and text; its desk does not change with earned room milestones.

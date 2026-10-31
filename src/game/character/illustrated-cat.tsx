@@ -14,8 +14,8 @@ const CARE_LABEL = {
   play: 'Ready to play',
 };
 
-// An opt-in illustration prototype. The earned 3D room remains available
-// through the normal route while this artwork and its reactions are reviewed.
+// Default illustrated companion. The earned 3D room remains available
+// with ?cat=3d; care cues here use expression and text feedback.
 export function IllustratedCat({
   mood,
   reducedMotion,

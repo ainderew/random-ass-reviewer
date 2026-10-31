@@ -20,7 +20,7 @@ const IllustratedCat = dynamic(
 
 const PREFERENCE_KEY = 'aloft-cat-view';
 const PREFERENCE_EVENT = 'aloft-cat-view-change';
-let inMemoryView = '3d';
+let inMemoryView = 'illustrated';
 
 function savedView() {
   try {
@@ -37,7 +37,7 @@ function subscribeView(onChange: () => void) {
     window.removeEventListener(PREFERENCE_EVENT, onChange);
   };
 }
-const serverView = () => '3d';
+const serverView = () => 'illustrated';
 
 function CharacterVariant(props: StudySceneCanvasProps) {
   const query = useSearchParams();
