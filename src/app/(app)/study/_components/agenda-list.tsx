@@ -1,113 +1,138 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
+import { useId, useRef, useState } from 'react';
+import { NotesIcon, ReviewIcon, TimerIcon } from '@/components/icons';
 import type { StudyBudget } from '@/domain/review/today';
-import type { AgendaStep } from '@/domain/study/agenda';
+import { actionFor, type AgendaStep } from '@/domain/study/agenda';
 
-// Today's steps. Each row is a link to its step; the one to do now is
-// outlined and pulses. The review row carries its size, in cards.
 const SIZES: readonly { minutes: StudyBudget; cards: number }[] = [
   { minutes: 5, cards: 6 },
   { minutes: 15, cards: 18 },
   { minutes: 30, cards: 36 },
 ];
 
-const STATE_LABEL = { done: 'done', now: 'next', later: '' } as const;
-
-const Mark = ({ state }: { state: AgendaStep['state'] }) => (
-  <span
-    aria-hidden="true"
-    className={`grid size-[22px] shrink-0 place-items-center rounded-full text-xs font-bold ${
-      state === 'done'
-        ? 'bg-done text-white'
-        : state === 'now'
-          ? 'agenda-pulse bg-focus'
-          : 'shadow-[inset_0_0_0_2px_var(--color-hairline)]'
-    }`}
-  >
-    {state === 'done' ? '✓' : null}
-  </span>
-);
-
 export const AgendaList = ({
   steps,
   size,
   onSize,
+  focusing = false,
 }: {
   steps: AgendaStep[];
   size: StudyBudget;
   onSize: (size: StudyBudget) => void;
+  focusing?: boolean;
 }) => {
   const [picking, setPicking] = useState(false);
+  const pickerId = useId();
+  const pickerTrigger = useRef<HTMLButtonElement>(null);
   return (
-    <ol aria-label="Today's plan" className="grid gap-2">
-      {steps.map((step) => (
-        <li key={step.id}>
-          <div
-            className={`flex min-h-[52px] items-center gap-3 rounded-[14px] pr-2 ${
-              step.state === 'now'
-                ? 'bg-ground-2 shadow-[inset_0_0_0_2px_var(--color-focus)]'
+    <ol aria-label="Today's plan" className="grid gap-3">
+      {steps.map((step) => {
+        const primary = focusing ? step.id === 'focus' : step.state === 'now';
+        const Icon =
+          step.id === 'notes'
+            ? NotesIcon
+            : step.id === 'focus'
+              ? TimerIcon
+              : ReviewIcon;
+        const label =
+          focusing && step.id === 'focus'
+            ? 'Back to your session'
+            : step.state === 'done'
+              ? step.title
+              : actionFor(step)!.label;
+        const detail =
+          step.id === 'notes'
+            ? 'Turn your notes into practice cards'
+            : step.id === 'focus'
+              ? focusing
+                ? 'Your timer is running'
                 : step.state === 'done'
-                  ? ''
-                  : 'bg-ground-2 shadow-[inset_0_0_0_1px_var(--color-hairline)]'
-            }`}
-          >
+                  ? step.detail
+                  : `With ${step.title.replace('Focus with ', '')} · Choose a duration`
+              : step.state === 'done'
+                ? step.detail
+                : `${step.detail} ready to practise`;
+        return (
+          <li key={step.id}>
             <Link
               href={step.href}
-              className="flex min-h-[52px] flex-1 items-center gap-3 rounded-[14px] pl-3.5 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
+              aria-label={label}
+              className={`flex min-h-20 items-center gap-3 rounded-xl px-4 py-3 focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-focus ${primary ? 'bg-focus text-white hover:bg-focus-deep' : 'border border-hairline bg-ground-2 text-ink hover:bg-ground-3'}`}
             >
-              <Mark state={step.state} />
-              <span
-                className={`font-medium ${step.state === 'done' ? 'text-muted line-through decoration-hairline' : 'text-ink'}`}
-              >
-                {step.title}
-                {STATE_LABEL[step.state] ? (
-                  <span className="sr-only">, {STATE_LABEL[step.state]}</span>
-                ) : null}
-              </span>
-              {step.id === 'review' && step.state !== 'done' ? null : (
-                <span className="ml-auto pr-1.5 text-[0.9375rem] text-ink-2 tabular-nums">
-                  {step.detail}
-                </span>
-              )}
-            </Link>
-            {step.id === 'review' && step.state !== 'done' ? (
-              <button
-                type="button"
-                aria-expanded={picking}
-                aria-label={`${step.detail}. Change how many`}
-                onClick={() => setPicking((p) => !p)}
-                className="min-h-9 shrink-0 rounded-full bg-ground-3 px-3 text-sm text-ink-2 tabular-nums"
-              >
-                {step.detail} ▾
-              </button>
-            ) : null}
-          </div>
-          {step.id === 'review' && picking ? (
-            <div
-              role="group"
-              aria-label="Review size"
-              className="flex gap-1.5 pt-2 pl-10"
-            >
-              {SIZES.map((s) => (
-                <button
-                  key={s.minutes}
-                  type="button"
-                  aria-pressed={size === s.minutes}
-                  onClick={() => {
-                    onSize(s.minutes);
-                    setPicking(false);
-                  }}
-                  className="min-h-9 rounded-full border border-hairline bg-ground-2 px-3 text-sm aria-pressed:border-ink aria-pressed:bg-ink aria-pressed:text-ground-2"
+              <Icon size={24} className="shrink-0" />
+              <span className="min-w-0 flex-1">
+                <span className="block text-base font-bold">{label}</span>
+                <span
+                  className={`mt-0.5 block text-sm leading-snug ${primary ? 'text-white' : 'text-ink-2'}`}
                 >
-                  Up to {s.cards}
+                  {detail}
+                </span>
+                {step.state === 'done' && step.detail !== 'Nothing due' && (
+                  <span className="mt-1 block text-xs font-semibold">
+                    Completed today
+                  </span>
+                )}
+              </span>
+              <svg
+                aria-hidden="true"
+                className="shrink-0"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.75"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M5 12h14m-5-5 5 5-5 5" />
+              </svg>
+            </Link>
+            {step.id === 'review' && step.state !== 'done' && (
+              <>
+                <button
+                  type="button"
+                  ref={pickerTrigger}
+                  aria-expanded={picking}
+                  aria-controls={pickerId}
+                  aria-label={`${step.detail}. Change how many`}
+                  onClick={() => setPicking((value) => !value)}
+                  className="mt-1 flex min-h-11 items-center gap-2 rounded-lg px-3 text-sm font-medium text-ink-2 hover:bg-ground-3 focus-visible:outline-2 focus-visible:outline-focus"
+                >
+                  Change card count{' '}
+                  <span aria-hidden="true">{picking ? '−' : '+'}</span>
                 </button>
-              ))}
-            </div>
-          ) : null}
-        </li>
-      ))}
+                {picking && (
+                  <div
+                    id={pickerId}
+                    role="group"
+                    aria-label="Review size"
+                    className="grid grid-cols-3 gap-2 pb-1"
+                  >
+                    {SIZES.map((option) => (
+                      <button
+                        key={option.minutes}
+                        type="button"
+                        aria-pressed={size === option.minutes}
+                        onClick={() => {
+                          onSize(option.minutes);
+                          setPicking(false);
+                          pickerTrigger.current?.focus();
+                        }}
+                        className="min-h-11 rounded-lg border border-hairline bg-ground-2 px-2 text-sm text-ink aria-pressed:border-focus aria-pressed:bg-focus aria-pressed:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
+                      >
+                        Up to {option.cards}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </>
+            )}
+          </li>
+        );
+      })}
     </ol>
   );
 };

@@ -135,8 +135,8 @@ describe('TodayView', () => {
       screen.getByRole('list', { name: "Today's plan" }),
     ).getAllByRole('listitem');
     expect(steps.map((s) => s.textContent)).toEqual([
-      expect.stringContaining('Review cards'),
-      expect.stringContaining('Focus with Toast'),
+      expect.stringContaining('Start review'),
+      expect.stringContaining('Start focusing'),
     ]);
   });
 
@@ -151,6 +151,9 @@ describe('TodayView', () => {
       '/review?minutes=5',
     );
     expect(localStorage.getItem('aloft:review-minutes')).toBe('5');
+    expect(
+      screen.getByRole('button', { name: '6 cards. Change how many' }),
+    ).toHaveFocus();
   });
 
   it('keeps music off until it is chosen, then remembers it', async () => {
@@ -253,4 +256,28 @@ describe('TodayView', () => {
       /Toast is waiting for you\. She looks lonely\.$/,
     );
   });
+});
+
+it('makes the empty-notes action clear without radio controls or a duplicate button', async () => {
+  plan = { ...plan, approved: 0, batches: batches(0) };
+  render(<TodayView />, { wrapper });
+  const add = await screen.findByRole('link', { name: 'Add notes' });
+  expect(add).toHaveAttribute('href', '/notes');
+  expect(
+    within(add).getByText('Turn your notes into practice cards'),
+  ).toBeVisible();
+  expect(screen.getAllByRole('link', { name: 'Add notes' })).toHaveLength(1);
+  expect(screen.queryByRole('radio')).toBeNull();
+  expect(screen.getByRole('link', { name: 'Start focusing' })).toHaveAttribute(
+    'href',
+    '/focus',
+  );
+});
+
+it('does not claim completed reviews when none were due or reviewed', async () => {
+  plan = { ...plan, batches: batches(0), reviewedToday: 0 };
+  render(<TodayView />, { wrapper });
+  const review = await screen.findByRole('link', { name: 'Review cards' });
+  expect(within(review).getByText('Nothing due')).toBeVisible();
+  expect(within(review).queryByText('Completed today')).toBeNull();
 });

@@ -1419,3 +1419,28 @@ select.study-field {
     transition: none;
   }
 }
+
+/* Press response is immediate, including on phones without vibration support. */
+[data-tap-feedback] :is(button, a[href]) {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    transform 140ms ease-out,
+    filter 140ms ease-out,
+    background-color 140ms ease-out;
+}
+[data-tap-feedback]
+  :is(button, a[href]):not(:disabled):not([aria-disabled='true']):active {
+  transform: scale(0.975);
+  filter: brightness(0.94);
+  transition-duration: 50ms;
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-tap-feedback] :is(button, a[href]) {
+    transition: none;
+  }
+  [data-tap-feedback]
+    :is(button, a[href]):not(:disabled):not([aria-disabled='true']):active {
+    transform: none;
+  }
+}

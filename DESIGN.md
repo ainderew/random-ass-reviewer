@@ -221,7 +221,9 @@ The phone tab bar has five equal columns for Today (`/study`), Focus (`/focus`),
 
 ### Today
 
-Today reads at a glance. From top to bottom: the cat in her circle (the ring fills as the day's steps are done; a 44px round music button sits on the ring's lower right, paper when off and the pressed coral tint when on), one short line from her naming the next step, her name and mood (opens her sheet), the day's steps, four care buttons, the weekly progress row, and one coral button that does the next step. The button stays pinned above the tab bar. Steps show one number each ("18 cards", "10 of 25 min"); the step to do now is outlined and its dot pulses. No explanatory paragraphs on Today: reasons live on How it works.
+Today presents the cat, a short next-step message, her name and mood, direct study actions, four care buttons, and weekly progress. Each action has a descriptive icon, an explicit action label, one supporting line, and an arrow. The next action uses solid coral; other actions use paper with a fine border. There are no radio-like dots or duplicate pinned action. Notes explains that notes become practice cards; Focus opens duration selection and returns to an active session when one exists. Review count changes through a separate disclosure with 44px controls; selecting a size returns keyboard focus to its trigger. Completed labels describe actual completed activity, while an empty review queue says Nothing due.
+
+Today and Focus setup controls respond to activation with a short visual press. Supported browsers also get an 8ms vibration on enabled controls. Reduced motion disables scaling, transitions and vibration. Vibration is optional browser support, never a requirement for completing an action.
 
 ### Focus sound
 

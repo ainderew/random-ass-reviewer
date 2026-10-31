@@ -9,15 +9,11 @@ import { MusicIcon, ProgressIcon } from '@/components/icons';
 import { Skeleton } from '@/components/ui/skeleton';
 import { PET_MOOD_LABEL } from '@/domain/pet/happiness';
 import type { TodayPlan } from '@/domain/review/today';
-import {
-  actionFor,
-  catLine,
-  currentStep,
-  dayAgenda,
-} from '@/domain/study/agenda';
+import { catLine, dayAgenda } from '@/domain/study/agenda';
 import type { CareRequest, SessionSnapshot } from '@/domain/types';
 import type { CareCue } from '@/game/character/study-cat';
 import { apiFetch } from '@/lib/api-client';
+import { tapFeedback } from '@/lib/tap-feedback';
 import { useCare, usePet } from '../_hooks/use-pet';
 import { useReviewSize } from '../_hooks/use-review-size';
 import { useTodayMusic } from '../_hooks/use-today-music';
@@ -84,9 +80,6 @@ export const TodayView = () => {
   });
   const focusing = Boolean(session.data);
   const missing = cat.missesYou && !greeted;
-  const action = focusing
-    ? { label: 'Back to your session', href: '/focus' }
-    : actionFor(currentStep(steps));
   const done = steps.filter((s) => s.state === 'done').length;
   const hearts = Math.max(0, Math.min(5, Math.round(cat.happiness / 20)));
 
@@ -99,7 +92,11 @@ export const TodayView = () => {
   };
 
   return (
-    <div className="mx-auto flex w-full max-w-md flex-col gap-4">
+    <div
+      data-tap-feedback
+      onClickCapture={tapFeedback}
+      className="mx-auto flex w-full max-w-md flex-col gap-4"
+    >
       <div onPointerDown={() => setGreeted(true)}>
         <FocusCircle
           progress={stats?.career ?? NO_PROGRESS}
@@ -145,7 +142,12 @@ export const TodayView = () => {
         <span>{cat.missesYou ? 'Misses you' : PET_MOOD_LABEL[cat.mood]}</span>
       </button>
 
-      <AgendaList steps={steps} size={size} onSize={setSize} />
+      <AgendaList
+        steps={steps}
+        size={size}
+        onSize={setSize}
+        focusing={focusing}
+      />
 
       <QuickCare pet={cat} busy={care.isPending} onCare={onCare} />
       {care.error ? (
@@ -164,15 +166,6 @@ export const TodayView = () => {
         </span>
         <span aria-hidden="true">›</span>
       </Link>
-
-      {action ? (
-        <Link
-          href={action.href}
-          className="sticky bottom-[calc(4.75rem+env(safe-area-inset-bottom))] z-(--z-sticky) flex min-h-14 items-center justify-center rounded-[14px] bg-focus text-base font-semibold text-white shadow-[0_-10px_18px_var(--color-ground)] transition-[background-color,transform] duration-150 hover:bg-focus-deep active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus lg:bottom-6"
-        >
-          {action.label}
-        </Link>
-      ) : null}
 
       {sheet ? (
         <PetSheet

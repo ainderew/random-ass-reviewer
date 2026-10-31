@@ -2,6 +2,7 @@ import type { CareerProgress } from '@/domain/career/milestones';
 import type { SessionLength } from '@/domain/session/rungs';
 import type { PetView } from '@/domain/types';
 import { Button } from '@/components/ui/button';
+import { tapFeedback } from '@/lib/tap-feedback';
 import { formatClock } from '@/lib/format-time';
 import { catLook } from './cat-look';
 import { FocusCircle } from './focus-circle';
@@ -28,7 +29,11 @@ export const FocusIdle = ({
   error: string | null;
   onStart: () => void;
 }) => (
-  <div className="mx-auto flex w-full max-w-md flex-col items-center gap-5 text-center">
+  <div
+    data-tap-feedback
+    onClickCapture={tapFeedback}
+    className="mx-auto flex w-full max-w-md flex-col items-center gap-5 text-center"
+  >
     <FocusCircle
       progress={career}
       mood="wandering"
