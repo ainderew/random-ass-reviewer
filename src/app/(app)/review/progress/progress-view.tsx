@@ -7,12 +7,14 @@ import { ChevronLeftIcon } from '@/components/icons';
 import { apiFetch } from '@/lib/api-client';
 import { learningProgressKey, progressOverviewKey } from '@/lib/query-keys';
 import { NextSteps } from './next-steps';
-import { ExamCard, SummaryTiles } from './overview-cards';
+import { ExamCard } from './overview-cards';
+import { GrowthSummary } from './growth-summary';
+import styles from './progress.module.css';
+import { tapFeedback } from '@/lib/tap-feedback';
 import { SubjectProgress } from './subject-progress';
 import { TrendChart } from './trend-chart';
 
-// A dashboard read top to bottom: the exam and the pace, four numbers that
-// move with real learning, each subject, then the detail behind them.
+// The visible summary stays compact; deeper measures are available on demand.
 export function ProgressView() {
   const progress = useQuery({
     queryKey: learningProgressKey,
@@ -24,7 +26,11 @@ export function ProgressView() {
   });
   const failed = progress.isError || overview.isError;
   return (
-    <div className="mx-auto w-full max-w-3xl min-w-0 space-y-6">
+    <div
+      className="mx-auto w-full max-w-2xl min-w-0 space-y-6"
+      data-tap-feedback
+      onClickCapture={tapFeedback}
+    >
       <div className="space-y-1">
         <Link href="/review" className="session-back">
           <ChevronLeftIcon size={20} />
@@ -33,9 +39,7 @@ export function ProgressView() {
         <h1 className="font-display text-[clamp(2rem,6vw,2.5rem)] leading-tight font-extrabold tracking-[-0.02em] text-ink">
           Your progress
         </h1>
-        <p className="text-ink-2">
-          What is sticking, and what needs another try.
-        </p>
+        <p className="text-ink-2">Small steps, adding up.</p>
       </div>
       {!progress.data || !overview.data ? (
         <p role={failed ? 'alert' : 'status'}>
@@ -58,14 +62,38 @@ export function ProgressView() {
         </p>
       ) : (
         <>
-          <ExamCard overview={overview.data} />
-          <SummaryTiles overview={overview.data} progress={progress.data} />
-          <SubjectProgress overview={overview.data} progress={progress.data} />
-          <NextSteps data={progress.data} />
-          <TrendChart data={progress.data} />
+          <GrowthSummary overview={overview.data} progress={progress.data} />
+          <div>
+            {overview.data.cards.total > 0 && (
+              <details className={styles.disclosure}>
+                <summary>Explore subjects</summary>
+                <div>
+                  <SubjectProgress
+                    overview={overview.data}
+                    progress={progress.data}
+                  />
+                  <NextSteps data={progress.data} />
+                </div>
+              </details>
+            )}
+            {progress.data.reviews > 0 && (
+              <details className={styles.disclosure}>
+                <summary>Accuracy & recall</summary>
+                <div>
+                  <TrendChart data={progress.data} />
+                </div>
+              </details>
+            )}
+            <details className={styles.disclosure}>
+              <summary>Exam & study pace</summary>
+              <div>
+                <ExamCard overview={overview.data} />
+              </div>
+            </details>
+          </div>
           <details className="border-t border-hairline pt-3">
             <summary className="min-h-11 cursor-pointer content-center font-medium">
-              What these measures can tell you
+              How progress is measured
             </summary>
             <div className="space-y-3 py-3 text-sm leading-relaxed text-ink-2">
               <p>
@@ -73,6 +101,11 @@ export function ProgressView() {
                 with those reviews spread over a week or more. Remembered is any
                 rating but Again, or the right multiple-choice pick. It counts
                 what you did, not a prediction.
+              </p>
+              <p>
+                Learning means reviewed but not yet solid. Not started means an
+                approved card has not been reviewed. The weekly bars count
+                completed reviews, including repeat practice.
               </p>
               <p>
                 Delayed testing helps distinguish lasting learning from a good
