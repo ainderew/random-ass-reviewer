@@ -71,3 +71,36 @@ export function updateStreak(input: {
     : null;
   return { streak, freezesRemaining: freezes, freezeUsed, milestone };
 }
+
+export interface StreakSummary {
+  days: number;
+  todayDone: boolean;
+  freezesRemaining: number;
+  freezePending: boolean;
+  nextMilestone: number | null;
+  minimumMinutes: number;
+}
+
+// Preview the existing session rules without awarding a day or spending a
+// freeze. Old saved streaks must not look active after a long absence.
+export function summarizeStreak(
+  input: Parameters<typeof updateStreak>[0],
+  minimumMinutes = 5,
+): StreakSummary {
+  const next = updateStreak(input);
+  const todayDone =
+    input.lastSessionDate !== null && input.lastSessionDate >= input.todayDate;
+  const days = todayDone
+    ? input.currentStreak
+    : next.streak > 1
+      ? input.currentStreak
+      : 0;
+  return {
+    days,
+    todayDone,
+    freezesRemaining: next.freezesRemaining + Number(next.freezeUsed),
+    freezePending: next.freezeUsed,
+    nextMilestone: STREAK_MILESTONES.find((n) => n > days) ?? null,
+    minimumMinutes,
+  };
+}

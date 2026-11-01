@@ -1,14 +1,14 @@
 import { eq } from 'drizzle-orm';
 import { initialCardState } from '@/domain/review/scheduler';
 import { closeDb, db } from '@/server/db';
-import { focusSessions, users } from '@/server/db/schema';
+import { focusSessions, users, userStats } from '@/server/db/schema';
 import { insertCards } from '@/server/repositories/card';
 import { insertNoteChunks, insertNoteSource } from '@/server/repositories/note';
 import { submitAnswer } from './review';
 import { getWeeklySummary } from './stats';
 import { createUserWithDefaults } from './user-bootstrap';
 import { exportUserData } from './user-export';
-import { getDailySummary } from './user-stats';
+import { getDailySummary, getStatsSnapshot } from './user-stats';
 
 const HOUR = 3_600_000;
 
@@ -25,6 +25,30 @@ describe('weekly summary and export', () => {
   afterAll(async () => {
     await db.delete(users).where(eq(users.id, userId));
     await closeDb();
+  });
+
+  it('reports a protected local-day streak without changing balances or spending a freeze', async () => {
+    await db
+      .update(users)
+      .set({ timezone: 'Asia/Manila' })
+      .where(eq(users.id, userId));
+    await db
+      .update(userStats)
+      .set({ streakDays: 6, streakFreezes: 1, lastSessionDate: '2026-11-08' })
+      .where(eq(userStats.userId, userId));
+    const now = Date.UTC(2026, 10, 9, 18); // Nov 10 in Manila.
+    const first = await getStatsSnapshot(userId, now);
+    const second = await getStatsSnapshot(userId, now);
+    expect(first.streak).toMatchObject({
+      days: 6,
+      todayDone: false,
+      freezePending: true,
+      freezesRemaining: 1,
+      nextMilestone: 7,
+    });
+    expect(second.stats).toEqual(first.stats);
+    expect(second.stats.streakFreezes).toBe(1);
+    await db.update(users).set({ timezone: 'UTC' }).where(eq(users.id, userId));
   });
 
   it('sums this week in the user day, flags heavy weeks, and counts reviews', async () => {

@@ -32,6 +32,8 @@ export interface UserStats {
 }
 
 export interface StatsSnapshot {
+  // Optional for clients hydrating a snapshot from an older deployment.
+  streak?: import('../economy/streak').StreakSummary;
   stats: PublicUserStats;
   today: import('./session').DailySummary;
   // Lifetime work the career scene draws from.

@@ -3,6 +3,7 @@ import {
   STREAK_MILESTONES,
   milestoneInsight,
   updateStreak,
+  summarizeStreak,
 } from './streak';
 
 const base = { currentStreak: 5, freezesRemaining: 2 };
@@ -153,5 +154,62 @@ describe('streak edge cases', () => {
     expect(milestoneInsight(null)).toBe(0);
     expect(milestoneInsight(5)).toBe(0);
     expect(milestoneInsight(7)).toBe(10);
+  });
+});
+
+describe('streak summary', () => {
+  const input = {
+    currentStreak: 6,
+    freezesRemaining: 1,
+    todayDate: '2026-11-10',
+    lastSessionDate: '2026-11-09',
+  };
+  it('does not award today before a qualifying session', () => {
+    expect(summarizeStreak(input)).toMatchObject({
+      days: 6,
+      todayDone: false,
+      nextMilestone: 7,
+      freezesRemaining: 1,
+    });
+  });
+  it('marks a completed local day without incrementing it again', () => {
+    expect(
+      summarizeStreak({ ...input, lastSessionDate: input.todayDate }),
+    ).toMatchObject({ days: 6, todayDone: true });
+  });
+  it('previews a protected rest day without consuming the freeze', () => {
+    expect(
+      summarizeStreak({ ...input, lastSessionDate: '2026-11-08' }),
+    ).toMatchObject({ days: 6, freezePending: true, freezesRemaining: 1 });
+  });
+  it.each([
+    ['2026-11-08', 0],
+    ['2026-11-07', 1],
+  ])(
+    'does not show an expired saved streak as current (%s)',
+    (lastSessionDate, freezesRemaining) => {
+      expect(
+        summarizeStreak({ ...input, lastSessionDate, freezesRemaining }),
+      ).toMatchObject({ days: 0, todayDone: false, nextMilestone: 3 });
+    },
+  );
+  it('refreshes monthly freezes using the same rules as settlement', () => {
+    expect(
+      summarizeStreak({
+        ...input,
+        todayDate: '2026-11-01',
+        lastSessionDate: '2026-10-30',
+        freezesRemaining: 0,
+      }),
+    ).toMatchObject({ days: 6, freezePending: true, freezesRemaining: 2 });
+  });
+  it('handles a first visit and a streak beyond the last milestone', () => {
+    expect(
+      summarizeStreak({ ...input, lastSessionDate: null, currentStreak: 0 }),
+    ).toMatchObject({ days: 0, freezesRemaining: 2, nextMilestone: 3 });
+    expect(summarizeStreak({ ...input, currentStreak: 101 })).toMatchObject({
+      days: 101,
+      nextMilestone: null,
+    });
   });
 });

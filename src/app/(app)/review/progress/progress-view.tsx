@@ -6,6 +6,8 @@ import type { ProgressOverview } from '@/domain/types';
 import { ChevronLeftIcon } from '@/components/icons';
 import { apiFetch } from '@/lib/api-client';
 import { learningProgressKey, progressOverviewKey } from '@/lib/query-keys';
+import { StreakTracker } from '@/components/study/streak-tracker';
+import { useStats } from '@/app/(app)/_hooks/use-stats';
 import { NextSteps } from './next-steps';
 import { ExamCard } from './overview-cards';
 import { GrowthSummary } from './growth-summary';
@@ -16,6 +18,7 @@ import { TrendChart } from './trend-chart';
 
 // The visible summary stays compact; deeper measures are available on demand.
 export function ProgressView() {
+  const { data: stats } = useStats();
   const progress = useQuery({
     queryKey: learningProgressKey,
     queryFn: () => apiFetch<LearningProgress>('/api/review/progress'),
@@ -62,6 +65,7 @@ export function ProgressView() {
         </p>
       ) : (
         <>
+          {stats?.streak && <StreakTracker streak={stats.streak} />}
           <GrowthSummary overview={overview.data} progress={progress.data} />
           <div>
             {overview.data.cards.total > 0 && (

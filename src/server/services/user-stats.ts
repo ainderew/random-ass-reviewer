@@ -1,3 +1,8 @@
+import { summarizeStreak } from '@/domain/economy/streak';
+import { MIN_SESSION_MS } from '@/domain/economy/constants';
+import { localDayKey } from '@/domain/time/local-day';
+import { findUserById } from '@/server/repositories/user';
+import { env } from '@/lib/env';
 import type {
   DailySummary,
   PublicUserStats,
@@ -60,11 +65,28 @@ export async function getCareerProgress(
 }
 
 // Everything the HUD and the idle timer screen need, in one fetch.
-export async function getStatsSnapshot(userId: string): Promise<StatsSnapshot> {
-  const [stats, today, career] = await Promise.all([
+export async function getStatsSnapshot(
+  userId: string,
+  now = Date.now(),
+): Promise<StatsSnapshot> {
+  const [stats, today, career, user] = await Promise.all([
     getUserStats(userId),
-    getDailySummary(userId),
+    getDailySummary(userId, now),
     getCareerProgress(userId),
+    findUserById(db, userId),
   ]);
-  return { stats: toPublicStats(stats), today, career };
+  return {
+    stats: toPublicStats(stats),
+    today,
+    career,
+    streak: summarizeStreak(
+      {
+        lastSessionDate: stats.lastSessionDate,
+        todayDate: localDayKey(now, user?.timezone ?? 'UTC'),
+        currentStreak: stats.streakDays,
+        freezesRemaining: stats.streakFreezes,
+      },
+      Math.ceil((env.MIN_SESSION_MS_OVERRIDE ?? MIN_SESSION_MS) / 60_000),
+    ),
+  };
 }

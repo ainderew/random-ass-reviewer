@@ -6,6 +6,7 @@ import { useState } from 'react';
 import { useAutoTimeZone } from '@/app/(app)/_hooks/use-auto-time-zone';
 import { useStats } from '@/app/(app)/_hooks/use-stats';
 import { MusicIcon, ProgressIcon } from '@/components/icons';
+import { StreakTracker } from '@/components/study/streak-tracker';
 import { Skeleton } from '@/components/ui/skeleton';
 import { PET_MOOD_LABEL } from '@/domain/pet/happiness';
 import type { TodayPlan } from '@/domain/review/today';
@@ -97,6 +98,7 @@ export const TodayView = () => {
       onClickCapture={tapFeedback}
       className="mx-auto flex w-full max-w-md flex-col gap-4"
     >
+      {stats?.streak && <StreakTracker streak={stats.streak} />}
       <div onPointerDown={() => setGreeted(true)}>
         <FocusCircle
           progress={stats?.career ?? NO_PROGRESS}

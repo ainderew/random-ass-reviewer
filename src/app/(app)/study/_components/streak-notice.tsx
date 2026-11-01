@@ -12,11 +12,11 @@ export const StreakNotice = ({ streak }: { streak: SessionStreak }) => {
         className={`${pop.className} rounded-lg border border-hairline bg-ground-2 px-4 py-3`}
       >
         <p className="font-serif text-xl text-ink">
-          {streak.milestone} days in a row
+          {streak.milestone}-day focus streak
         </p>
         <p className="text-sm text-ink-2">
           +{streak.milestoneInsight} Insight for showing up {streak.milestone}{' '}
-          days running.
+          days.
         </p>
       </div>
     );
@@ -32,5 +32,17 @@ export const StreakNotice = ({ streak }: { streak: SessionStreak }) => {
       </p>
     );
   }
-  return null;
+  return (
+    <div
+      role="status"
+      className={`${pop.className} rounded-lg border border-hairline bg-ground-2 px-4 py-3`}
+    >
+      <p className="font-serif text-xl text-ink">
+        {streak.days}-day focus streak
+      </p>
+      <p className="text-sm text-ink-2">
+        Today is complete. Your next day starts tomorrow.
+      </p>
+    </div>
+  );
 };
