@@ -38,14 +38,11 @@ beforeEach(() => {
           sessionId: 's1',
           focusedMs: 0,
           creditedMs: 0,
-          focusAwarded: 0,
-          xpAwarded: 0,
-          quizMultiplier: 1,
+
           cappedByDailyLimit: false,
           belowMinimum: true,
-          levelUp: null,
+
           streak: null,
-          cache: null,
         });
       throw new Error(`Unmocked route ${path}`);
     },

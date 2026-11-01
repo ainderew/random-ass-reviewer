@@ -8,9 +8,6 @@ export interface Rng {
   weighted<T>(entries: ReadonlyArray<{ item: T; weight: number }>): T;
 }
 
-// mulberry32, seeded from a string hash. Deterministic: the same seed gives
-// the same sequence, which is what makes every loot roll testable and every
-// repeated request return the same cache. Never Math.random() here.
 export function createRng(seed: string): Rng {
   let state = hashString(seed) || 1;
   const next = () => {

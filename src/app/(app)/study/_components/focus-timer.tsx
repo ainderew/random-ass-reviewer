@@ -4,7 +4,6 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useProfile } from '@/app/(app)/_hooks/use-profile';
 import { useStats } from '@/app/(app)/_hooks/use-stats';
 import { newlyEarned, type CareerProgress } from '@/domain/career/milestones';
-import { aimById, defaultAim } from '@/domain/island/aim';
 import { MAX_SESSION_MS } from '@/domain/session/elapsed';
 import type { QuizResult as QuizResultData } from '@/domain/types';
 import { useElapsed } from '../_hooks/use-elapsed';
@@ -26,9 +25,6 @@ import { SessionResult } from './session-result';
 
 type Phase = 'timer' | 'quiz' | 'quiz-result';
 
-// The Focus tab, /focus. Everything above it stays on the server.
-// Ending a session goes timer -> quiz (optional) -> result. The quiz runs
-// before /api/session/end so the payout is computed once, multiplier included.
 export const FocusTimer = () => {
   const { status, session, focusedMs, result, error, start, end, reset } =
     useFocusSession();
@@ -57,11 +53,6 @@ export const FocusTimer = () => {
     highGrades: 0,
     cardsRecalled: 0,
   };
-  const level = data?.stats.level ?? 1;
-  const focusBalance = data?.stats.focusBalance ?? 0;
-  const aim =
-    (prefs.aimAssetId ? aimById(prefs.aimAssetId, level) : null) ??
-    defaultAim(level, focusBalance);
   const lengthMs = prefs.length === null ? null : prefs.length * 60_000;
 
   // A session recovered already past its chosen length was finished while she
@@ -69,7 +60,7 @@ export const FocusTimer = () => {
   // here could press End). Bank it and feed the cat instead of resuming a
   // stale timer she has to end by hand. A freshly started session sits at ~0,
   // and one that crosses the line while she is watching keeps the usual
-  // "collect or keep going" choice. Open-ended sessions have no line to cross.
+  // "save or keep going" choice. Open-ended sessions have no line to cross.
   const autoCollectedRef = useRef<string | null>(null);
   useEffect(() => {
     if (status !== 'running' || !session) return;
@@ -91,7 +82,7 @@ export const FocusTimer = () => {
     return (
       <SessionResult
         result={result}
-        quiz={quizResult}
+
         milestones={careerBefore ? newlyEarned(careerBefore, career) : []}
         onDone={() => {
           setQuizResult(null);
@@ -144,10 +135,7 @@ export const FocusTimer = () => {
       elapsedMs={elapsedMs}
       focusedMs={focusedMs}
       lengthMs={lengthMs}
-      aim={aim}
       career={career}
-      focusBalance={focusBalance}
-      level={level}
       ending={status === 'ending'}
       error={error}
       breakReminderMs={profile?.breakReminderMs ?? undefined}

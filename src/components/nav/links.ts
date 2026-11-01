@@ -1,10 +1,4 @@
-import {
-  HomeIcon,
-  IslandIcon,
-  NotesIcon,
-  ReviewIcon,
-  TimerIcon,
-} from '@/components/icons';
+import { HomeIcon, NotesIcon, ReviewIcon, TimerIcon } from '@/components/icons';
 
 // Shared destinations for phone and desktop navigation. Today is the cat and
 // the one next step; Progress opens from the weekly check-in on Today.
@@ -13,7 +7,6 @@ export const navLinks = [
   { href: '/focus', label: 'Focus', Icon: TimerIcon },
   { href: '/review', label: 'Review', Icon: ReviewIcon },
   { href: '/notes', label: 'Notes', Icon: NotesIcon },
-  { href: '/island', label: 'Island', Icon: IslandIcon },
 ] as const;
 
 export function isActivePath(pathname: string, href: string): boolean {

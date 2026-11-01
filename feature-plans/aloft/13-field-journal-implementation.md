@@ -1,5 +1,7 @@
 # Field journal and daily study tools
 
+> Historical record. The island and its currency, XP, level, and loot systems were retired on November 2, 2026. References below describe an earlier version. Use `PRODUCT.md`, `DESIGN.md`, and current code for present behavior.
+
 Implemented locally, September 18, 2026. This is the first implementation slice from the learning and motivation research in plan 12. The generated UI reference and decorative illustration were created with Imagegen; prompts are saved in `design/field-journal-prompts.md`.
 
 ## Delivered

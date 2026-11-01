@@ -1,42 +1,7 @@
 import { DAILY_CREDITABLE_MS } from './constants';
-import { applyDailyCap, calculateFocusAward } from './currency';
+import { applyDailyCap } from './currency';
 
 const minutes = (n: number) => n * 60 * 1000;
-
-describe('calculateFocusAward', () => {
-  it('pays 10 Focus per credited minute', () => {
-    expect(
-      calculateFocusAward({ creditedMs: minutes(25), multiplier: 1 }),
-    ).toBe(250);
-  });
-
-  it('rounds partial minutes down', () => {
-    expect(
-      calculateFocusAward({ creditedMs: minutes(7.5), multiplier: 1 }),
-    ).toBe(70);
-  });
-
-  it('applies the multiplier and rounds the result down', () => {
-    expect(
-      calculateFocusAward({ creditedMs: minutes(7), multiplier: 1.25 }),
-    ).toBe(87);
-  });
-
-  it('pays for a single whole minute and nothing under it', () => {
-    expect(calculateFocusAward({ creditedMs: minutes(1), multiplier: 1 })).toBe(
-      10,
-    );
-    expect(
-      calculateFocusAward({ creditedMs: minutes(1) - 1, multiplier: 1 }),
-    ).toBe(0);
-  });
-
-  it('pays nothing for a non-positive multiplier', () => {
-    expect(
-      calculateFocusAward({ creditedMs: minutes(30), multiplier: 0 }),
-    ).toBe(0);
-  });
-});
 
 describe('applyDailyCap', () => {
   it('credits the whole session when under the cap', () => {

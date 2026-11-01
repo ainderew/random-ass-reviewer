@@ -40,9 +40,8 @@ const answer: AnswerResult = {
   rating: 3,
   nextDueAt: new Date(),
   intervalDays: 0.007,
-  insightAwarded: 3,
+
   consecutiveCorrect: 1,
-  insightBalance: 3,
 };
 
 function renderSession(
@@ -116,7 +115,7 @@ describe('ReviewSession', () => {
         body: expect.stringContaining('"rating":3'),
       }),
     );
-    expect(screen.getByText('+3')).toBeInTheDocument();
+    expect(screen.queryByText('+3')).not.toBeInTheDocument();
   });
 
   it('queues a failed answer, keeps moving, and retries it later', async () => {

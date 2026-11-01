@@ -3,8 +3,6 @@
 
 let context: AudioContext | null = null;
 
-// The island's audio toggle. Muted by default, always; a tone without consent
-// is a surprise, and surprises are not what a calm product does.
 function audioEnabled(): boolean {
   try {
     return localStorage.getItem('aloft:audio') === 'on';
@@ -51,23 +49,4 @@ export function playPitched(options: ToneOptions): void {
   osc.connect(env).connect(ctx.destination);
   osc.start(now);
   osc.stop(now + durationMs / 1000 + 0.05);
-}
-
-// A short ascending arpeggio for the moments that earn one.
-export function playFanfare(
-  notes: number[] = [523, 659, 784, 1047],
-  gapMs = 90,
-): void {
-  notes.forEach((frequency, i) => {
-    setTimeout(
-      () =>
-        playPitched({
-          frequency,
-          durationMs: 220,
-          type: 'triangle',
-          gain: 0.14,
-        }),
-      i * gapMs,
-    );
-  });
 }

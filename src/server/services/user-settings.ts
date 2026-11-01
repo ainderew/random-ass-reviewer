@@ -3,10 +3,6 @@ import type { Profile, UpdateProfileRequest } from '@/domain/types';
 import { db } from '@/server/db';
 import { AppError } from '@/server/errors';
 import { countSessionsSince } from '@/server/repositories/focus-session';
-import {
-  countPlacements,
-  findIslandByUserId,
-} from '@/server/repositories/island';
 import { countNoteSources } from '@/server/repositories/note';
 import {
   findUserById,
@@ -36,11 +32,9 @@ export async function setTimeZone(
 export async function getProfile(userId: string): Promise<Profile> {
   const user = await findUserById(db, userId);
   if (!user) throw new AppError('NOT_FOUND', 'User not found');
-  const island = await findIslandByUserId(db, userId);
-  const [notes, sessions, placements] = await Promise.all([
+  const [notes, sessions] = await Promise.all([
     countNoteSources(db, userId),
     countSessionsSince(db, userId, new Date(0)),
-    island ? countPlacements(db, island.id) : Promise.resolve(0),
   ]);
   return {
     timeZone: user.timezone,
@@ -52,7 +46,6 @@ export async function getProfile(userId: string): Promise<Profile> {
     progress: {
       hasNotes: notes > 0,
       hasSession: sessions > 0,
-      hasPlacement: placements > 0,
     },
   };
 }

@@ -108,7 +108,7 @@ describe('progress overview', () => {
     ]);
     await db.insert(focusSessions).values({
       userId,
-      lootSeed: 's',
+
       startedAt: new Date(NOW - 2 * 3_600_000),
       endedAt: new Date(NOW - 3_600_000),
       status: 'completed',

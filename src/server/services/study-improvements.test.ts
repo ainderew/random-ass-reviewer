@@ -22,7 +22,6 @@ import {
   finishSessionQuiz,
 } from './session-quiz';
 import { updateProfile } from './user-settings';
-import { getWorldSignals } from './island';
 import { getMistakeChecks, answerMistakeCheck } from './mistakes';
 import { getTodayPlan } from './today-plan';
 import { exportUserData } from './user-export';
@@ -78,7 +77,7 @@ async function setup() {
 }
 const answer = (userId: string, cardId: string, rating: 1 | 3 = 1) =>
   submitAnswer({ userId, cardId, rating, elapsedMs: 1000 });
-it('keeps draft and flagged cards out of study, persists planning, and maps practiced subjects to the island', async () => {
+it('keeps draft and flagged cards out of study, persists planning', async () => {
   const { userId, card } = await setup();
   expect(card.reviewStatus).toBe('draft');
   expect(await getReviewQueue(userId)).toEqual([]);
@@ -101,14 +100,11 @@ it('keeps draft and flagged cards out of study, persists planning, and maps prac
   expect((await getStudyPlan(userId)).subjects).toEqual([
     { subject: 'hematology', total: 1, approved: 1, practiced: 1, topics: 1 },
   ]);
-  expect((await getWorldSignals(userId)).distinctSubjects).toEqual([
-    'Hematology',
-  ]);
   await editCard({ userId, cardId: card.id, reviewStatus: 'flagged' });
   expect((await getReviewStats(userId)).totals.total).toBe(0);
   expect((await getStudyPlan(userId)).subjects[0]!.approved).toBe(0);
 });
-it('pays Again once and serializes simultaneous reviews without duplicating money or records', async () => {
+it('serializes simultaneous reviews without duplicating records', async () => {
   const { userId, card } = await setup();
   await editCard({ userId, cardId: card.id, reviewStatus: 'approved' });
   const outcomes = await Promise.allSettled([
@@ -116,9 +112,6 @@ it('pays Again once and serializes simultaneous reviews without duplicating mone
     answer(userId, card.id),
   ]);
   expect(outcomes.filter((r) => r.status === 'fulfilled')).toHaveLength(1);
-  const success = outcomes.find((r) => r.status === 'fulfilled')!;
-  if (success.status === 'fulfilled')
-    expect(success.value.insightAwarded).toBe(3);
   const rows = await db
     .select()
     .from(cardReviews)
@@ -128,7 +121,7 @@ it('pays Again once and serializes simultaneous reviews without duplicating mone
     .update(cards)
     .set({ nextDueAt: new Date(0) })
     .where(eq(cards.id, card.id));
-  expect((await answer(userId, card.id, 3)).insightAwarded).toBe(0);
+  expect((await answer(userId, card.id, 3)).rating).toBe(3);
 });
 it('freezes quizzes, gives corrective feedback, separates scores, and preserves the first attempt on retries', async () => {
   const { userId, card } = await setup();
@@ -136,7 +129,7 @@ it('freezes quizzes, gives corrective feedback, separates scores, and preserves 
   await answer(userId, card.id, 3);
   const [session] = await db
     .insert(focusSessions)
-    .values({ userId, startedAt: new Date(), lootSeed: 'quiz' })
+    .values({ userId, startedAt: new Date() })
     .returning();
   const input = { userId, sessionId: session!.id };
   const quiz = await getSessionQuiz(input);
@@ -179,7 +172,7 @@ it('surfaces missed concepts and excludes unreviewed distractors from quizzes', 
   await answer(userId, card.id, 3);
   const [session] = await db
     .insert(focusSessions)
-    .values({ userId, startedAt: new Date(), lootSeed: 'mistake' })
+    .values({ userId, startedAt: new Date() })
     .returning();
   const input = { userId, sessionId: session!.id };
   const quiz = await getSessionQuiz(input);
@@ -210,7 +203,6 @@ it('refuses another user editing or inspecting a quiz', async () => {
     .values({
       userId: owner.userId,
       startedAt: new Date(),
-      lootSeed: 'private',
     })
     .returning();
   await expect(
@@ -232,7 +224,7 @@ it('schedules delayed checks, freezes retry results, and clears only a correct d
   await answer(userId, card.id, 3);
   const [session] = await db
     .insert(focusSessions)
-    .values({ userId, startedAt: new Date(), lootSeed: 'delayed' })
+    .values({ userId, startedAt: new Date() })
     .returning();
   const input = { userId, sessionId: session!.id };
   const quiz = await getSessionQuiz(input);
@@ -290,7 +282,7 @@ it('removes edited or unapproved questions from delayed checks and isolates thei
   await answer(userId, card.id, 3);
   const [session] = await db
     .insert(focusSessions)
-    .values({ userId, startedAt: new Date(), lootSeed: 'private-check' })
+    .values({ userId, startedAt: new Date() })
     .returning();
   const quiz = await getSessionQuiz({ userId, sessionId: session!.id });
   await answerQuizQuestion({

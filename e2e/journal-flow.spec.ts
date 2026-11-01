@@ -29,7 +29,7 @@ test('phone Focus keeps counting while she reads her notes elsewhere', async ({
   expect(snapshot.focusedMs).toBeGreaterThanOrEqual(2_000);
   await page.goto('/focus');
   await page.getByRole('button', { name: 'End session' }).click();
-  const skip = page.getByRole('button', { name: 'Skip, keep my Focus as is' });
+  const skip = page.getByRole('button', { name: 'Skip quiz' });
   const saved = page.getByRole('heading', { name: 'Session saved' });
   await expect(skip.or(saved)).toBeVisible({ timeout: 15_000 });
   if (await skip.isVisible()) await skip.click();

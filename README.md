@@ -1,8 +1,10 @@
 # Aloft
 
-Study. Earn. Build. A web app that pays students for verified focus and real recall, spent on a persistent 3D island.
+A mobile-first study app with source-backed flashcards, spaced review, focus sessions, and Toast, an interactive study cat.
 
-The full plan lives in `feature-plans/aloft/`. Start with `00-overview.md`.
+Read `PRODUCT.md` for the current scope and `DESIGN.md` for the interface. The dated handoffs in `feature-plans/aloft/` are historical records.
+
+The app has four destinations: Today, Focus, Review, and Notes. Progress opens within Review. Streaks and cat care reflect recorded study activity. The former island, currencies, XP, levels, and loot have been retired; `/island` redirects to Today. Migration `0012_retire_island.sql` removes their storage while preserving study sessions, quizzes, review history, streaks, and pet care.
 
 ## Run it locally
 

@@ -47,6 +47,6 @@ describe('FocusCircle', () => {
       'aria-valuenow',
       '50',
     );
-    expect(screen.getByText('Counts now at 5 min')).toBeInTheDocument();
+    expect(screen.getByText('Streak day earned at 5 min')).toBeInTheDocument();
   });
 });

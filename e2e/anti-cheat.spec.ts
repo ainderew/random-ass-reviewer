@@ -1,7 +1,7 @@
 import { expect, test, type Page } from '@playwright/test';
 import { signInAsSmokeUser } from './helpers';
 
-// The three probes, through the real HTTP stack. Every payout is counted on
+// The three probes, through the real HTTP stack. Credited time is counted on
 // the server's clock from Start to End; nothing the client sends is time.
 async function endAnyActive(page: Page): Promise<void> {
   const active = await (await page.request.get('/api/session/active')).json();
@@ -14,7 +14,9 @@ async function endAnyActive(page: Page): Promise<void> {
 test.describe('anti-cheat probes', () => {
   test.beforeEach(async ({ context }) => signInAsSmokeUser(context));
 
-  test('a session ended straight away pays nothing', async ({ page }) => {
+  test('a session ended straight away receives no credited time', async ({
+    page,
+  }) => {
     await endAnyActive(page);
     const started = await (
       await page.request.post('/api/session/start')
@@ -24,7 +26,7 @@ test.describe('anti-cheat probes', () => {
         data: { sessionId: started.data.sessionId },
       })
     ).json();
-    expect(ended.data.focusAwarded).toBe(0);
+
     expect(ended.data.creditedMs).toBe(0);
   });
 
@@ -61,25 +63,23 @@ test.describe('anti-cheat probes', () => {
         data: { sessionId, creditedMs: 9_999_999 },
       })
     ).json();
-    expect(ended.data.focusAwarded).toBe(0);
+    expect(ended.data.creditedMs).toBeLessThan(60_000);
   });
 
-  test('the balance shown is the server balance, whatever the page does', async ({
+  test('stats contain study progress without retired currency balances', async ({
     page,
   }) => {
-    const before = (await (await page.request.get('/api/stats')).json()).data
-      .stats.focusBalance;
-    await page.goto('/study');
-    await page.evaluate(() => {
-      localStorage.setItem('aloft:focus', '999999');
-      for (const el of document.querySelectorAll('header span')) {
-        if (/^\d[\d,]*$/.test(el.textContent ?? '')) el.textContent = '999,999';
-      }
-    });
-    await page.reload();
-    const after = (await (await page.request.get('/api/stats')).json()).data
-      .stats.focusBalance;
-    expect(after).toBe(before);
-    await expect(page.locator('header')).toContainText(before.toLocaleString());
+    const stats = (await (await page.request.get('/api/stats')).json()).data
+      .stats;
+    expect(stats).toHaveProperty('streakDays');
+    for (const field of [
+      'focusBalance',
+      'insightBalance',
+      'xp',
+      'level',
+      'pityCounter',
+    ]) {
+      expect(stats).not.toHaveProperty(field);
+    }
   });
 });

@@ -1,6 +1,6 @@
 # Aloft
 
-Read `feature-plans/aloft/00-overview.md` before changing anything. Each phase file is a standalone handoff.
+Read `PRODUCT.md` and `DESIGN.md` before changing the product. Files in `feature-plans/aloft/` are historical handoffs, not current requirements. Island building and its currencies, XP, levels, chests, and purchases are retired. Preserve study history, quizzes, streaks, and Toast care.
 
 ## Layer rules (ESLint enforces these)
 
@@ -12,10 +12,9 @@ Read `feature-plans/aloft/00-overview.md` before changing anything. Each phase f
 
 ## Non-negotiables
 
-- Every payout is computed on the server. The client never sends timestamps.
+- Credited focus time is computed on the server. The client never supplies the focus timer timestamps.
 - Focus time is the server clock from start to end, on screen or not, at most two hours a session (decision 58). The open timer's check-in only reads it.
 - Uniqueness lives in the database (unique indexes), never in check-then-insert code.
-- Balances update with `SET x = x + delta`, never read-modify-write.
 - Env vars come from `@/lib/env`, never `process.env` in app code.
 
 ## AI card generation
@@ -43,7 +42,7 @@ Read `feature-plans/aloft/00-overview.md` before changing anything. Each phase f
 - `pnpm test:unit` (domain + ui, no services), `pnpm test:integration` (server, real Postgres), `pnpm test:coverage` (enforces 90% branches on `src/domain`, 75% on `src/server/services`).
 - `pnpm test:e2e` runs Playwright against the dev server with the seeded smoke session (`pnpm seed:smoke`): keyboard review, axe, offline, the full loop, notes to cards, and the anti-cheat probes.
 - The only fake is `ScriptedProvider` in `src/server/llm/__fixtures__`; route tests mock `auth()` and nothing else. `LLM_PROVIDER=fake` is the dev and CI provider.
-- `pnpm check:bundle` after `pnpm build` prints each route's first-load size and fails on dev surfaces in the output or an island GLB over 150 KB. There is no JS budget and no three.js restriction any more: the study tab draws the cat in three.js (decisions 52 and 54).
+- `pnpm check:bundle` after `pnpm build` reports route sizes and rejects development UI in production output. The optional 3D cat still uses three.js; the default cat is illustrated.
 
 ## Deploy
 
@@ -74,15 +73,11 @@ Read `feature-plans/aloft/00-overview.md` before changing anything. Each phase f
 
 ## Design context
 
-`PRODUCT.md` holds who this is for and the design principles. `DESIGN.md` holds the visual system (tokens, type, components). Read both before touching any UI. North Star: "The Lantern Post", one warm light in a calm dark scene.
+`PRODUCT.md` holds who this is for and the design principles. `DESIGN.md` holds the visual system (tokens, type, components). Read both before touching any UI. The visual direction is warm study stationery with an illustrated cat at a desk.
 
 ## Assets
 
-- `pnpm assets:placeholders` writes procedural low-poly GLBs to `assets/raw/`. Real Tripo3D exports go in the same folder with the same ids and replace them.
-- `pnpm assets:optimize` runs dedup, weld, prune, simplify, WebP textures, meshopt, then writes `public/models/*.glb` and regenerates `src/domain/assets/manifest.generated.ts`. It fails if any asset is over 150 KB or 5,000 triangles.
-- `assets/asset-meta.json` is the hand-authored source for price, footprint, rarity, and triangle target. Add an entry before adding a model.
-- `AssetId` is the manifest's key union. Never type an asset id as `string`.
 - The Review shelf's subject covers are text-free WebPs in `public/covers/`, generated on Higgsfield. Titles are HTML. Prompts, job ids and the resize command are in `design/subject-covers.md`; a regenerated cover needs its `paper` colour re-sampled in `subject-covers.ts`.
 - App icons are cut from `assets/app-icon.webp` by `scripts/generate-icons.ts`, one treatment per platform (decision 68). After regenerating, bump `VERSION` in `public/sw.js`: it serves /icons/ cache-first.
-- The study tab's character is a cat built in code from three.js primitives (`src/game/character/cat-*.ts`). She and her room are drawn in the clay look (decision 63): soft matte material with a sheen from `toon.ts`, studio light and a contact shadow in `study-scene-canvas.tsx`, neutral tone mapping, no outline. Chibi proportions and the bounce live in `SHAPE` in `look.ts`. In development, `?cat=toon` shows the original cel-shaded look with its ink outline; production is always clay. There is no model file. Her reactions to touch, idle habits and naps live in `cat-brain.ts`; the room's milestone props share the same look (`room-*.tsx`).
+- Today and Focus default to the orange illustrated cat with glasses. Raster layers animate breathing, writing, sleep, and touch reactions. Reduced motion and background-tab visibility pause the automatic routine. An explicit `?cat=3d` selection retains the code-built clay cat and its room milestones under `src/game/character/`; those are independent of the retired island.
 - Today's background music is the Focus tab's generated piano voice at a lower volume (`use-today-music.ts`), off until chosen, remembered per device under `aloft:today-music`, and it stops when Today closes or the app goes to the background (decision 65).

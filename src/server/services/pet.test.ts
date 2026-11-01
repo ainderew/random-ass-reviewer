@@ -31,7 +31,7 @@ async function credit(
 ) {
   await db.insert(focusSessions).values({
     userId,
-    lootSeed: 'seed',
+
     startedAt: new Date(Date.now() - creditedMs - MIN),
     endedAt: new Date(),
     status: 'completed',
@@ -176,7 +176,7 @@ describe('the study cat', () => {
     const now = Date.now();
     const [session] = await db
       .insert(focusSessions)
-      .values({ userId, lootSeed: 'seed', startedAt: new Date(now - 30 * MIN) })
+      .values({ userId, startedAt: new Date(now - 30 * MIN) })
       .returning();
     const result = await endSession({ userId, sessionId: session!.id });
     expect(result.pet).toEqual({ name: 'Toast', bowlsFilled: 1 });

@@ -19,7 +19,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: 'Aloft',
   description:
-    'Study. Earn. Build. Verified focus and real recall pay for a floating island.',
+    'Study with Toast. Turn your notes into cards, focus, and track your learning.',
   applicationName: 'Aloft',
   manifest: '/manifest.webmanifest',
   icons: {

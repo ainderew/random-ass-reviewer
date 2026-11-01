@@ -1,7 +1,6 @@
 import {
   FREEZES_PER_MONTH,
   STREAK_MILESTONES,
-  milestoneInsight,
   updateStreak,
   summarizeStreak,
 } from './streak';
@@ -92,7 +91,6 @@ describe('updateStreak', () => {
         todayDate: '2026-09-08',
       });
       expect(hit.milestone).toBe(m);
-      expect(milestoneInsight(m)).toBeGreaterThan(0);
     }
     const miss = updateStreak({
       ...base,
@@ -148,12 +146,6 @@ describe('streak edge cases', () => {
         freezesRemaining: 1,
       }),
     ).toMatchObject({ streak: 1, milestone: null });
-  });
-
-  it('pays nothing for a non-milestone or a null milestone', () => {
-    expect(milestoneInsight(null)).toBe(0);
-    expect(milestoneInsight(5)).toBe(0);
-    expect(milestoneInsight(7)).toBe(10);
   });
 });
 

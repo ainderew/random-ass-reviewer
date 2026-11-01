@@ -10,6 +10,25 @@ if [ ! -f .env.production ]; then
   exit 1
 fi
 
+# Keep a restorable database snapshot outside the rsync target before migrations.
+umask 077
+backup_dir=/root/studydash-backups
+mkdir -p "$backup_dir"
+chmod 700 "$backup_dir"
+backup_path="$backup_dir/aloft-$(date -u +%Y%m%dT%H%M%SZ).dump"
+if ! docker run --rm --env-file .env.production \
+  --add-host host.docker.internal:host-gateway postgres:17-alpine \
+  sh -c 'pg_dump --format=custom "$DATABASE_URL"' > "$backup_path"; then
+  rm -f "$backup_path"
+  echo "database backup failed; deployment stopped" >&2
+  exit 1
+fi
+if [ ! -s "$backup_path" ]; then
+  echo "database backup is empty; deployment stopped" >&2
+  exit 1
+fi
+echo "database backup saved to $backup_path"
+
 docker compose -f docker-compose.vps.yml up -d --build --remove-orphans
 
 echo "waiting for studydash-web to be healthy"

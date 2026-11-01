@@ -1,5 +1,7 @@
 # Medtech study review
 
+> Historical record. The island and its currency, XP, level, and loot systems were retired on November 2, 2026. References below describe an earlier version. Use `PRODUCT.md`, `DESIGN.md`, and current code for present behavior.
+
 Reviewed September 17, 2026. This is a code inspection and focused literature review, not a live production audit or a systematic literature review. Recommendations below are proposals, not implemented features.
 
 ## Assessment

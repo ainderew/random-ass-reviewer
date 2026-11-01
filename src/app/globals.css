@@ -11,7 +11,7 @@
   --color-muted: #756575;
   --color-focus: #bd402f;
   --color-focus-deep: #9b3023;
-  --color-insight: #735095;
+  --color-accent: #735095;
   --color-warn: #a12d37;
   --color-done: #3f7d5b;
   /* Answer feedback grounds: a pale tint of done and warn. */
@@ -190,7 +190,7 @@ p {
 
 .cat-fx-spark {
   font-size: 1.125rem;
-  color: var(--color-insight);
+  color: var(--color-accent);
   animation-duration: 1.1s;
 }
 
@@ -246,70 +246,8 @@ p {
   animation: fade-in 240ms ease-out both;
 }
 
-/* Accelerating chest wobbles: three, each faster and larger. */
-@keyframes wobble-1 {
-  0%,
-  100% {
-    transform: rotate(0);
-  }
-  50% {
-    transform: rotate(-4deg);
-  }
-}
-@keyframes wobble-2 {
-  0%,
-  100% {
-    transform: rotate(0);
-  }
-  50% {
-    transform: rotate(7deg);
-  }
-}
-@keyframes wobble-3 {
-  0%,
-  100% {
-    transform: rotate(0);
-  }
-  50% {
-    transform: rotate(-11deg);
-  }
-}
-.wobble-1 {
-  animation: wobble-1 320ms ease-in-out both;
-}
-.wobble-2 {
-  animation: wobble-2 240ms ease-in-out both;
-}
-.wobble-3 {
-  animation: wobble-3 180ms ease-in-out both;
-}
-
-.paused,
-.paused * {
-  animation-play-state: paused !important;
-}
-
-@keyframes burst-ray {
-  from {
-    transform: rotate(var(--angle)) translateY(0) scaleY(0.2);
-    opacity: 1;
-  }
-  to {
-    transform: rotate(var(--angle)) translateY(calc(var(--reach) * -1))
-      scaleY(1);
-    opacity: 0;
-  }
-}
-.burst-ray {
-  animation: burst-ray 620ms var(--ease-out-expo) both;
-}
-
 @media (prefers-reduced-motion: reduce) {
-  .spring-pop,
-  .wobble-1,
-  .wobble-2,
-  .wobble-3,
-  .burst-ray {
+  .spring-pop {
     animation: none;
   }
 }

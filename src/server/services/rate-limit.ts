@@ -11,7 +11,6 @@ export const RATE_LIMITS = {
   'notes:create': { limit: 20, windowMs: HOUR },
   // One model call per card that has no multiple-choice options yet.
   'cards:choices': { limit: 60, windowMs: HOUR },
-  'island:place': { limit: 120, windowMs: MINUTE },
   'review:answer': { limit: 300, windowMs: MINUTE },
   'settings:api-key': { limit: 5, windowMs: HOUR },
   // The study cat. Care writes a row each time; push talks to a third party.

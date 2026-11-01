@@ -19,10 +19,7 @@ jest.mock('@/server/services/user-stats', () => ({
 const snapshot = {
   stats: {
     userId: 'u1',
-    focusBalance: 120,
-    insightBalance: 4,
-    xp: 0,
-    level: 1,
+
     streakDays: 2,
     streakFreezes: 2,
     lastSessionDate: null,
@@ -43,7 +40,7 @@ describe('AppLayout', () => {
     expect(getStatsSnapshot).not.toHaveBeenCalled();
   });
 
-  it('renders both navs, the HUD, and the page for a signed-in user', async () => {
+  it('renders both navs, and the page for a signed-in user', async () => {
     jest
       .mocked(auth)
       .mockResolvedValue({ user: { id: 'u1' }, expires: '' } as never);
@@ -54,16 +51,15 @@ describe('AppLayout', () => {
     );
 
     // Top nav and tab bar both render; CSS decides which one shows.
-    for (const label of ['Today', 'Notes', 'Review', 'Island']) {
+    for (const label of ['Today', 'Notes', 'Review', 'Focus']) {
       expect(screen.getAllByRole('link', { name: label })).toHaveLength(2);
     }
     expect(
       screen.getAllByRole('link', { name: 'Today', current: 'page' }),
     ).toHaveLength(2);
-    expect(screen.getByText('120')).toBeInTheDocument();
     expect(
-      screen.getByText('Focus', { selector: '.sr-only' }),
-    ).toBeInTheDocument();
+      screen.queryByRole('link', { name: 'Island' }),
+    ).not.toBeInTheDocument();
     expect(screen.getByText('page body')).toBeInTheDocument();
   });
 });

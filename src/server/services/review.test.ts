@@ -1,8 +1,5 @@
 import { eq, inArray } from 'drizzle-orm';
-import {
-  DAILY_CREDITABLE_MS,
-  INSIGHT_PER_REVIEW,
-} from '@/domain/economy/constants';
+import { DAILY_CREDITABLE_MS } from '@/domain/economy/constants';
 import { initialCardState } from '@/domain/review/scheduler';
 import type { FsrsState } from '@/domain/types';
 import { closeDb, db } from '@/server/db';
@@ -10,7 +7,6 @@ import { cardReviews, cards, focusSessions, users } from '@/server/db/schema';
 import { AppError } from '@/server/errors';
 import { insertCards } from '@/server/repositories/card';
 import { insertNoteChunks, insertNoteSource } from '@/server/repositories/note';
-import { findUserStats } from '@/server/repositories/user-stats';
 import { endSession } from './end-session';
 import { getReviewQueue, getSubjectShelf, submitAnswer } from './review';
 import { getReviewStats } from './review-stats';
@@ -73,7 +69,7 @@ async function seedSession(userId: string, spanMs: number): Promise<string> {
   const now = Date.now();
   const [session] = await db
     .insert(focusSessions)
-    .values({ userId, lootSeed: 'seed', startedAt: new Date(now - spanMs) })
+    .values({ userId, startedAt: new Date(now - spanMs) })
     .returning();
   return session!.id;
 }
@@ -88,7 +84,7 @@ afterAll(async () => {
 });
 
 describe('review service', () => {
-  it('queues due cards, schedules on answer, records the review, and pays Insight atomically', async () => {
+  it('queues due cards, schedules on answer, records the review atomically', async () => {
     const userId = await makeUser('review');
     created.push(userId);
     const deck = await seedDeck(userId);
@@ -99,7 +95,6 @@ describe('review service', () => {
     expect(queue[0]!.intervals[4]).toBeGreaterThan(queue[0]!.intervals[3]);
 
     const first = queue[0]!;
-    const before = await findUserStats(db, userId);
     const result = await submitAnswer({
       userId,
       cardId: first.id,
@@ -108,12 +103,9 @@ describe('review service', () => {
     });
 
     expect(result.nextDueAt.getTime()).toBeGreaterThan(Date.now());
-    expect(result.insightAwarded).toBeGreaterThanOrEqual(INSIGHT_PER_REVIEW);
+
     expect(result.consecutiveCorrect).toBe(1);
-    const after = await findUserStats(db, userId);
-    expect(after!.insightBalance - before!.insightBalance).toBe(
-      result.insightAwarded,
-    );
+
     const row = await db.query.cards.findFirst({
       where: eq(cards.id, first.id),
     });
@@ -133,7 +125,7 @@ describe('review service', () => {
       rating: 1,
       elapsedMs: 10,
     });
-    expect(again.insightAwarded).toBe(INSIGHT_PER_REVIEW);
+
     expect(again.consecutiveCorrect).toBe(0);
   });
 
@@ -218,7 +210,6 @@ describe('review service', () => {
       correctSoFar: 6,
       answered: 8,
       total: 8,
-      multiplier: 1,
     });
 
     // A retry returns the first outcome without changing the score.
@@ -231,13 +222,8 @@ describe('review service', () => {
     expect(repeated.correct).toBe(true);
     expect(repeated.answered).toBe(8);
 
-    const before = await findUserStats(db, userId);
     const result = await finishSessionQuiz({ userId, sessionId });
-    expect(result).toMatchObject({ correct: 6, total: 8, multiplier: 1 });
-    const after = await findUserStats(db, userId);
-    expect(after!.insightBalance - before!.insightBalance).toBe(
-      result.insightAwarded,
-    );
+    expect(result).toMatchObject({ correct: 6, total: 8 });
 
     // Finishing twice is rejected; the GET now reports it as taken.
     await expect(
@@ -249,7 +235,7 @@ describe('review service', () => {
   });
 
   it.each(['2026-09-18T00:00:00.000Z', '2026-09-18T12:00:00.000Z'])(
-    'applies the daily cap before the multiplier at %s',
+    'applies the daily cap even after a perfect quiz at %s',
     async (now) => {
       // Freeze Date only; PostgreSQL still needs real asynchronous timers.
       jest.useFakeTimers({
@@ -282,7 +268,7 @@ describe('review service', () => {
       // Subtracting 100 minutes here used to put this fixture in yesterday.
       await db.insert(focusSessions).values({
         userId,
-        lootSeed: 'earlier',
+
         startedAt: new Date(Date.now() - minutes(600)),
         endedAt: new Date(),
         status: 'completed',
@@ -301,14 +287,11 @@ describe('review service', () => {
         });
       }
       const outcome = await finishSessionQuiz({ userId, sessionId });
-      expect(outcome.multiplier).toBe(2);
+      expect(outcome.correct).toBe(outcome.total);
 
       const result = await endSession({ userId, sessionId });
       expect(result.creditedMs).toBe(minutes(10));
       expect(result.cappedByDailyLimit).toBe(true);
-      expect(result.quizMultiplier).toBe(2);
-      // 10 minutes x 10 Focus x 2, not 30 minutes x 10 x 2.
-      expect(result.focusAwarded).toBe(200);
 
       // The quiz cannot be taken once the session is over.
       await expect(

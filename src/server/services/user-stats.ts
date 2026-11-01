@@ -45,12 +45,9 @@ export async function getDailySummary(
   return { creditedMs, sessionsStarted, sessions };
 }
 
-// The pity counter never leaves the server. Exposing it would let a user
-// time sessions to farm guaranteed rares.
+// Shared study statistics for the client.
 export function toPublicStats(stats: UserStats): PublicUserStats {
-  const publicStats: PublicUserStats & { pityCounter?: number } = { ...stats };
-  delete publicStats.pityCounter;
-  return publicStats;
+  return { ...stats };
 }
 
 export async function getCareerProgress(

@@ -4,7 +4,6 @@ import {
   check,
   index,
   integer,
-  numeric,
   pgEnum,
   pgTable,
   primaryKey,
@@ -33,20 +32,13 @@ export const focusSessions = pgTable(
     // After daily caps are applied.
     creditedMs: integer('credited_ms').notNull().default(0),
     // Generated server-side at start; the client cannot reroll it.
-    lootSeed: text('loot_seed').notNull(),
     mode: text('mode', { enum: ['focus', 'reading'] })
       .notNull()
       .default('focus'),
     readingLimitMs: integer('reading_limit_ms'),
     status: sessionStatus('status').notNull().default('active'),
     // Set by the post-session quiz (Phase 7).
-    quizMultiplier: numeric('quiz_multiplier', { precision: 3, scale: 2 })
-      .notNull()
-      .default('1.00'),
-    // Set once by the quiz. The multiplier alone cannot mark 'taken': 6 of 8
-    // earns exactly 1.00, the same as never trying.
     quizSubmittedAt: timestamp('quiz_submitted_at', { withTimezone: true }),
-    // The score behind the multiplier. A high grade is 75% or better.
     quizCorrect: integer('quiz_correct'),
     quizTotal: integer('quiz_total'),
   },
@@ -64,7 +56,7 @@ export const focusSessions = pgTable(
 );
 
 // Append-only. Never updated. The composite key turns a replayed `seq` into a
-// constraint violation instead of free currency.
+// constraint violation instead of duplicate session credit.
 export const sessionHeartbeats = pgTable(
   'session_heartbeats',
   {

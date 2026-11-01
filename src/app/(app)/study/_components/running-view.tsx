@@ -1,19 +1,12 @@
 import { useState } from 'react';
 import { BREAK_PROMPT_MS } from '@/domain/economy/constants';
 import type { CareerProgress } from '@/domain/career/milestones';
-import type { Aim } from '@/domain/island/aim';
 import type { PetView } from '@/domain/types';
-import {
-  currentRungNote,
-  earningsSoFar,
-  nextRung,
-} from '@/domain/session/rungs';
+import { currentRungNote, nextRung } from '@/domain/session/rungs';
 import { bowlsFilled, minutesToNextBowl } from '@/domain/pet/care';
-import { BoltGlyph } from '@/components/icons';
 import { Button } from '@/components/ui/button';
 import { formatClock, formatMinutes } from '@/lib/format-time';
 import { useRungTone } from '../_hooks/use-rung-tone';
-import { AimLine } from './aim-line';
 import { catLook } from './cat-look';
 import { FocusCircle } from './focus-circle';
 import { Lantern, lanternStage } from './lantern';
@@ -22,15 +15,12 @@ import { TimerFrame } from './timer-frame';
 
 // Time counts from Start to End, in Aloft or out of it: reading the notes in
 // another app is studying. Reaching the chosen length is a door, not a wall:
-// end and collect, or keep going.
+// save the session, or keep going.
 export const RunningView = ({
   elapsedMs,
   focusedMs,
   lengthMs,
-  aim,
   career,
-  focusBalance,
-  level,
   ending,
   error,
   breakReminderMs = BREAK_PROMPT_MS,
@@ -40,10 +30,7 @@ export const RunningView = ({
   elapsedMs: number;
   focusedMs: number;
   lengthMs: number | null;
-  aim: Aim | null;
   career: CareerProgress;
-  focusBalance: number;
-  level: number;
   ending: boolean;
   error: string | null;
   breakReminderMs?: number;
@@ -62,7 +49,6 @@ export const RunningView = ({
   // frozen when she comes back from another app. The credited number at the
   // end is still the server's; this never shows less than it has confirmed.
   const liveMs = Math.max(focusedMs, elapsedMs);
-  const earned = earningsSoFar(liveMs);
   const sessionBowls = bowlsFilled(career.focusMs, liveMs);
   const toNextBowl = minutesToNextBowl(career.focusMs + liveMs);
   const catName = pet?.name ?? 'the cat';
@@ -91,12 +77,12 @@ export const RunningView = ({
           {reached ? (
             <div className="space-y-3 rounded-lg border border-focus/40 bg-ground-2 px-4 py-3">
               <p className="text-[0.9375rem] leading-relaxed text-ink">
-                That is your {lengthMs / 60_000}. Collect what it earned, or
-                keep going.
+                That is your {lengthMs / 60_000}. Save your session, or keep
+                going.
               </p>
               <div className="flex gap-2">
                 <Button onClick={onEnd} disabled={ending} aria-busy={ending}>
-                  {ending ? 'Saving…' : 'End and collect'}
+                  {ending ? 'Saving…' : 'End session'}
                 </Button>
                 <Button variant="ghost" onClick={() => setKeptGoing(true)}>
                   Keep going
@@ -157,16 +143,6 @@ export const RunningView = ({
           className="flex items-center gap-2 rounded-full border border-hairline px-4 py-1.5 text-[0.9375rem] text-ink-2"
           aria-live="polite"
         >
-          <span className="inline-flex items-center gap-1 font-mono text-focus tabular-nums">
-            <BoltGlyph size={14} />
-            {earned}
-          </span>
-          <span className="text-muted">so far</span>
-        </p>
-        <p
-          className="flex items-center gap-2 rounded-full border border-hairline px-4 py-1.5 text-[0.9375rem] text-ink-2"
-          aria-live="polite"
-        >
           <span className="font-mono text-focus tabular-nums">
             +{sessionBowls}
           </span>
@@ -190,12 +166,6 @@ export const RunningView = ({
             {lengthMs !== null ? ` of ${lengthMs / 60_000}` : ''}
           </p>
         </div>
-        <AimLine
-          aim={aim}
-          focusBalance={focusBalance + earned}
-          level={level}
-          compact
-        />
       </div>
     </TimerFrame>
   );

@@ -18,10 +18,7 @@ async function main(): Promise<void> {
     INSERT INTO users (id, email, name, timezone)
     VALUES ('${userId}', 'smoke@aloft.local', 'Smoke Tester', 'UTC')
     ON CONFLICT (id) DO NOTHING;
-    INSERT INTO user_stats (user_id, focus_balance, insight_balance, xp, level)
-    VALUES ('${userId}', 2000, 100, 3000, 9)
-    ON CONFLICT (user_id) DO UPDATE SET focus_balance = greatest(user_stats.focus_balance, 2000), level = greatest(user_stats.level, 9);
-    INSERT INTO islands (user_id) VALUES ('${userId}') ON CONFLICT (user_id) DO NOTHING;
+    INSERT INTO user_stats (user_id) VALUES ('${userId}') ON CONFLICT (user_id) DO NOTHING;
     -- Empty sessions from earlier runs would trip the twelve-a-day cap.
     DELETE FROM focus_sessions
     WHERE user_id = '${userId}' AND status <> 'active' AND credited_ms = 0

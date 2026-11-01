@@ -40,7 +40,7 @@ certbot --nginx -d studydash.workdash.site
 
 ## Every deploy
 
-Push to `main`. The `deploy` job in `.github/workflows/ci.yml` runs after the checks pass: it rsyncs the tree to `/root/studydash` with a dedicated CI key and runs `deploy/vps-deploy.sh` there, which builds the image, restarts the container, and waits for it to be healthy. Secrets it needs on the repo: `VPS_HOST`, `VPS_USER`, `VPS_SSH_KEY`, `VPS_KNOWN_HOSTS`.
+Push to `main`. The `deploy` job in `.github/workflows/ci.yml` runs after the checks pass: it rsyncs the tree to `/root/studydash` with a dedicated CI key and runs `deploy/vps-deploy.sh` there, which backs up the database, builds the image, restarts the container, and waits for it to be healthy. Secrets it needs on the repo: `VPS_HOST`, `VPS_USER`, `VPS_SSH_KEY`, `VPS_KNOWN_HOSTS`.
 
 By hand, the same two steps:
 
@@ -50,6 +50,12 @@ ssh root@194.233.79.158 bash /root/studydash/deploy/vps-deploy.sh
 ```
 
 The container runs `scripts/migrate.mjs` (pg only, the same journal and hashes as drizzle-kit) on boot, then the server. Health: `https://studydash.workdash.site/api/healthz`. Watch the first boot with `docker logs -f studydash-web`.
+
+## Database backups and rollback
+
+Before starting a new container or its migrations, `deploy/vps-deploy.sh` uses `postgres:17-alpine` and the connection in `.env.production` to create a custom-format `pg_dump` backup at `/root/studydash-backups/aloft-<UTC timestamp>.dump`. The private directory is outside the rsync target, so source deployments cannot delete it. A failed or empty dump stops deployment before migration.
+
+Migration `0012_retire_island.sql` removes the island tables and obsolete reward columns. Rolling back that removal requires restoring a pre-migration backup with `pg_restore` and running the compatible older app code. Reverting only the code cannot restore dropped data. Before restoration, stop writes and take a separate backup of the current database; preserve and reconcile study activity recorded after the selected backup. Test restoration into a separate database before replacing production. The restored migration journal must match the app version you deploy, or startup can apply the removal again.
 
 ## Study cat nudges (push notifications)
 

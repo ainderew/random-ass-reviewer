@@ -1,9 +1,7 @@
-/* Aloft service worker. Network first for pages so a deploy is never stale,
-   cache first for hashed assets and models, and an offline page when the
-   network is gone. Money never comes from the cache: API calls are not
-   cached at all. */
-// v5 drops the old study character's model from every device's cache.
-const VERSION = 'aloft-v6-cat-icon';
+/* Network first for pages, cache first for hashed assets and icons.
+   API responses are never cached. */
+// Retiring the island also clears its models from installed apps.
+const VERSION = 'aloft-v7-study';
 const SHELL = ['/offline', '/manifest.webmanifest', '/icons/icon-192.png'];
 
 self.addEventListener('install', (event) => {
@@ -30,7 +28,6 @@ self.addEventListener('activate', (event) => {
 
 const isAsset = (url) =>
   url.pathname.startsWith('/_next/static/') ||
-  url.pathname.startsWith('/models/') ||
   url.pathname.startsWith('/icons/');
 
 self.addEventListener('fetch', (event) => {

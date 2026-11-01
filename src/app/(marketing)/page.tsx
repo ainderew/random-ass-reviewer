@@ -1,6 +1,6 @@
 import { CoastalHero } from '@/components/coastal-hero';
 import { redirect } from 'next/navigation';
-import { BoltGlyph, DiamondGlyph, IslandIcon } from '@/components/icons';
+import { TimerIcon, NotesIcon, ReviewIcon } from '@/components/icons';
 import { Button } from '@/components/ui/button';
 import { env, googleSignInEnabled } from '@/lib/env';
 import { auth, signIn } from '@/server/auth';
@@ -10,15 +10,9 @@ type SearchParams = Promise<{ error?: string | string[] }>;
 
 // The loop is a real three-step sequence, so an ordered list is honest here.
 const loop = [
-  { Glyph: BoltGlyph, text: 'Ten Focus for every verified minute you study.' },
-  {
-    Glyph: DiamondGlyph,
-    text: 'Insight for honest flashcard reviews and quiz answers.',
-  },
-  {
-    Glyph: IslandIcon,
-    text: 'Spend both on a floating island that is visibly yours.',
-  },
+  { Glyph: NotesIcon, text: 'Turn your notes into practice cards.' },
+  { Glyph: ReviewIcon, text: 'Review what you need to remember.' },
+  { Glyph: TimerIcon, text: 'Focus alongside Toast, your study cat.' },
 ];
 
 export default async function LandingPage({
@@ -39,11 +33,11 @@ export default async function LandingPage({
         <section className="space-y-6 px-2 py-3 md:p-6">
           <div className="space-y-5">
             <h1 className="font-serif text-3xl leading-tight tracking-tight text-ink md:text-4xl">
-              Study. Earn. Build.
+              Make time to learn.
             </h1>
             <p className="max-w-[46ch] text-lg leading-relaxed text-ink-2">
               Bring your notes, practice your flashcards, and make a little time
-              to focus. Every session helps build your island.
+              to focus with Toast.
             </p>
           </div>
 

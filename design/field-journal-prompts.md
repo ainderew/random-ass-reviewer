@@ -1,5 +1,7 @@
 # Aloft field journal
 
+> Historical record. The island and its currency, XP, level, and loot systems were retired on November 2, 2026. References below describe an earlier version. Use `PRODUCT.md`, `DESIGN.md`, and current code for present behavior.
+
 Generated with the built-in imagegen tool in generation mode. The mockup is a visual reference, not sample study data. The illustration is decorative, never a clinical reference.
 
 ## UI concept prompt

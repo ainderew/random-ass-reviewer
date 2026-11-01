@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { ChevronRightIcon } from '@/components/icons';
-import { milestoneInsight, type StreakSummary } from '@/domain/economy/streak';
+import { type StreakSummary } from '@/domain/economy/streak';
 import styles from './streak-tracker.module.css';
 
 function Flame() {
@@ -62,7 +62,6 @@ export function StreakTracker({ streak }: { streak: StreakSummary }) {
               value={streak.days}
               aria-label={`Progress to ${target} days`}
             />
-            <small>+{milestoneInsight(target)} Insight for your island</small>
           </div>
         ) : (
           <p className={styles.protection}>All streak milestones reached.</p>
@@ -72,10 +71,6 @@ export function StreakTracker({ streak }: { streak: StreakSummary }) {
           <p>
             One {streak.minimumMinutes}+ minute focus or reading session counts
             each day.
-          </p>
-          <p>
-            Milestones give bonus Insight to spend on{' '}
-            <Link href="/island">island items</Link>.
           </p>
           <p>
             {streak.freezesRemaining} freezes available. A freeze covers one

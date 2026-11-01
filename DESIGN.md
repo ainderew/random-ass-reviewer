@@ -11,7 +11,7 @@ colors:
   muted: '#756575'
   focus: '#bd402f'
   focus-deep: '#9b3023'
-  insight: '#735095'
+  accent: '#735095'
   warn: '#a12d37'
   question-tab: '#fbe1d7'
   answer: '#ffead4'
@@ -124,7 +124,7 @@ components:
 
 **Creative North Star: "Study stationery"**
 
-Aloft uses a study stationery world: peach workspace, warm white sheets, plum text, and a small illustrated stack of blank cards. Rounded display lettering adds character while readable study content stays primary. The existing island game remains a separate part of the product.
+Aloft uses a study stationery world: peach workspace, warm white sheets, plum text, and a small illustrated stack of blank cards. Rounded display lettering adds character while readable study content stays primary. Toast, the illustrated study cat, accompanies Today and Focus. The island game and reward economy are retired.
 
 The implemented system follows the warmer concept in `design/aloft-study-stationery-concept.png`. The prompts in `design/study-stationery-prompts.md` record its provenance. The concept is a visual reference; the shipped components determine the rules below.
 
@@ -145,7 +145,7 @@ Coral controls sit against pale peach and warm white, with plum reading text.
 
 ### Secondary
 
-Apricot `answer` identifies revealed answers. Lilac `source` identifies read-only evidence, with darker source text and links. `insight` also remains the existing Insight currency color; keep its glyph and label.
+Apricot `answer` identifies revealed answers. Lilac `source` identifies read-only evidence, with darker source text and links. `accent` supplies the secondary purple accent via `--color-accent` and `text-accent`.
 
 ### Neutral
 
@@ -171,7 +171,7 @@ Check core flows at 390×844, 820×1180, and 1180×820. These are review viewpor
 
 Paper panels are flat, with fine borders and no shadow. Tonal areas distinguish answers and sources. The shared primary button retains a small Tailwind shadow. The decorative card illustration has its own short painted shadow. Fixed navigation uses a translucent page color and subtle backdrop blur; do not generalize that treatment to study content.
 
-Reward animations remain in the existing game and completion UI. They include a 420ms rise, 520ms pop, and 240ms fade. The focus indicator breathes slowly. Reduced-motion rules remove or shorten animation and transitions. Review content expands on reveal; the retained flip CSS is not the active flashcard presentation.
+Session completion uses brief entrance and milestone feedback. It does not open chests or count currency. The focus indicator breathes slowly. Reduced-motion rules remove or shorten animation and transitions. Review content expands on reveal; the retained flip CSS is not the active flashcard presentation.
 
 ## Shapes
 
@@ -203,7 +203,7 @@ Every graded choice (Review multiple choice, the focus-session quiz, and mistake
 
 Again, Hard, Good, and Easy share the same warm white treatment and 102px minimum height. Each includes a plain-language meaning and next-review interval. Hover adds apricot and a coral border. Disabled choices reduce opacity and show a waiting cursor.
 
-**The honest rating rule.** Give all recall choices equal visual weight. Ratings affect scheduling; completed reviews earn equal credit regardless of the rating.
+**The honest rating rule.** Give all recall choices equal visual weight. Ratings affect scheduling. Review progress records completed study without paying for higher ratings.
 
 ### Progress dashboard
 
@@ -218,13 +218,13 @@ Again, Hard, Good, and Easy share the same warm white treatment and 102px minimu
 
 ### Navigation
 
-The phone tab bar has five equal columns for Today (`/study`), Focus (`/focus`), Review, Notes, and Island, with icons above text and 64px minimum item height. Progress is not a tab: it opens from the "Your progress this week" row on Today, and `/review/progress` selects Review. Current-page text is coral. The longest matching destination determines the single active item. Desktop links place icons beside text and use a pressed background for the current page. Keep labels and current-page semantics alongside color.
+The phone tab bar has four equal columns for Today (`/study`), Focus (`/focus`), Review, and Notes, with icons above text and 64px minimum item height. Progress is not a tab: it opens from the "Your progress this week" row on Today, and `/review/progress` selects Review. Current-page text is coral. The longest matching destination determines the single active item. Desktop links place icons beside text and use a pressed background for the current page. Keep labels and current-page semantics alongside color.
 
 ### Streak tracker
 
-Today places the focus streak above the cat; Progress places the same tracker above its summary panel. It defaults to a compact, closed disclosure in warm white paper with a fine border and 14px corners. The 72px summary shows a coral flame, the current streak, and either "Done today" or the minimum session length. Opening it shows only the next milestone, a progress bar with the current and target day counts, and its Insight reward for the island. After the final milestone, a short completion message replaces the bar. A nested "How it works" disclosure keeps session rules, the island-items link, and freeze guidance available without adding to the initial reading. Its target is at least 44px high. A single "Start focusing" action is at least 48px high and appears only when today is incomplete. Keyboard focus stays visible; reduced motion removes chevron and progress transitions.
+Today places the focus streak above the cat; Progress places the same tracker above its summary panel. It defaults to a compact, closed disclosure in warm white paper with a fine border and 14px corners. The 72px summary shows a coral flame, the current streak, and either "Done today" or the minimum session length. Opening it shows the next milestone and a progress bar labelled with the current and target day counts. After the final milestone, a short completion message replaces the bar. A nested "How it works" disclosure keeps session rules and freeze guidance available without adding to the initial reading. Its target is at least 44px high. A single "Start focusing" action is at least 48px high and appears only when today is incomplete. Keyboard focus stays visible; reduced motion removes chevron and progress transitions.
 
-A focus or reading session of at least five minutes completes the day under the standard session rules; reviews contribute to learning progress separately. Two freezes refresh each month, and one automatically bridges a single missed day when the student returns. The tracker reads the server's summary in the student's timezone without awarding days, spending freezes, or granting rewards. Session completion shows a brief status message for the completed day, a milestone and its earned Insight, or a used freeze. Keep this feedback within the existing completion UI and use calm language without loss warnings.
+A focus or reading session of at least five minutes completes the day under the standard session rules; reviews contribute to learning progress separately. Two freezes refresh each month, and one automatically bridges a single missed day when the student returns. The tracker reads the server's summary in the student's timezone without awarding days, spending freezes, or granting rewards. Session completion shows a brief status message for the completed day, a reached streak milestone, or a used freeze. Keep this feedback within the existing completion UI and use calm language without loss warnings.
 
 ### Today
 
@@ -267,10 +267,10 @@ The versioned `public/illustrations/study-cards-v1.png` is decorative. Review di
 - Don't use generated mockup slogans, scores, or clinical facts as product data.
 - Don't put illustration behind study text or let it displace the question.
 - Don't reintroduce the tropical field-journal treatment into study pages.
-- Don't replace the retained island game or its saved progress as part of a visual extension.
+- Don't reintroduce the retired island, currencies, loot, or purchase UI. Streak milestones acknowledge consistency; cat care uses actual study activity.
 
 ### Illustrated study companion
 
 Today and Focus default to the orange illustrated cat at a study desk. Separate raster layers animate breathing, head movement, writing, sleepy nods, dozing and waking; tapping or stroking the head triggers a happy reaction. Reduced motion stops animation and the automatic routine. Background tabs pause it. The background remains still.
 
-The browser remembers an explicit character selection. `?cat=3d` retains the earlier clay character, earned room visuals and full care animations described above. The illustrated version currently acknowledges care with expressions and text; its desk does not change with earned room milestones.
+The browser remembers an explicit character selection. `?cat=3d` retains the earlier clay character, room visuals derived from study milestones and full care animations. The illustrated version currently acknowledges care with expressions and text; its desk does not change with earned room milestones.

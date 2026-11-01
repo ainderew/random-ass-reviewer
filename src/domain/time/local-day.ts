@@ -28,7 +28,6 @@ function formatter(timeZone: string): Intl.DateTimeFormat {
       second: '2-digit',
     });
   } catch {
-    // Unknown zone. Fall back to UTC rather than crash a payout.
     built = formatter('UTC');
   }
   formatters.set(timeZone, built);

@@ -1,5 +1,3 @@
-import { INSIGHT_PER_QUIZ_CORRECT } from '@/domain/economy/constants';
-import { calculateQuizMultiplier } from '@/domain/economy/insight';
 import { QUIZ_CARD_COUNT } from '@/domain/review/constants';
 import { selectQuizCards } from '@/domain/review/queue';
 import { buildQuizQuestion } from '@/domain/review/quiz';
@@ -8,8 +6,7 @@ import type { QuizProgress, QuizResult, SessionQuiz } from '@/domain/types';
 import { db, type DbOrTx } from '@/server/db';
 import { AppError } from '@/server/errors';
 import { listSeenCards } from '@/server/repositories/card';
-import { claimQuizMultiplier } from '@/server/repositories/focus-session';
-import { incrementBalances } from '@/server/repositories/user-stats';
+import { claimQuizResult } from '@/server/repositories/focus-session';
 import {
   lockQuizSession,
   readQuiz,
@@ -61,7 +58,6 @@ function feedback(row: QuizRow, rows: QuizRow[]): QuizProgress {
     correctSoFar: result.correct,
     answered: rows.filter((r) => r.answeredAt).length,
     total: result.total,
-    multiplier: calculateQuizMultiplier(result),
   };
 }
 export async function getSessionQuiz(input: Input): Promise<SessionQuiz> {
@@ -130,16 +126,12 @@ export async function finishSessionQuiz(input: Input): Promise<QuizResult> {
     if (!rows.length)
       throw new AppError('INVALID_STATE', 'No approved quiz questions yet');
     const { correct, total } = score(rows);
-    const multiplier = calculateQuizMultiplier({ correct, total });
-    const claimed = await claimQuizMultiplier(tx, {
+    const claimed = await claimQuizResult(tx, {
       ...input,
-      multiplier,
       correct,
       total,
     });
     if (!claimed) throw new AppError('INVALID_STATE', 'Quiz already submitted');
-    const insight = correct * INSIGHT_PER_QUIZ_CORRECT;
-    await incrementBalances(tx, input.userId, { insight, xp: insight });
-    return { multiplier, insightAwarded: insight, correct, total };
+    return { correct, total };
   });
 }

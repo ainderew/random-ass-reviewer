@@ -1,19 +1,4 @@
-import { DAILY_CREDITABLE_MS, FOCUS_PER_MINUTE } from './constants';
-
-const MS_PER_MINUTE = 60 * 1000;
-
-// Focus paid for credited time. Whole minutes only, rounded down. The
-// minimum-session rule lives in the session service, on focused time, so a
-// daily cap that trims a long session cannot zero it out.
-export function calculateFocusAward(input: {
-  creditedMs: number;
-  multiplier: number;
-}): number {
-  const { creditedMs, multiplier } = input;
-  if (creditedMs <= 0 || multiplier <= 0) return 0;
-  const minutes = Math.floor(creditedMs / MS_PER_MINUTE);
-  return Math.floor(minutes * FOCUS_PER_MINUTE * multiplier);
-}
+import { DAILY_CREDITABLE_MS } from './constants';
 
 // How much of a session's focused time may still be credited today. Never negative.
 export function applyDailyCap(input: {

@@ -45,8 +45,6 @@ const envSchema = z
     NODE_ENV: z
       .enum(['development', 'test', 'production'])
       .default('development'),
-    // Optional CDN prefix for optimised GLBs. Empty means same-origin /models.
-    NEXT_PUBLIC_ASSET_BASE_URL: z.string().default(''),
     // The study cat's push nudges. base64url keys from
     // `npx web-push generate-vapid-keys`; all three or none. Without them the
     // opt-in stays hidden and nothing is sent.

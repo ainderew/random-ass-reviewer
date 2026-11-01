@@ -1,13 +1,7 @@
 import { eq } from 'drizzle-orm';
 import { closeDb, db } from '@/server/db';
 import { isUniqueViolation } from '@/server/db/errors';
-import {
-  focusSessions,
-  islands,
-  placements,
-  sessionHeartbeats,
-  users,
-} from '@/server/db/schema';
+import { focusSessions, sessionHeartbeats, users } from '@/server/db/schema';
 
 // These verify the database, so mocking it would test nothing.
 const settle = (promise: Promise<unknown>) =>
@@ -29,22 +23,10 @@ describe('database constraints', () => {
     await closeDb();
   });
 
-  it('rejects two placements on the same tile', async () => {
-    const [island] = await db.insert(islands).values({ userId }).returning();
-    const tile = { islandId: island!.id, assetId: 'lantern-post', x: 1, z: 1 };
-
-    await db.insert(placements).values(tile);
-    const error = await settle(
-      db.insert(placements).values({ ...tile, assetId: 'bench' }),
-    );
-
-    expect(isUniqueViolation(error)).toBe(true);
-  });
-
   it('rejects a replayed heartbeat seq', async () => {
     const [session] = await db
       .insert(focusSessions)
-      .values({ userId, lootSeed: 'seed', startedAt: new Date() })
+      .values({ userId, startedAt: new Date() })
       .returning();
     const beat = {
       sessionId: session!.id,
@@ -61,7 +43,7 @@ describe('database constraints', () => {
   });
 
   it('allows one active session per user', async () => {
-    const values = { userId, lootSeed: 'seed', startedAt: new Date() };
+    const values = { userId, startedAt: new Date() };
 
     await db.insert(focusSessions).values(values);
     const error = await settle(db.insert(focusSessions).values(values));

@@ -15,9 +15,9 @@ function toFocusSession(row: SessionRow): FocusSession {
     endedAt: row.endedAt,
     focusedMs: row.focusedMs,
     creditedMs: row.creditedMs,
-    lootSeed: row.lootSeed,
+
     status: row.status,
-    quizMultiplier: Number(row.quizMultiplier),
+
     quizSubmittedAt: row.quizSubmittedAt ?? null,
   };
 }
@@ -28,7 +28,7 @@ export async function createFocusSession(
   tx: DbOrTx,
   input: {
     userId: string;
-    lootSeed: string;
+
     mode?: 'focus' | 'reading';
     readingLimitMs?: number;
   },
@@ -37,7 +37,7 @@ export async function createFocusSession(
     .insert(focusSessions)
     .values({
       userId: input.userId,
-      lootSeed: input.lootSeed,
+
       mode: input.mode ?? 'focus',
       readingLimitMs: input.readingLimitMs ?? null,
       startedAt: new Date(),
@@ -113,17 +113,12 @@ export async function updateFocusSession(
     focusedMs: number;
     creditedMs: number;
     status: SessionStatus;
-    quizMultiplier: number;
   }>,
 ): Promise<FocusSession | null> {
-  const { quizMultiplier, ...rest } = patch;
   const [row] = await tx
     .update(focusSessions)
     .set({
-      ...rest,
-      ...(quizMultiplier === undefined
-        ? {}
-        : { quizMultiplier: quizMultiplier.toFixed(2) }),
+      ...patch,
     })
     .where(eq(focusSessions.id, id))
     .returning();
@@ -204,14 +199,11 @@ export async function listCompletedSince(
   return rows.map(toFocusSession);
 }
 
-// Single-write guard for the quiz: only an active session that has not been
-// quizzed can take a multiplier, and only once. Concurrent submits lose here.
-export async function claimQuizMultiplier(
+export async function claimQuizResult(
   tx: DbOrTx,
   input: {
     sessionId: string;
     userId: string;
-    multiplier: number;
     correct: number;
     total: number;
   },
@@ -219,7 +211,6 @@ export async function claimQuizMultiplier(
   const [row] = await tx
     .update(focusSessions)
     .set({
-      quizMultiplier: input.multiplier.toFixed(2),
       quizSubmittedAt: new Date(),
       quizCorrect: input.correct,
       quizTotal: input.total,

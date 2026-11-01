@@ -1,5 +1,7 @@
 # First Medtech improvements
 
+> Historical record. The island and its currency, XP, level, and loot systems were retired on November 2, 2026. References below describe an earlier version. Use `PRODUCT.md`, `DESIGN.md`, and current code for present behavior.
+
 Implemented September 17, 2026. Andrew expects the exam around March 2027; the exact date and note collection are not yet confirmed. Likely PDF notes, with other formats possible.
 
 ## Shipped in this checkout

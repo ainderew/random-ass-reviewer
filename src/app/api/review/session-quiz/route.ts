@@ -16,7 +16,6 @@ export const GET = handleRoute(async (req) => {
   return ok(await getSessionQuiz({ userId, sessionId }));
 });
 
-// Finish: sets the multiplier once from the answers already recorded.
 export const POST = handleRoute(async (req) => {
   const userId = await requireUserId();
   const body = quizFinishRequestSchema.parse(await req.json());

@@ -6,9 +6,6 @@ import type { QuizProgress, QuizResult } from '@/domain/types';
 import { sessionQuizKey, statsQueryKey } from '@/lib/query-keys';
 import { answerQuiz, fetchSessionQuiz, finishQuiz } from './session-api';
 
-// Questions come once per session (seeded server-side, stable across a
-// refresh). Each answer is graded by the server; the running multiplier is
-// its number, never a local guess.
 export function useSessionQuiz(sessionId: string) {
   const queryClient = useQueryClient();
   const [progress, setProgress] = useState<QuizProgress | null>(null);

@@ -52,7 +52,6 @@ it('resumes PDF reading with no heartbeats and caps a late finish without paying
     mode: 'reading',
     focusedMs: 900000,
     creditedMs: 900000,
-    focusAwarded: 150,
   });
   await expect(
     endSession({ userId, sessionId: session.sessionId }),

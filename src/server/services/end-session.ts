@@ -3,16 +3,12 @@ import { bowlsFilled } from '@/domain/pet/care';
 import { studyGain } from '@/domain/pet/happiness';
 import { MIN_SESSION_MS } from '@/domain/economy/constants';
 import { env } from '@/lib/env';
-import { applyDailyCap, calculateFocusAward } from '@/domain/economy/currency';
-import { rollCache } from '@/domain/economy/loot';
-import { milestoneInsight, updateStreak } from '@/domain/economy/streak';
-import { unlocksForLevel } from '@/domain/economy/unlocks';
-import { levelForXp } from '@/domain/economy/xp';
+import { applyDailyCap } from '@/domain/economy/currency';
+import { updateStreak } from '@/domain/economy/streak';
 import { localDayKey, startOfLocalDay } from '@/domain/time/local-day';
 import type { SessionResult } from '@/domain/types';
 import { db } from '@/server/db';
 import { AppError } from '@/server/errors';
-import { insertCache } from '@/server/repositories/cache';
 import {
   claimSessionForEnd,
   findSessionById,
@@ -21,21 +17,13 @@ import {
   updateFocusSession,
 } from '@/server/repositories/focus-session';
 import { studiedTogether } from '@/server/repositories/pet';
-import { findIslandByUserId } from '@/server/repositories/island';
 import { findUserById } from '@/server/repositories/user';
 import {
   findUserStats,
-  incrementBalances,
-  setLevel,
-  setPityCounter,
   updateStreakFields,
 } from '@/server/repositories/user-stats';
-import { getOwnership } from './inventory';
 import { effectiveDailyCapMs } from './user-settings';
 
-// One transaction: claim the session, count its time on the server clock
-// from start to end (whether or not the app was on screen), apply the cap, pay, update the
-// streak, roll the cache. A crash anywhere in here rolls all of it back.
 export async function endSession(input: {
   userId: string;
   sessionId: string;
@@ -55,15 +43,10 @@ export async function endSession(input: {
       sessionId: session.id,
       mode: session.mode ?? 'focus',
       focusedMs,
-      xpAwarded: 0,
-      focusAwarded: 0,
-      quizMultiplier: session.quizMultiplier,
-      levelUp: null,
       streak: null,
-      cache: null,
     };
 
-    // A short session is a person trying. Log it, pay nothing, no error.
+    // A short session is a person trying. Save it without streak credit.
     if (focusedMs < (env.MIN_SESSION_MS_OVERRIDE ?? MIN_SESSION_MS)) {
       await updateFocusSession(tx, session.id, { focusedMs, creditedMs: 0 });
       // Still time together, so she does not start missing you.
@@ -90,11 +73,6 @@ export async function endSession(input: {
       alreadyCreditedTodayMs,
       capMs: effectiveDailyCapMs(user),
     });
-    const award = calculateFocusAward({
-      creditedMs,
-      multiplier: session.quizMultiplier,
-    });
-
     const before = await findUserStats(tx, input.userId);
     if (!before) throw new AppError('NOT_FOUND', 'User stats not found');
 
@@ -110,42 +88,6 @@ export async function endSession(input: {
       streakFreezes: streakUpdate.freezesRemaining,
       lastSessionDate: localDayKey(nowMs, timeZone),
     });
-    const bonusInsight = milestoneInsight(streakUpdate.milestone);
-
-    const stats = await incrementBalances(tx, input.userId, {
-      focus: award,
-      insight: bonusInsight,
-      xp: award,
-    });
-    const level = levelForXp(stats.xp);
-    if (level !== stats.level) await setLevel(tx, input.userId, level);
-    const levelUp =
-      level > before.level ? { level, unlocks: unlocksForLevel(level) } : null;
-
-    // The cache is rolled from the seed fixed at session start. Contents stay
-    // server-side until the user opens it.
-    let cache: { id: string } | null = null;
-    const island = await findIslandByUserId(tx, input.userId);
-    const ownership = island
-      ? await getOwnership(tx, input.userId, island.id)
-      : null;
-    const roll = rollCache({
-      seed: session.lootSeed,
-      creditedMs,
-      pityCounter: before.pityCounter,
-      ownedAssetIds: ownership?.ownedAssetIds ?? [],
-    });
-    if (roll) {
-      const inserted = await insertCache(tx, {
-        userId: input.userId,
-        sessionId: session.id,
-        rarity: roll.rarity,
-        contents: roll.contents,
-      });
-      await setPityCounter(tx, input.userId, roll.nextPityCounter);
-      cache = { id: inserted.id };
-    }
-
     await updateFocusSession(tx, session.id, { focusedMs, creditedMs });
 
     // The study cat: time together raises her happiness, and the credited
@@ -159,19 +101,14 @@ export async function endSession(input: {
     return {
       ...base,
       creditedMs,
-      focusAwarded: award,
-      xpAwarded: award,
       cappedByDailyLimit: creditedMs < focusedMs,
       belowMinimum: false,
-      levelUp,
       streak: {
         days: streakUpdate.streak,
         freezeUsed: streakUpdate.freezeUsed,
         freezesRemaining: streakUpdate.freezesRemaining,
         milestone: streakUpdate.milestone,
-        milestoneInsight: bonusInsight,
       },
-      cache,
       pet: {
         name: cat.name,
         bowlsFilled: bowlsFilled(focusAfterMs - creditedMs, creditedMs),

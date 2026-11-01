@@ -1,5 +1,7 @@
 # Learning and motivation UX research
 
+> Historical record. The island and its currency, XP, level, and loot systems were retired on November 2, 2026. References below describe an earlier version. Use `PRODUCT.md`, `DESIGN.md`, and current code for present behavior.
+
 September 18, 2026. Focused desk research and repository review, not a systematic review or completed usability study. The intended learner is Andrew's girlfriend, preparing for the Philippine MTLE around March 2027 on a phone and iPad. Her notes, available study time, baseline scores, and main motivational obstacle remain unknown. All new features below are proposals. This research does not alter the application or deploy the pending coastal redesign.
 
 ## Recommendation

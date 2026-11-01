@@ -69,8 +69,6 @@ const AUTHED_ROUTES: Array<
   ],
   ['GET', '/api/stats', () => import('@/app/api/stats/route')],
   ['GET', '/api/stats/weekly', () => import('@/app/api/stats/weekly/route')],
-  ['GET', '/api/island', () => import('@/app/api/island/route')],
-  ['POST', '/api/island/place', () => import('@/app/api/island/place/route')],
   ['GET', '/api/notes', () => import('@/app/api/notes/route')],
   ['POST', '/api/notes', () => import('@/app/api/notes/route')],
   ['GET', '/api/review/queue', () => import('@/app/api/review/queue/route')],
@@ -127,7 +125,7 @@ async function seedSession(userId: string, spanMs: number): Promise<string> {
   const now = Date.now();
   const [session] = await db
     .insert(focusSessions)
-    .values({ userId, lootSeed: 'seed', startedAt: new Date(now - spanMs) })
+    .values({ userId, startedAt: new Date(now - spanMs) })
     .returning();
   return session!.id;
 }
@@ -212,7 +210,7 @@ describe('API routes', () => {
       userId: intruder,
     });
     expect(ended.status).toBe(200);
-    expect(ended.body.data.focusAwarded).toBeGreaterThan(0);
+
     // No cache contents, no pity counter, no loot seed.
     expect(JSON.stringify(ended.body)).not.toMatch(
       /contents|pityCounter|lootSeed/,

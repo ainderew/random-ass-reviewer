@@ -1,9 +1,8 @@
-import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { gzipSync } from 'node:zlib';
 
 // Runs after `next build`. Fails when the budget is broken:
-//   - an optimised island GLB over 150 KB
 //   - a development-only surface in the production output
 // It also prints each route's first-load size so a regression is visible in
 // the CI log. There is no JS budget any more: the study tab draws the
@@ -11,7 +10,6 @@ import { gzipSync } from 'node:zlib';
 
 const ROOT = process.cwd();
 const NEXT = join(ROOT, '.next');
-const GLB_BUDGET_BYTES = 150 * 1024;
 const DEV_MARKERS = [
   /DevTimeScrubber/,
   /Time of day override/,
@@ -69,19 +67,6 @@ function reportRoute(route: string) {
   );
 }
 
-function checkModels() {
-  const dir = join(ROOT, 'public', 'models');
-  if (!existsSync(dir)) return;
-  for (const name of readdirSync(dir).filter((f) => f.endsWith('.glb'))) {
-    const size = statSync(join(dir, name)).size;
-    if (size > GLB_BUDGET_BYTES) {
-      failures.push({
-        message: `public/models/${name} is ${(size / 1024).toFixed(0)} KB, over 150 KB`,
-      });
-    }
-  }
-}
-
 function checkDevSurfaces() {
   const dir = join(NEXT, 'static', 'chunks');
   if (!existsSync(dir)) return;
@@ -103,8 +88,7 @@ if (!existsSync(NEXT)) {
 reportRoute('/(app)/study');
 reportRoute('/(app)/review');
 reportRoute('/(app)/notes');
-reportRoute('/(app)/island');
-checkModels();
+reportRoute('/(app)/focus');
 checkDevSurfaces();
 
 if (failures.length > 0) {

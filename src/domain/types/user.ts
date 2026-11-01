@@ -1,8 +1,6 @@
 import { z } from 'zod';
 import { examMonthSchema } from '../study/medtech';
 
-export type Currency = 'focus' | 'insight';
-
 export interface User {
   id: string;
   email: string;
@@ -20,15 +18,10 @@ export interface User {
 
 export interface UserStats {
   userId: string;
-  focusBalance: number;
-  insightBalance: number;
-  xp: number;
-  level: number;
   streakDays: number;
   streakFreezes: number;
   // 'YYYY-MM-DD' in the user's timezone, or null before the first session.
   lastSessionDate: string | null;
-  pityCounter: number;
 }
 
 export interface StatsSnapshot {
@@ -67,7 +60,6 @@ export const updateProfileRequestSchema = z.object({
     .optional(),
 });
 export type UpdateProfileRequest = z.infer<typeof updateProfileRequestSchema>;
-// Kept for the island view, which only ever sends the zone.
 export const updateTimeZoneRequestSchema = updateProfileRequestSchema.pick({
   timeZone: true,
 });
@@ -75,7 +67,6 @@ export const updateTimeZoneRequestSchema = updateProfileRequestSchema.pick({
 export interface OnboardingProgress {
   hasNotes: boolean;
   hasSession: boolean;
-  hasPlacement: boolean;
 }
 
 export interface Profile {
@@ -102,9 +93,7 @@ export interface WeeklySummary {
   heavy: boolean;
 }
 
-// What the client may see. The pity counter stays on the server: exposing it
-// lets a user time sessions to farm guaranteed rares.
-export type PublicUserStats = Omit<UserStats, 'pityCounter'>;
+export type PublicUserStats = UserStats;
 
 // Email-and-password sign-in. Google is optional; this always works.
 export const credentialsSchema = z.object({

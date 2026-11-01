@@ -1,6 +1,5 @@
 import { validQuizContent } from '@/domain/study/quiz-content';
 import { sourcesForChunks } from '@/server/repositories/card-source';
-import { calculateReviewInsight } from '@/domain/economy/insight';
 import { selectQueue } from '@/domain/review/queue';
 import {
   parseState,
@@ -21,7 +20,6 @@ import { AppError } from '@/server/errors';
 import {
   countCardsFirstReviewedSince,
   lockCard,
-  hasRecallSince,
   insertCardReview,
   listDueCards,
   listRecentReviews,
@@ -29,7 +27,6 @@ import {
 } from '@/server/repositories/card';
 import { subjectProgress } from '@/server/repositories/study-plan';
 import { findUserById } from '@/server/repositories/user';
-import { incrementBalances } from '@/server/repositories/user-stats';
 
 async function userDayStart(
   tx: DbOrTx,
@@ -140,8 +137,7 @@ export function consecutiveCorrect(ratings: readonly Rating[]): number {
   return run;
 }
 
-// One transaction: schedule, record, pay. The server rates money; the client
-// only reports which button was pressed.
+// Schedule and record each review in one transaction.
 export async function submitAnswer(input: {
   userId: string;
   cardId: string;
@@ -197,11 +193,6 @@ export async function submitAnswer(input: {
     const delayDays = Number.isFinite(previousReview)
       ? Math.max(0, (nowMs - previousReview) / 86400000)
       : null;
-    const rewardedToday = await hasRecallSince(
-      tx,
-      card.id,
-      await userDayStart(tx, input.userId, nowMs),
-    );
     const scheduled = scheduleReview({
       state: parseState(card.fsrsState, nowMs),
       rating: input.rating,
@@ -229,20 +220,12 @@ export async function submitAnswer(input: {
       { limit: 50 },
     );
     const run = consecutiveCorrect(recent.map((r) => r.rating));
-    const insight = rewardedToday ? 0 : calculateReviewInsight();
-    const stats = await incrementBalances(tx, input.userId, {
-      insight,
-      xp: insight,
-    });
-
     return {
       cardId: card.id,
       rating: input.rating,
       nextDueAt: new Date(scheduled.nextDueAtMs),
       intervalDays: scheduled.intervalDays,
-      insightAwarded: insight,
       consecutiveCorrect: run,
-      insightBalance: stats.insightBalance,
     };
   });
 }

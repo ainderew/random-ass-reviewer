@@ -1,5 +1,7 @@
 # Study stationery validation
 
+> Historical record. The island and its currency, XP, level, and loot systems were retired on November 2, 2026. References below describe an earlier version. Use `PRODUCT.md`, `DESIGN.md`, and current code for present behavior.
+
 The implementation uses the second Imagegen concept and generated transparent card illustration. Prompts are in `study-stationery-prompts.md`. The earlier reference-desk concept is retained as history.
 
 - Production build, TypeScript, ESLint, and diff whitespace checks pass.

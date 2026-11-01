@@ -16,14 +16,7 @@ it('shows one next milestone and keeps explanations folded away', async () => {
   await user.click(screen.getByText('6-day focus streak'));
   expect(screen.getByText('Next: 7 days')).toBeVisible();
   expect(screen.getByRole('progressbar')).toHaveAttribute('value', '6');
-  expect(
-    screen.getByRole('link', { name: 'island items', hidden: true }),
-  ).not.toBeVisible();
-  await user.click(screen.getByText('How it works'));
-  expect(screen.getByRole('link', { name: 'island items' })).toHaveAttribute(
-    'href',
-    '/island',
-  );
+  expect(screen.queryByText(/Insight|island items/)).not.toBeInTheDocument();
   expect(screen.getByRole('link', { name: 'Start focusing' })).toHaveAttribute(
     'href',
     '/focus',

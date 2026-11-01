@@ -58,8 +58,7 @@ export const StudyPlanForm = () => {
         </label>
       </div>
       <p className="text-ink-2">
-        Set new cards to zero to catch up on due reviews. Reviews still earn the
-        same credit when you choose Again.
+        Set new cards to zero to catch up on due reviews.
       </p>
       <div className="flex flex-wrap gap-2">
         <Button variant="ghost" onClick={() => setMonth('2027-03')}>
@@ -74,7 +73,7 @@ export const StudyPlanForm = () => {
           Could not save your plan. Try again.
         </p>
       ) : update.isSuccess ? (
-        <p role="status" className="text-insight">
+        <p role="status" className="text-accent">
           Study plan saved.
         </p>
       ) : null}

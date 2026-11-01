@@ -3,13 +3,11 @@
 import Link from 'next/link';
 import { reviewBatch, type StudyBudget } from '@/domain/review/today';
 import { useQueryClient } from '@tanstack/react-query';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { MedtechSubject } from '@/domain/study/medtech';
 import type { QueuedCard, Rating } from '@/domain/types';
-import { DiamondGlyph } from '@/components/icons';
 import { Button } from '@/components/ui/button';
 import { playPitched } from '@/game/systems/juice/play-pitched';
-import { useSpringPop } from '@/game/systems/juice/use-spring-pop';
 import { reviewQueueKey } from '@/lib/query-keys';
 import { useReviewQueue, useReviewStats } from '../_hooks/use-review';
 import { useAnswerQueue } from '../_hooks/use-answer-queue';
@@ -54,7 +52,6 @@ export const ReviewSession = ({
     refetch,
   } = useReviewQueue(subject);
   const { data: stats } = useReviewStats();
-  const pop = useSpringPop();
   const [selection, setSelection] = useState<AnswerType>('auto');
   const [choiceCorrect, setChoiceCorrect] = useState<boolean | null>(null);
   const [selectedAnswer, setSelectedAnswer] = useState<string | undefined>();
@@ -65,18 +62,13 @@ export const ReviewSession = ({
   const [busy, setBusy] = useState(false);
   const [run, setRun] = useState(0);
   const [bestRun, setBestRun] = useState(0);
-  const [insight, setInsight] = useState(0);
-  const [lastAward, setLastAward] = useState<number | null>(null);
+
   const [error, setError] = useState<string | null>(null);
   // The card whose choices were just written here, to say so under them.
   const [madeChoicesFor, setMadeChoicesFor] = useState<string | null>(null);
   const shownAt = useRef(0);
 
-  const credit = useCallback((amount: number) => {
-    setInsight((total) => total + amount);
-    setLastAward(amount);
-  }, []);
-  const answers = useAnswerQueue((result) => credit(result.insightAwarded));
+  const answers = useAnswerQueue(() => {});
 
   const cards: QueuedCard[] = (
     minutes ? reviewBatch(queue ?? [], minutes) : (queue ?? [])
@@ -131,7 +123,7 @@ export const ReviewSession = ({
         practiceType: mode,
         ...(mode === 'choice' ? { selectedAnswer } : {}),
       });
-      if (outcome.kind === 'ok') credit(outcome.result.insightAwarded);
+
       if (outcome.kind === 'gone') {
         // Deleted mid-review. Drop it and move on without ceremony.
         setSkipped((s) => new Set(s).add(card.id));
@@ -208,7 +200,7 @@ export const ReviewSession = ({
         <ReviewComplete
           reviewed={index}
           bounded={minutes !== null}
-          insight={insight}
+
           bestRun={bestRun}
           totalCards={stats?.totals.total ?? null}
           nextDueAt={stats?.nextDueAt ?? null}
@@ -217,7 +209,7 @@ export const ReviewSession = ({
             setIndex(0);
             setChoiceScore({ correct: 0, total: 0 });
             setRun(0);
-            setInsight(0);
+
             void queryClient.invalidateQueries({ queryKey: reviewQueueKey });
           }}
         />
@@ -254,19 +246,10 @@ export const ReviewSession = ({
   return (
     <section aria-label="Review" className="space-y-5">
       <div className="flex items-center justify-between text-sm">
-        <p className="font-mono text-ink-2 tabular-nums">
+        <p className="text-ink-2">
           Card {index + 1} of {cards.length}
         </p>
-        <p
-          key={lastAward === null ? 'none' : `${index}-${lastAward}`}
-          className={`flex items-center gap-1 font-mono text-insight tabular-nums ${lastAward ? pop.className : ''}`}
-          aria-live="polite"
-        >
-          <DiamondGlyph size={14} />+{insight}
-          {run >= 2 ? (
-            <span className="ml-2 text-muted">{run} in a row</span>
-          ) : null}
-        </p>
+        {run >= 2 && <p className="text-ink-2">{run} in a row</p>}
       </div>
       <AnswerTypePicker
         mode={mode}
@@ -355,7 +338,7 @@ export const ReviewSession = ({
         </p>
       ) : null}
       <p className="text-xs text-muted">
-        Again earns the same review credit as Good. Rate what you remembered.
+        Rate what you remembered. Again brings this card back sooner.
       </p>
       <p className="hidden text-xs text-muted sm:block">
         {mode === 'choice'

@@ -81,7 +81,7 @@ beforeEach(() => {
         'GET /api/push/subscription': () => ({ publicKey: null, devices: 0 }),
         'GET /api/me': () => ({ timeZone: 'Asia/Manila' }),
         'GET /api/stats': () => ({
-          stats: { level: 1, focusBalance: 0 },
+          stats: { streakDays: 0 },
           today: { creditedMs, sessionsStarted: 0, sessions: [] },
           career: { focusMs: 0, highGrades: 0, cardsRecalled: 0 },
         }),

@@ -53,9 +53,7 @@ export interface AnswerResult {
   rating: Rating;
   nextDueAt: Date;
   intervalDays: number;
-  insightAwarded: number;
   consecutiveCorrect: number;
-  insightBalance: number;
 }
 
 // Sent to the client. Note what is absent: anything naming the right option.
@@ -66,8 +64,6 @@ export interface QuizQuestion {
 }
 
 export interface QuizResult {
-  multiplier: number;
-  insightAwarded: number;
   correct: number;
   total: number;
 }
@@ -106,7 +102,6 @@ export interface QuizProgress {
   answered: number;
   total: number;
   // What the session would earn if the quiz ended now.
-  multiplier: number;
 }
 
 export const quizFinishRequestSchema = z.object({ sessionId: z.uuid() });

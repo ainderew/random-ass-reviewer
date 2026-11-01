@@ -1,19 +1,6 @@
 export const STREAK_MILESTONES = [3, 7, 14, 30, 60, 100] as const;
 export const FREEZES_PER_MONTH = 2;
 
-const INSIGHT_BY_MILESTONE: Record<number, number> = {
-  3: 5,
-  7: 10,
-  14: 20,
-  30: 40,
-  60: 60,
-  100: 100,
-};
-
-export function milestoneInsight(milestone: number | null): number {
-  return milestone === null ? 0 : (INSIGHT_BY_MILESTONE[milestone] ?? 0);
-}
-
 export interface StreakUpdate {
   streak: number;
   freezesRemaining: number;

@@ -34,7 +34,7 @@ async function seedSession(userId: string, spanMs: number): Promise<string> {
     .insert(focusSessions)
     .values({
       userId,
-      lootSeed: 'seed',
+
       startedAt: new Date(Date.now() - spanMs),
     })
     .returning();
@@ -77,13 +77,12 @@ describe('focus session service', () => {
     expect(first).not.toHaveProperty('lootSeed');
   });
 
-  it('pays nothing for a session ended straight away', async () => {
+  it('credits no time for a session ended straight away', async () => {
     const { sessionId } = await startSession(userId);
 
     const result = await endSession({ userId, sessionId });
 
     expect(result).toMatchObject({
-      focusAwarded: 0,
       creditedMs: 0,
       belowMinimum: true,
     });
@@ -91,7 +90,6 @@ describe('focus session service', () => {
   });
 
   it('keeps counting with the app in the background, no check-ins at all', async () => {
-    // Users of their own, so these payouts do not move the shared user's level.
     const away = await makeUser('away');
     created.push(away);
     const sessionId = await seedSession(away, minutes(40));
@@ -105,7 +103,6 @@ describe('focus session service', () => {
     const result = await endSession({ userId: away, sessionId });
     expect(result).toMatchObject({
       focusedMs: about(minutes(40)),
-      focusAwarded: 400,
     });
   });
 
@@ -123,7 +120,7 @@ describe('focus session service', () => {
     for (const { focusedMs } of checks)
       expect(focusedMs).toEqual(about(minutes(10)));
     const result = await endSession({ userId: checker, sessionId });
-    expect(result.focusAwarded).toBe(100);
+    expect(result.creditedMs).toEqual(about(minutes(10)));
   });
 
   it('refuses a check-in on a session that is not yours or has ended', async () => {
@@ -140,17 +137,17 @@ describe('focus session service', () => {
     });
   });
 
-  it('completes a short session with zero payout and no error', async () => {
+  it('completes a short session with zero credited time and no error', async () => {
     const sessionId = await seedSession(userId, minutes(3));
 
     const result = await endSession({ userId, sessionId });
 
     expect(result.belowMinimum).toBe(true);
-    expect(result.focusAwarded).toBe(0);
+
     expect((await sessionRow(sessionId))?.status).toBe('completed');
   });
 
-  it('pays 10 Focus per focused minute on a normal session', async () => {
+  it('credits session time and updates the streak', async () => {
     const sessionId = await seedSession(userId, minutes(10));
     const before = await db.query.userStats.findFirst({
       where: eq(userStats.userId, userId),
@@ -164,17 +161,16 @@ describe('focus session service', () => {
     expect(result).toMatchObject({
       focusedMs: about(minutes(10)),
       creditedMs: about(minutes(10)),
-      focusAwarded: 100,
     });
-    expect(after!.focusBalance - before!.focusBalance).toBe(100);
-    expect(after!.xp - before!.xp).toBe(100);
-    expect(after!.level).toBe(2);
+
+    expect(after!.streakDays).toBeGreaterThanOrEqual(before!.streakDays);
+    expect(after!.lastSessionDate).not.toBeNull();
   });
 
   it('clamps credited time to the daily cap and says so', async () => {
     await db.insert(focusSessions).values({
       userId,
-      lootSeed: 'seed',
+
       startedAt: new Date(Date.now() - minutes(60)),
       endedAt: new Date(),
       status: 'completed',
@@ -188,7 +184,7 @@ describe('focus session service', () => {
     expect(result).toMatchObject({
       focusedMs: about(minutes(10)),
       creditedMs: minutes(6),
-      focusAwarded: 60,
+
       cappedByDailyLimit: true,
     });
   });
@@ -198,7 +194,7 @@ describe('focus session service', () => {
     await db.insert(focusSessions).values(
       Array.from({ length: MAX_SESSIONS_PER_DAY }, () => ({
         userId,
-        lootSeed: 'seed',
+
         startedAt: now,
         endedAt: now,
         status: 'completed' as const,
@@ -223,7 +219,7 @@ describe('focus session service', () => {
     expect((await sessionRow(sessionId))?.status).toBe('active');
   });
 
-  it('rolls back the session update when the payout fails', async () => {
+  it('rolls back the session update when the account stats are missing', async () => {
     const [orphan] = await db
       .insert(users)
       .values({ email: `orphan-${Date.now()}@test.local` })

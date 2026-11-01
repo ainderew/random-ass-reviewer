@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { MAX_QUIZ_MULTIPLIER } from '@/domain/review/constants';
 import type { QuizResult } from '@/domain/types';
 import { Button } from '@/components/ui/button';
 import {
@@ -14,10 +13,6 @@ import {
 import { useSessionQuiz } from '../_hooks/use-session-quiz';
 import { TimerFrame } from './timer-frame';
 
-// Optional, and it only ever adds. The top row says so and the skip is in
-// the action row, which phones keep in the thumb zone. The multiplier stays
-// quiet until it has something to say; skipping or scoring badly leaves the
-// session exactly where it was.
 export const SessionQuiz = ({
   sessionId,
   onSkip,
@@ -48,7 +43,7 @@ export const SessionQuiz = ({
   const skipToReward =
     quiz.isSuccess && (quiz.data.submitted || questions.length === 0);
 
-  // Nothing to ask (no seen cards yet, or already taken): straight to the reward.
+  // Nothing to ask (no seen cards yet, or already taken): straight to the session result.
   useEffect(() => {
     if (skipToReward) onSkip();
   }, [skipToReward, onSkip]);
@@ -66,12 +61,12 @@ export const SessionQuiz = ({
         label="Quiz"
         actions={
           <Button size="lg" block onClick={onSkip}>
-            Continue to your reward
+            Save session
           </Button>
         }
       >
         <p className="text-ink-2">
-          The quiz is not available right now. Your Focus is safe.
+          The quiz is unavailable. You can still save your session.
         </p>
       </TimerFrame>
     );
@@ -122,10 +117,6 @@ export const SessionQuiz = ({
     });
   };
 
-  const multiplier = progress?.multiplier ?? 1;
-
-  const raised = multiplier > 1;
-
   return (
     <TimerFrame
       label="Quiz"
@@ -137,25 +128,13 @@ export const SessionQuiz = ({
             </span>
             <span> · optional</span>
           </p>
-          <p
-            key={multiplier}
-            className={
-              raised
-                ? 'spring-pop font-mono text-2xl text-focus tabular-nums'
-                : 'font-mono text-base text-muted tabular-nums'
-            }
-            aria-live="polite"
-            aria-label={`Bonus multiplier ${multiplier.toFixed(1)}`}
-          >
-            ×{multiplier.toFixed(1)}
-          </p>
         </div>
       }
       actions={
         <div className="space-y-2">
           {answered ? (
             <Button size="lg" block onClick={next} disabled={finish.isPending}>
-              {index + 1 < questions.length ? 'Next' : 'See my bonus'}
+              {index + 1 < questions.length ? 'Next' : 'See results'}
             </Button>
           ) : null}
           <Button
@@ -164,7 +143,7 @@ export const SessionQuiz = ({
             onClick={onSkip}
             disabled={finish.isPending}
           >
-            Skip, keep my Focus as is
+            Skip quiz
           </Button>
         </div>
       }
@@ -172,8 +151,8 @@ export const SessionQuiz = ({
       <div className="space-y-6">
         <p className="text-sm text-muted">
           {progress
-            ? `${progress.correctSoFar} right so far. Up to ×${MAX_QUIZ_MULTIPLIER.toFixed(1)} on this session's Focus.`
-            : `Optional. Skipping keeps what you earned. Answer ${questions.length} questions from your own notes for up to ×${MAX_QUIZ_MULTIPLIER.toFixed(1)} on this session's Focus.`}
+            ? `${progress.correctSoFar} correct so far.`
+            : `Optional. Practice ${questions.length} questions from your notes.`}
         </p>
         <p className="text-xl leading-relaxed text-ink">{question.question}</p>
         <ol className="space-y-2.5" aria-label="Options">
@@ -200,9 +179,6 @@ export const SessionQuiz = ({
             <blockquote className="border-l-2 border-hairline pl-3 text-sm text-ink-2">
               {progress.sourceQuote}
             </blockquote>
-            {!progress.correct && (
-              <p className="text-sm text-ink-2">Your earned Focus is safe.</p>
-            )}
           </AnswerVerdict>
         ) : null}
         {error ? (

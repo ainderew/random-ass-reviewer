@@ -1,7 +1,6 @@
 import type { AdapterUser } from 'next-auth/adapters';
 import type { User } from '@/domain/types';
 import { db } from '@/server/db';
-import { createIsland } from '@/server/repositories/island';
 import { insertUser } from '@/server/repositories/user';
 import { createUserStats } from '@/server/repositories/user-stats';
 
@@ -16,8 +15,7 @@ function toAdapterUser(user: User): AdapterUser {
 }
 
 // Replaces the Drizzle adapter's createUser so the user row, its stats row, and
-// its island are one transaction. A user with an account but no island would
-// crash Phase 3, so this is all or nothing.
+// its study statistics are created in one transaction.
 // The provider's id is ignored on purpose; the database generates ours.
 export async function createUserWithDefaults(
   input: AdapterUser,
@@ -30,7 +28,6 @@ export async function createUserWithDefaults(
       emailVerified: input.emailVerified,
     });
     await createUserStats(tx, created.id);
-    await createIsland(tx, created.id);
     return created;
   });
   return toAdapterUser(user);

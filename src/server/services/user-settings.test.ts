@@ -36,7 +36,7 @@ describe('user settings', () => {
       timeZone: 'Asia/Tokyo',
       onboardedAt: null,
       dailyCapMs: null,
-      progress: { hasNotes: false, hasSession: false, hasPlacement: false },
+      progress: { hasNotes: false, hasSession: false },
     });
   });
 

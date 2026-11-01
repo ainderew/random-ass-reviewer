@@ -1,8 +1,10 @@
 # Coastal redesign
 
+> Historical record. The island and its currency, XP, level, and loot systems were retired on November 2, 2026. References below describe an earlier version. Use `PRODUCT.md`, `DESIGN.md`, and current code for present behavior.
+
 Generated with the built-in imagegen tool on September 18, 2026.
 
-The [concept](aloft-coastal-concept.png) and [island artwork](../public/illustrations/coastal-island-v1.png) are saved in this project. The app serves the artwork through Next Image for responsive delivery. The illustration is decorative. Actual balances and island progress still come from the server.
+The [concept](aloft-coastal-concept.png) is retained as design history. The former island artwork has been removed from the app. The original generation prompts remain below for provenance.
 
 ## Concept prompt
 

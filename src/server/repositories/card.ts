@@ -559,25 +559,6 @@ export async function lockCard(
   return row ? toCard(row) : null;
 }
 
-export async function hasRecallSince(
-  tx: DbOrTx,
-  cardId: string,
-  since: Date,
-): Promise<boolean> {
-  const [row] = await tx
-    .select({ id: cardReviews.id })
-    .from(cardReviews)
-    .where(
-      and(
-        eq(cardReviews.cardId, cardId),
-        isNull(cardReviews.sessionId),
-        gte(cardReviews.reviewedAt, since),
-      ),
-    )
-    .limit(1);
-  return !!row;
-}
-
 export async function listAllUserCards(
   tx: DbOrTx,
   userId: string,

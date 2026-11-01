@@ -10,9 +10,7 @@ export interface FocusSession {
   endedAt: Date | null;
   focusedMs: number;
   creditedMs: number;
-  lootSeed: string;
   status: SessionStatus;
-  quizMultiplier: number;
   quizSubmittedAt: Date | null;
   mode?: 'focus' | 'reading';
   readingLimitMs?: number | null;
@@ -41,7 +39,6 @@ export const endSessionRequestSchema = z.object({
 });
 export type EndSessionRequest = z.infer<typeof endSessionRequestSchema>;
 
-// What the client is allowed to know about an in-flight session. No loot seed.
 export interface SessionSnapshot {
   sessionId: string;
   // ISO 8601 from the server clock. The client only renders a countdown from it.
@@ -60,12 +57,6 @@ export interface SessionStreak {
   freezeUsed: boolean;
   freezesRemaining: number;
   milestone: number | null;
-  milestoneInsight: number;
-}
-
-export interface SessionLevelUp {
-  level: number;
-  unlocks: string[];
 }
 
 export interface SessionResult {
@@ -73,17 +64,10 @@ export interface SessionResult {
   sessionId: string;
   focusedMs: number;
   creditedMs: number;
-  focusAwarded: number;
-  xpAwarded: number;
-  // 1.00 unless the post-session quiz raised it. Shown, never recomputed here.
-  quizMultiplier: number;
   cappedByDailyLimit: boolean;
   // Under MIN_SESSION_MS. A normal outcome, never an error.
   belowMinimum: boolean;
-  levelUp: SessionLevelUp | null;
   streak: SessionStreak | null;
-  // Only the id. Contents come from /api/cache/:id/open so the reveal stays a reveal.
-  cache: { id: string } | null;
   // The study cat's share: bowls of kibble this session filled.
   pet?: { name: string; bowlsFilled: number } | null;
 }

@@ -23,7 +23,6 @@ import {
 import { endSession } from './end-session';
 import { startOfUserDay } from './local-day';
 
-// The loot seed never leaves the server. Phase 5 rolls against it.
 function toSnapshot(session: FocusSession): SessionSnapshot {
   return {
     sessionId: session.id,
@@ -86,7 +85,7 @@ export async function startSession(
   try {
     const created = await createFocusSession(db, {
       userId,
-      lootSeed: crypto.randomUUID(),
+
       mode: options.mode,
       ...(options.mode === 'reading'
         ? { readingLimitMs: options.minutes * 60_000 }

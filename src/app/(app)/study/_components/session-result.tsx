@@ -1,19 +1,12 @@
 'use client';
 
 import Link from 'next/link';
-import { useState, type ReactNode } from 'react';
-import type {
-  QuizResult,
-  SessionResult as SessionResultData,
-} from '@/domain/types';
-import { BoltGlyph } from '@/components/icons';
+import type { ReactNode } from 'react';
+import type { SessionResult as SessionResultData } from '@/domain/types';
 import { Button } from '@/components/ui/button';
 import { formatMinutes } from '@/lib/format-time';
-import { useCountUp } from '../_hooks/use-count-up';
 import type { Milestone } from '@/domain/career/milestones';
-import { CacheReveal } from './cache-reveal';
 import { MilestoneReveal } from './milestone-reveal';
-import { LevelUpBanner } from './level-up-banner';
 import { StreakNotice } from './streak-notice';
 import { TimerFrame } from './timer-frame';
 
@@ -24,25 +17,17 @@ function creditedLine(result: SessionResultData): string {
   return `${formatMinutes(result.creditedMs)} credited`;
 }
 
-// The one loud moment. Summary first, then the chest, then the level-up and
-// streak beats in that order. Two celebrations at once cancel each other.
 export const SessionResult = ({
   result,
-  quiz = null,
   milestones = [],
   onDone,
   children,
 }: {
   result: SessionResultData;
-  quiz?: QuizResult | null;
   milestones?: Milestone[];
   onDone: () => void;
   children?: ReactNode;
 }) => {
-  const focus = useCountUp(result.focusAwarded);
-  const [revealDone, setRevealDone] = useState(result.cache === null);
-  const afterReveal = revealDone;
-
   return (
     <TimerFrame
       label="Session result"
@@ -68,45 +53,16 @@ export const SessionResult = ({
           <p className="text-lg text-ink-2">{creditedLine(result)}</p>
         </div>
 
-        <div className="relative">
-          {result.focusAwarded > 0 ? (
-            <div
-              aria-hidden="true"
-              className="pointer-events-none absolute -inset-x-8 -inset-y-10 rounded-full bg-[radial-gradient(closest-side,rgba(232,176,75,0.16),transparent)]"
-            />
-          ) : null}
-          <p className="relative flex items-center gap-3 font-mono text-5xl font-medium tracking-[-0.02em] text-focus tabular-nums">
-            <BoltGlyph size={30} />
-            <span>
-              +{focus.toLocaleString()} <span className="text-2xl">Focus</span>
-            </span>
+        {result.pet && result.pet.bowlsFilled > 0 ? (
+          <p className="text-lg text-ink-2">
+            {result.pet.bowlsFilled}{' '}
+            {result.pet.bowlsFilled === 1 ? 'bowl' : 'bowls'} of kibble for{' '}
+            {result.pet.name}
           </p>
-          <p className="relative mt-2 text-lg text-ink-2">
-            +{result.xpAwarded.toLocaleString()} XP
-            {result.quizMultiplier > 1 ? (
-              <span className="ml-3 font-mono text-focus tabular-nums">
-                ×{result.quizMultiplier.toFixed(2)} quiz bonus
-              </span>
-            ) : null}
-          </p>
-          {quiz && quiz.insightAwarded > 0 ? (
-            <p className="relative mt-1 text-lg text-insight">
-              +{quiz.insightAwarded} Insight from the quiz
-            </p>
-          ) : null}
-          {result.pet && result.pet.bowlsFilled > 0 ? (
-            <p className="relative mt-1 text-lg text-ink-2">
-              +{result.pet.bowlsFilled}{' '}
-              {result.pet.bowlsFilled === 1 ? 'bowl' : 'bowls'} of kibble for{' '}
-              {result.pet.name}
-            </p>
-          ) : null}
-        </div>
-
+        ) : null}
         {result.belowMinimum ? (
           <p className="max-w-[40ch] leading-relaxed text-ink-2">
-            Under 5 minutes does not earn Focus yet. It still counts as showing
-            up.
+            A short session, saved. Five minutes counts toward your streak.
           </p>
         ) : null}
         {result.cappedByDailyLimit ? (
@@ -115,20 +71,8 @@ export const SessionResult = ({
           </p>
         ) : null}
 
-        {result.cache ? (
-          <CacheReveal
-            cacheId={result.cache.id}
-            onDone={() => setRevealDone(true)}
-          />
-        ) : null}
-
-        {afterReveal && result.levelUp ? (
-          <LevelUpBanner levelUp={result.levelUp} />
-        ) : null}
-        {afterReveal && result.streak ? (
-          <StreakNotice streak={result.streak} />
-        ) : null}
-        {afterReveal ? <MilestoneReveal milestones={milestones} /> : null}
+        {result.streak ? <StreakNotice streak={result.streak} /> : null}
+        <MilestoneReveal milestones={milestones} />
 
         {children}
       </div>

@@ -14,10 +14,7 @@ export const StreakNotice = ({ streak }: { streak: SessionStreak }) => {
         <p className="font-serif text-xl text-ink">
           {streak.milestone}-day focus streak
         </p>
-        <p className="text-sm text-ink-2">
-          +{streak.milestoneInsight} Insight for showing up {streak.milestone}{' '}
-          days.
-        </p>
+        <p className="text-sm text-ink-2">A new streak milestone.</p>
       </div>
     );
   }

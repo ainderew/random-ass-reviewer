@@ -1,5 +1,7 @@
 # Phase 5: Reward & Juice
 
+> Historical record. The island and its currency, XP, level, and loot systems were retired on November 2, 2026. References below describe an earlier version. Use `PRODUCT.md`, `DESIGN.md`, and current code for present behavior.
+
 > **Feature:** Aloft — 3D Study Game
 > **Phase:** 5 of 9
 > **Depends on:** `02-phase-focus-session-engine.md`, `03-phase-3d-world-foundation.md`, `04-phase-aliveness.md`

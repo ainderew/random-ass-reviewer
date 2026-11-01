@@ -1,17 +1,5 @@
 import { MIN_SESSION_MS } from '@/domain/economy/constants';
-import { calculateFocusAward } from '@/domain/economy/currency';
-import {
-  LENGTH_BONUS_START_MS,
-  LENGTH_BONUS_STEP_MS,
-  MIN_MS_FOR_CACHE,
-  RARE_BONUS_CAP,
-  RARE_BONUS_PER_STEP,
-} from '@/domain/economy/loot-tables';
-
-// The economy already has a story: minutes where something changes on the
-// server. The study tab draws these as marks on the ring and says one short
-// line as each is passed. Derived from the real constants, never retyped.
-export type RungKind = 'counts' | 'chest' | 'odds' | 'odds-cap';
+export type RungKind = 'counts';
 
 export interface Rung {
   atMs: number;
@@ -19,25 +7,8 @@ export interface Rung {
   label: string;
 }
 
-const ODDS_STEPS = Math.ceil(RARE_BONUS_CAP / RARE_BONUS_PER_STEP);
-
 export const SESSION_RUNGS: readonly Rung[] = [
-  { atMs: MIN_SESSION_MS, kind: 'counts', label: 'Counts now' },
-  { atMs: MIN_MS_FOR_CACHE, kind: 'chest', label: 'Chest secured' },
-  // The first bonus step lands one interval past the start, so 45, not 30.
-  ...Array.from({ length: ODDS_STEPS }, (_, i): Rung => {
-    const atMs = LENGTH_BONUS_START_MS + (i + 1) * LENGTH_BONUS_STEP_MS;
-    const last = i === ODDS_STEPS - 1;
-    return {
-      atMs,
-      kind: last ? 'odds-cap' : 'odds',
-      label: last
-        ? 'Odds at their best'
-        : i === 0
-          ? 'Rare odds up'
-          : 'Odds up again',
-    };
-  }),
+  { atMs: MIN_SESSION_MS, kind: 'counts', label: 'Streak day earned' },
 ];
 
 // Offered lengths, in minutes. Open means no shape beyond the rungs.
@@ -88,12 +59,6 @@ export function ringProgress(
 export function rungPosition(rung: Rung, lengthMs: number | null): number {
   const span = lengthMs ?? SESSION_RUNGS[SESSION_RUNGS.length - 1]!.atMs;
   return clamp(rung.atMs / span);
-}
-
-// A courtesy figure, mirroring the server's formula. The credited number at
-// the end is still the server's.
-export function earningsSoFar(focusedMs: number): number {
-  return calculateFocusAward({ creditedMs: focusedMs, multiplier: 1 });
 }
 
 const clamp = (n: number) => Math.min(1, Math.max(0, n));

@@ -37,7 +37,7 @@ describe('rate limit', () => {
     });
     // Other buckets are independent.
     await expect(
-      assertRateLimit(userId, 'island:place', start),
+      assertRateLimit(userId, 'review:answer', start),
     ).resolves.toBeUndefined();
     // A new window starts clean.
     const later = new Date(start.getTime() + windowMs + 1000);
@@ -76,13 +76,13 @@ describe('rate limit short waits', () => {
       email: `rate-sec-${Date.now()}@test.local`,
       emailVerified: null,
     });
-    const { limit, windowMs } = RATE_LIMITS['island:place'];
+    const { limit, windowMs } = RATE_LIMITS['review:answer'];
     const start = new Date('2026-09-08T12:00:00Z');
     for (let i = 0; i < limit; i += 1)
-      await assertRateLimit(user.id, 'island:place', start);
+      await assertRateLimit(user.id, 'review:answer', start);
     const late = new Date(start.getTime() + windowMs - 5000);
     await expect(
-      assertRateLimit(user.id, 'island:place', late),
+      assertRateLimit(user.id, 'review:answer', late),
     ).rejects.toMatchObject({
       message: expect.stringMatching(/5 seconds/),
       retryAfterSeconds: 5,

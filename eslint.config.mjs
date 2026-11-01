@@ -58,10 +58,6 @@ const motionImports = {
       name: 'animejs',
       message: 'Use the juice primitives; they honour reduced motion.',
     },
-    {
-      name: '@/game/post-fx',
-      message: 'Spike bloom through src/game/systems/juice, not directly.',
-    },
   ],
 };
 
@@ -84,11 +80,7 @@ const eslintConfig = defineConfig([
   },
   {
     files: ['src/**/*.{ts,tsx}'],
-    ignores: [
-      'src/game/systems/juice/**',
-      'src/game/scene/post-processing.tsx',
-      'src/game/entities/instanced-group.tsx',
-    ],
+    ignores: ['src/game/systems/juice/**'],
     rules: { 'no-restricted-imports': ['error', motionImports] },
   },
   globalIgnores([

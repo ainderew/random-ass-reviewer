@@ -5,9 +5,9 @@ const NOTES = (salt: string) => `# Cell membranes ${salt}
 
 The plasma membrane is a phospholipid bilayer. Phospholipid heads are hydrophilic and face the water on both sides. The fatty acid tails are hydrophobic and point inward. Cholesterol keeps the membrane fluid at low temperatures and stable at high temperatures. Simple diffusion moves small nonpolar molecules such as oxygen straight through the bilayer.`;
 
-// Notes in, verified cards out, recall paid. Works against any provider; the
+// Notes in, verified cards out, recall saved. Works against any provider; the
 // wait covers a real model, and the fake provider answers in milliseconds.
-test('notes become cards with quotes, and reviewing them pays Insight', async ({
+test('notes become cards with quotes, and reviews are saved', async ({
   page,
   context,
 }) => {
@@ -53,13 +53,17 @@ test('notes become cards with quotes, and reviewing them pays Insight', async ({
   await page.getByRole('button', { name: 'Save and approve' }).click();
   await expect(page.getByText('Approved for study').first()).toBeVisible();
 
-  const before = (await (await page.request.get('/api/stats')).json()).data
-    .stats.insightBalance;
   await page.goto('/review?subject=all');
   const reveal = page.getByRole('button', { name: /Show answer/ });
+  await page.getByRole('radio', { name: /^Flashcard/ }).check();
   await expect(reveal).toBeVisible();
   let answered = 0;
   for (let i = 0; i < 5; i += 1) {
+    const flashcard = page.getByRole('radio', {
+      name: 'Flashcard',
+      exact: true,
+    });
+    if (await flashcard.isVisible()) await flashcard.check();
     if (!(await reveal.isVisible().catch(() => false))) break;
     await reveal.click();
     await expect(
@@ -70,13 +74,9 @@ test('notes become cards with quotes, and reviewing them pays Insight', async ({
     await page.waitForTimeout(400);
   }
   expect(answered).toBeGreaterThan(0);
-  await expect
-    .poll(
-      async () =>
-        (await (await page.request.get('/api/stats')).json()).data.stats
-          .insightBalance,
-    )
-    .toBeGreaterThan(before);
+  const stats = (await (await page.request.get('/api/stats')).json()).data
+    .stats;
+  expect(stats).not.toHaveProperty('insightBalance');
 
   const removed = await page.request.delete(`/api/notes/${sourceId}`);
   expect(removed.ok()).toBe(true);

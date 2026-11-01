@@ -70,9 +70,7 @@ jobs:
       - run: pnpm build
       - run: pnpm check:bundle
 
-  # Browser tests against the built app. They gate nothing yet: one shared
-  # seeded user makes them the flakiest layer, so a red run here is a signal
-  # to look at, not a reason to hold a release.
+  # Browser tests against the built app must pass before deployment.
   e2e:
     needs: checks
     runs-on: ubuntu-latest
@@ -119,7 +117,7 @@ jobs:
   # Every push to main that passes the checks goes to production: rsync the
   # source to the VPS and build there, the same steps as a manual deploy.
   deploy:
-    needs: checks
+    needs: [checks, e2e]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 20

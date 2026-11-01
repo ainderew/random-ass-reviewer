@@ -5,9 +5,7 @@ import { signInAsSmokeUser } from './helpers';
 test.describe('review by keyboard only', () => {
   test.beforeEach(async ({ context }) => signInAsSmokeUser(context));
 
-  test('Space reveals, a digit rates and advances, the mouse untouched', async ({
-    page,
-  }) => {
+  test('Space reveals and a digit rates and advances', async ({ page }) => {
     await page.goto('/review?subject=all');
     await page.waitForLoadState('networkidle');
     const region = page.getByRole('region', { name: 'Review', exact: true });
@@ -18,7 +16,8 @@ test.describe('review by keyboard only', () => {
       'nothing due for the smoke user right now',
     );
 
-    const counter = region.locator('p.font-mono').first();
+    await page.getByRole('radio', { name: /^Flashcard/ }).check();
+    const counter = region.getByText(/^Card \d+ of/);
     const before = await counter.textContent();
     await expect(
       page.getByRole('group', { name: 'Rate your recall' }),

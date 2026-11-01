@@ -17,10 +17,7 @@ jest.mock('@/game/systems/focus-sound/player');
 const snapshot = {
   stats: {
     userId: 'u1',
-    focusBalance: 0,
-    insightBalance: 0,
-    xp: 0,
-    level: 1,
+
     streakDays: 3,
     streakFreezes: 2,
     lastSessionDate: '2026-09-07',
@@ -57,14 +54,11 @@ const sessionResult = {
   sessionId: 's1',
   focusedMs: 600_000,
   creditedMs: 600_000,
-  focusAwarded: 100,
-  xpAwarded: 100,
-  quizMultiplier: 1,
+
   cappedByDailyLimit: false,
   belowMinimum: false,
-  levelUp: null,
+
   streak: null,
-  cache: null,
 };
 
 type Route = { data: unknown };
@@ -117,7 +111,7 @@ beforeEach(() => {
       onboardedAt: '2026-09-01T00:00:00Z',
       dailyCapMs: null,
       breakReminderMs: null,
-      progress: { hasNotes: true, hasSession: true, hasPlacement: true },
+      progress: { hasNotes: true, hasSession: true },
     },
   });
   global.fetch = jest.fn(
@@ -240,8 +234,6 @@ describe('FocusTimer', () => {
       await screen.findByRole('heading', { name: 'Session saved' }),
     ).toBeInTheDocument();
     expect(screen.getByText('10 min credited')).toBeInTheDocument();
-    expect(screen.getByText('+100')).toBeInTheDocument();
-    expect(screen.getByText('+100 XP')).toBeInTheDocument();
     expect(calls.find((c) => c.path === '/api/session/end')?.body).toEqual({
       sessionId: 's1',
     });
@@ -261,7 +253,7 @@ describe('FocusTimer quiz step', () => {
     submitted: false,
   };
 
-  it('offers the quiz with a visible Skip, and skipping ends the session with no bonus', async () => {
+  it('offers the quiz with a visible Skip, and skipping ends the session without a quiz', async () => {
     routes['/api/review/session-quiz?sessionId=s1'] = () => ({ data: quiz });
     render(<FocusTimer />, { wrapper });
     await userEvent.click(
@@ -275,9 +267,7 @@ describe('FocusTimer quiz step', () => {
       await screen.findByText('Which nerve is CN VII?'),
     ).toBeInTheDocument();
     expect(calls.find((c) => c.path === '/api/session/end')).toBeUndefined();
-    await userEvent.click(
-      screen.getByRole('button', { name: 'Skip, keep my Focus as is' }),
-    );
+    await userEvent.click(screen.getByRole('button', { name: 'Skip quiz' }));
 
     expect(
       await screen.findByRole('heading', { name: 'Session saved' }),
@@ -285,7 +275,7 @@ describe('FocusTimer quiz step', () => {
     expect(screen.queryByText(/quiz bonus/)).not.toBeInTheDocument();
   });
 
-  it('grades each answer on the server, then ends the session with the bonus applied', async () => {
+  it('grades each answer on the server, then ends the session with the score saved', async () => {
     routes['/api/review/session-quiz?sessionId=s1'] = () => ({ data: quiz });
     routes['/api/review/session-quiz/answer'] = () => ({
       data: {
@@ -297,14 +287,13 @@ describe('FocusTimer quiz step', () => {
         correctSoFar: 1,
         answered: 1,
         total: 1,
-        multiplier: 2,
       },
     });
     routes['/api/review/session-quiz'] = () => ({
-      data: { multiplier: 2, insightAwarded: 3, correct: 1, total: 1 },
+      data: { correct: 1, total: 1 },
     });
     routes['/api/session/end'] = () => ({
-      data: { ...sessionResult, focusAwarded: 200, quizMultiplier: 2 },
+      data: { ...sessionResult },
     });
     render(<FocusTimer />, { wrapper });
     await userEvent.click(
@@ -318,20 +307,15 @@ describe('FocusTimer quiz step', () => {
     );
 
     expect(await screen.findByRole('status')).toHaveTextContent('Correct!');
-    expect(screen.getByLabelText('Bonus multiplier 2.0')).toBeInTheDocument();
-    await userEvent.click(screen.getByRole('button', { name: 'See my bonus' }));
+    await userEvent.click(screen.getByRole('button', { name: 'See results' }));
     expect(
       await screen.findByRole('heading', { name: '1 of 1' }),
     ).toBeInTheDocument();
-    await userEvent.click(
-      screen.getByRole('button', { name: 'Open your reward' }),
-    );
+    await userEvent.click(screen.getByRole('button', { name: 'Save session' }));
 
     expect(
       await screen.findByRole('heading', { name: 'Session saved' }),
     ).toBeInTheDocument();
-    expect(screen.getByText('+200')).toBeInTheDocument();
-    expect(screen.getByText(/×2.00 quiz bonus/)).toBeInTheDocument();
     const answer = calls.find(
       (c) => c.path === '/api/review/session-quiz/answer',
     );
@@ -381,7 +365,7 @@ describe('FocusTimer sound', () => {
 describe('FocusTimer session shape', () => {
   beforeEach(() => localStorage.clear());
 
-  it('shows the ring, the courtesy earnings, and the next rung while running', async () => {
+  it('shows the ring, focused time while running', async () => {
     routes['/api/session/beat'] = () => ({ data: { focusedMs: 6 * 60_000 } });
     render(<FocusTimer />, { wrapper });
     await userEvent.click(
@@ -392,9 +376,6 @@ describe('FocusTimer session shape', () => {
       await screen.findByRole('progressbar', { name: 'Session progress' }),
     ).toBeInTheDocument();
     expect(await screen.findByText('6 min focused of 25')).toBeInTheDocument();
-    expect(screen.getByText('60')).toBeInTheDocument();
-    expect(screen.getByText('so far')).toBeInTheDocument();
-    expect(screen.getByRole('status')).toHaveTextContent('chest secured at 15');
     expect(
       screen.getByRole('img', { name: 'Lantern lit' }),
     ).toBeInTheDocument();
@@ -409,7 +390,7 @@ describe('FocusTimer session shape', () => {
 
     expect(await screen.findByText(/That is your 25/)).toBeInTheDocument();
     expect(
-      screen.getByRole('button', { name: 'End and collect' }),
+      screen.getByRole('button', { name: 'End session' }),
     ).toBeInTheDocument();
     await userEvent.click(screen.getByRole('button', { name: 'Keep going' }));
     expect(

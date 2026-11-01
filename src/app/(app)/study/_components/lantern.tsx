@@ -54,7 +54,6 @@ export const Lantern = ({
   );
 };
 
-// Steps at the first three rungs: it counts, a chest is secured, odds climb.
 export function lanternStage(focusedMs: number): 0 | 1 | 2 | 3 {
   if (focusedMs >= 45 * 60_000) return 3;
   if (focusedMs >= 15 * 60_000) return 2;

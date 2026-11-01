@@ -3,17 +3,10 @@ import { join } from 'node:path';
 
 // Phase 8's lint rule catches misuse; this catches omission. A new export
 // from the juice layer must be added to the reduced-motion table before it
-// can ship, so nothing animates without asking worldState.reducedMotion.
+// can ship, so nothing animates without asking the reduced-motion preference.
 const COVERED_BY_REDUCED_MOTION_TESTS = new Set([
-  'useHitStop',
-  'useScreenShake',
-  'shakeOffset',
   'useSpringPop',
   'playPitched',
-  'playFanfare',
-  'HIT_STOP_MS',
-  'SHAKE',
-  'SPRING',
 ]);
 
 describe('juice exports', () => {

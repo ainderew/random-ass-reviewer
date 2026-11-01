@@ -1,5 +1,7 @@
 # Feature Plan: Aloft — 3D Study Game
 
+> Historical record. The island and its currency, XP, level, and loot systems were retired on November 2, 2026. References below describe an earlier version. Use `PRODUCT.md`, `DESIGN.md`, and current code for present behavior.
+
 > **Created:** 2026-07-25
 > **Phases:** 9 (+ this overview)
 > **Stack:** Next.js 16 (App Router, Turbopack), React 19, TypeScript strict, Tailwind CSS v4, three.js + React Three Fiber v9, Drizzle ORM + Postgres (Neon in prod, `pg` driver, Docker locally), Auth.js v5, ts-fsrs, Jest + RTL + Playwright

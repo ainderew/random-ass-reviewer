@@ -1,5 +1,4 @@
 import Link from 'next/link';
-import { CurrencyHud } from '@/components/currency-hud';
 import { SettingsIcon } from '@/components/icons';
 import { SignOutButton } from '@/components/nav/sign-out-button';
 import { TopNav } from '@/components/nav/top-nav';
@@ -15,7 +14,6 @@ export const AppHeader = () => (
       </Link>
       <TopNav />
       <div className="ml-auto flex items-center gap-2 md:gap-4">
-        <CurrencyHud />
         <Link
           href="/settings"
           aria-label="Settings"

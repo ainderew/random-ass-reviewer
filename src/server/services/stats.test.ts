@@ -56,7 +56,7 @@ describe('weekly summary and export', () => {
     const now = Date.UTC(2026, 8, 9, 12, 0, 0);
     const session = (start: number, ms: number) => ({
       userId,
-      lootSeed: 's',
+
       startedAt: new Date(start),
       endedAt: new Date(start + ms),
       status: 'completed' as const,

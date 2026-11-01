@@ -1,6 +1,5 @@
 'use client';
 
-import { DiamondGlyph } from '@/components/icons';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
 
@@ -17,7 +16,6 @@ function nextDueLine(nextDueAt: Date | string | null): string {
 export const ReviewComplete = ({
   reviewed,
   bounded = false,
-  insight,
   bestRun,
   totalCards,
   nextDueAt,
@@ -25,7 +23,6 @@ export const ReviewComplete = ({
 }: {
   reviewed: number;
   bounded?: boolean;
-  insight: number;
   bestRun: number;
   totalCards: number | null;
   nextDueAt: Date | string | null;
@@ -63,12 +60,6 @@ export const ReviewComplete = ({
             : nextDueLine(nextDueAt)}
         </p>
       </div>
-      {insight > 0 ? (
-        <p className="flex items-center gap-2 font-mono text-4xl text-insight tabular-nums">
-          <DiamondGlyph size={26} />+{insight}{' '}
-          <span className="text-xl">Insight</span>
-        </p>
-      ) : null}
       <Button onClick={onAgain}>Check again</Button>
     </section>
   );

@@ -1,26 +1,12 @@
 import Link from 'next/link';
 import { FocusSoundNotes } from './focus-sound-notes';
-import {
-  FOCUS_PER_MINUTE,
-  INSIGHT_PER_REVIEW,
-  INSIGHT_PER_QUIZ_CORRECT,
-  MIN_SESSION_MS,
-} from '@/domain/economy/constants';
-import {
-  MAX_QUIZ_MULTIPLIER,
-  QUIZ_PASS_THRESHOLD,
-} from '@/domain/review/constants';
-
-// A product built on variable rewards should be able to explain itself
-// without embarrassment. Every number here is the real constant.
 export default function HowItWorksPage() {
   return (
     <article className="mx-auto max-w-2xl space-y-8">
       <div className="space-y-2">
-        <h1 className="font-serif text-4xl text-ink">How rewards work</h1>
+        <h1 className="font-serif text-4xl text-ink">How studying works</h1>
         <p className="max-w-[52ch] leading-relaxed text-ink-2">
-          Focus rewards timed sessions. Insight rewards completed reviews and
-          correct quiz answers. Both help you build your island.
+          Focus with Toast, review your notes, and track what you remember.
         </p>
       </div>
 
@@ -96,77 +82,21 @@ export default function HowItWorksPage() {
           </p>
         </div>
       </section>
-      <section className="space-y-2">
-        <h2 className="font-serif text-2xl text-ink">Focus</h2>
-        <p className="max-w-[52ch] leading-relaxed text-ink-2">
-          A focus session earns {FOCUS_PER_MINUTE} Focus per minute from Start
-          to End, whether Aloft is on screen or not, so reading your notes in a
-          PDF app or a book counts too. While Aloft is open the screen stays on.
-          The server counts the minutes from its own clock, so a changed system
-          time earns nothing. One session counts up to two hours, so a timer
-          left running overnight does not pay for the night. Sessions under{' '}
-          {MIN_SESSION_MS / 60_000} minutes pay nothing. Time past your daily
-          cap is not credited. That cap is eight hours and you can lower it in
-          settings, never raise it.
-        </p>
-      </section>
-
       <FocusSoundNotes />
-
       <section className="space-y-2">
-        <h2 className="font-serif text-2xl text-ink">Insight</h2>
-        <p className="max-w-[52ch] leading-relaxed text-ink-2">
-          Completing a due review pays {INSIGHT_PER_REVIEW} Insight once per
-          card each day. Again earns the same as Good or Easy, so rate honestly.
-          Relearning later that day still helps memory but earns no repeat
-          credit. Each right answer on an approved practice quiz pays{' '}
-          {INSIGHT_PER_QUIZ_CORRECT}. Delayed mistake checks are extra practice
-          and do not earn repeat points.
+        <h2 className="font-serif text-2xl text-ink">Focus and streaks</h2>
+        <p className="text-ink-2">
+          Sessions of at least five minutes count toward your streak. Focus time
+          also fills Toast&apos;s food bowl. Optional quizzes help you check
+          what you remember.
         </p>
       </section>
-
-      <section className="space-y-2">
-        <h2 className="font-serif text-2xl text-ink">The quiz</h2>
-        <p className="max-w-[52ch] leading-relaxed text-ink-2">
-          After a focus session you can answer up to eight questions from your
-          own notes. Score {Math.round(QUIZ_PASS_THRESHOLD * 100)}% or better
-          and your Focus for that session is multiplied, up to ×
-          {MAX_QUIZ_MULTIPLIER.toFixed(1)} for a perfect score. Below that, or
-          if you skip, you keep exactly what you earned. The quiz can never take
-          anything away.
-        </p>
-      </section>
-
-      <section className="space-y-2">
-        <h2 className="font-serif text-2xl text-ink">The chest</h2>
-        <p className="max-w-[52ch] leading-relaxed text-ink-2">
-          Every session over the minimum drops a cache. Its rarity is rolled
-          from a seed fixed when the session starts, so nothing you do during
-          the session changes it. Longer sessions roll better odds. After twelve
-          sessions without a rare, the next one is guaranteed. Chests never
-          contain anything you can buy with money, because nothing in Aloft can
-          be bought with money.
-        </p>
-      </section>
-
-      <section className="space-y-2">
-        <h2 className="font-serif text-2xl text-ink">Streaks</h2>
-        <p className="max-w-[52ch] leading-relaxed text-ink-2">
-          A streak counts days with at least one paid session, in your own time
-          zone. You start with two freezes; a missed day uses one instead of
-          resetting. Streaks unlock small Insight bonuses. They never lock
-          anything.
-        </p>
-      </section>
-
-      <p className="text-sm text-muted">
-        <Link
-          href="/settings"
-          className="text-focus underline underline-offset-4"
-        >
-          Back to settings
-        </Link>
-      </p>
+      <Link
+        href="/study"
+        className="inline-flex min-h-11 items-center text-focus underline"
+      >
+        Back to today
+      </Link>
     </article>
   );
 }

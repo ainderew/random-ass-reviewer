@@ -7,10 +7,6 @@ import {
   listAllUserCards,
 } from '@/server/repositories/card';
 import { listCompletedSince } from '@/server/repositories/focus-session';
-import {
-  findIslandByUserId,
-  listPlacements,
-} from '@/server/repositories/island';
 import { listNoteSources } from '@/server/repositories/note';
 import { ensurePet } from '@/server/repositories/pet';
 import { countSubscriptions } from '@/server/repositories/push-subscription';
@@ -21,16 +17,13 @@ import { findUserStats } from '@/server/repositories/user-stats';
 export async function exportUserData(userId: string) {
   const user = await findUserById(db, userId);
   if (!user) throw new AppError('NOT_FOUND', 'User not found');
-  const island = await findIslandByUserId(db, userId);
-  const [stats, sessions, notes, cards, reviews, placements] =
-    await Promise.all([
-      findUserStats(db, userId),
-      listCompletedSince(db, userId, new Date(0)),
-      listNoteSources(db, userId, { limit: 500 }),
-      listAllUserCards(db, userId),
-      listRecentReviews(db, { userId, includeQuiz: true }, { limit: 500 }),
-      island ? listPlacements(db, island.id) : Promise.resolve([]),
-    ]);
+  const [stats, sessions, notes, cards, reviews] = await Promise.all([
+    findUserStats(db, userId),
+    listCompletedSince(db, userId, new Date(0)),
+    listNoteSources(db, userId, { limit: 500 }),
+    listAllUserCards(db, userId),
+    listRecentReviews(db, { userId, includeQuiz: true }, { limit: 500 }),
+  ]);
   return {
     exportedAt: new Date().toISOString(),
     user: {
@@ -51,7 +44,6 @@ export async function exportUserData(userId: string) {
     notes,
     cards,
     reviews,
-    island: island ? { ...island, placements } : null,
     // The study cat. Push addresses stay behind; only how many devices.
     pet: await ensurePet(db, userId),
     nudgeDevices: await countSubscriptions(db, userId),

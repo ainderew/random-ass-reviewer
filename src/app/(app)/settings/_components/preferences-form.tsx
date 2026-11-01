@@ -5,11 +5,6 @@ import { StudyPlanForm } from './study-plan-form';
 import { useProfile, useUpdateProfile } from '@/app/(app)/_hooks/use-profile';
 import { DAILY_CREDITABLE_MS } from '@/domain/economy/constants';
 import { useAudioPreference } from '@/game/systems/use-audio-preference';
-import {
-  setQualityOverride,
-  useQualityOverride,
-} from '@/game/systems/quality-store';
-import { useIslandListPreference } from '@/lib/use-island-list-preference';
 import { useMotionPreference } from '@/lib/use-reduced-motion';
 
 const HOUR = 3_600_000;
@@ -26,14 +21,12 @@ const select =
   'min-h-11 rounded-md border border-hairline bg-ground px-3 text-base text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus';
 
 // Everything here only ever narrows what the product does: a lower cap, an
-// earlier break, less motion, a lighter island. Nothing here raises a limit.
+// earlier break, less motion. Nothing here raises a limit.
 export const PreferencesForm = () => {
   const { data: profile } = useProfile();
   const update = useUpdateProfile();
   const [audio, setAudio] = useAudioPreference();
   const [motion, setMotion] = useMotionPreference();
-  const [listView, setListView] = useIslandListPreference();
-  const quality = useQualityOverride();
 
   const capMs = Math.min(
     profile?.dailyCapMs ?? DAILY_CREDITABLE_MS,
@@ -99,7 +92,7 @@ export const PreferencesForm = () => {
             onChange={(e) => setAudio(e.target.checked)}
             className="size-5 accent-focus"
           />
-          Ambient sound and reward tones
+          Study sounds
         </label>
         <label className="flex min-h-11 items-center gap-3 text-ink">
           <input
@@ -109,40 +102,6 @@ export const PreferencesForm = () => {
             className="size-5 accent-focus"
           />
           Reduce motion, whatever the system setting says
-        </label>
-      </div>
-
-      <div className="space-y-1 border-t border-hairline pt-6">
-        <h2 className="font-serif text-2xl text-ink">Island</h2>
-        <p className="max-w-[46ch] text-sm leading-relaxed text-ink-2">
-          Quality is chosen for your device on first load. Force it if you know
-          better.
-        </p>
-      </div>
-      <div className="grid gap-4 sm:grid-cols-2">
-        <label className="flex flex-col gap-1 text-sm text-ink-2">
-          Graphics quality
-          <select
-            className={select}
-            value={quality}
-            onChange={(e) =>
-              setQualityOverride(e.target.value as typeof quality)
-            }
-          >
-            <option value="auto">Automatic</option>
-            <option value="low">Low</option>
-            <option value="medium">Medium</option>
-            <option value="high">High</option>
-          </select>
-        </label>
-        <label className="flex min-h-11 items-center gap-3 self-end text-ink">
-          <input
-            type="checkbox"
-            checked={listView}
-            onChange={(e) => setListView(e.target.checked)}
-            className="size-5 accent-focus"
-          />
-          Show the island as a list instead of 3D
         </label>
       </div>
 
@@ -162,7 +121,7 @@ export const PreferencesForm = () => {
             href="/how-it-works"
             className="text-focus underline underline-offset-4"
           >
-            How rewards work
+            How studying works
           </Link>
           .
         </p>

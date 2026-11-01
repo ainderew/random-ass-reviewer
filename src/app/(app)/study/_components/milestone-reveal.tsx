@@ -3,8 +3,6 @@
 import type { Milestone } from '@/domain/career/milestones';
 import { useSpringPop } from '@/game/systems/juice/use-spring-pop';
 
-// What this session added to the room. Shown on the result screen, after the
-// numbers and the chest, in the same voice as everything else.
 export const MilestoneReveal = ({
   milestones,
 }: {

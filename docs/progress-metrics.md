@@ -29,12 +29,14 @@ Migration 0010 adds nullable practice type, correctness, previous-review gap, an
 
 Blank weeks are missing evidence, not zero accuracy. The chart does not smooth, interpolate missing periods, declare a statistically significant improvement, or compare the student with a cohort. Sample size, subject mix, item difficulty, repeated exposure, and practice format can all change the observed percentage. A rising line is encouraging descriptive evidence; it is not proof of readiness for a board exam.
 
-## Validation
+## Historical validation
 
-356 tests across 82 suites pass, including same-day deduplication, timezone boundaries, delayed subsets, legacy unknown results, repeat errors, server grading, duplicate rejection, and account isolation. Production build, lint, type checking, and bundle checks pass. Nine browser captures cover empty history and each chart mode/table on phone and iPad landscape, without automated WCAG A/AA findings or horizontal overflow. Browser testing verified that a completed incorrect review appears as 0/1 in the authenticated progress endpoint. Historical screenshot values are synthetic data created only for an isolated QA user and removed afterward. These changes have not been deployed.
+These results describe the original metrics implementation, not the latest regression run. Consult CI for current validation and deployment status.
+
+356 tests across 82 suites pass, including same-day deduplication, timezone boundaries, delayed subsets, legacy unknown results, repeat errors, server grading, duplicate rejection, and account isolation. Production build, lint, type checking, and bundle checks pass. Nine browser captures cover empty history and each chart mode/table on phone and iPad landscape, without automated WCAG A/AA findings or horizontal overflow. Browser testing verified that a completed incorrect review appears as 0/1 in the authenticated progress endpoint. Historical screenshot values are synthetic data created only for an isolated QA user and removed afterward. Deployment status at the time of that original validation was pending.
 
 ## Subject suggestions and navigation
 
-Progress is a dedicated fifth destination in phone and desktop navigation. The longest matching route owns the active state, so Progress does not also highlight Review.
+Progress opens at `/review/progress` from Today and belongs to Review. The four navigation destinations are Today, Focus, Review, and Notes; the longest matching route gives Progress the Review active state.
 
 Suggestions use the same first-daily-choice results in the current 28-day window. Subjects need at least five scored reviews across three distinct cards before they can be ranked. Among eligible subjects with misses, lower accuracy is shown first; up to two appear as next priorities. These sample requirements are display heuristics, not validated confidence levels or passing thresholds. Perfect familiar-card results lead to advice to try unfamiliar questions, never a mastery label. All six subjects are listed, including small samples and missing data. Per-subject delayed counts remain separate from total accuracy. Suggestions do not reschedule cards and do not count external question-bank work.

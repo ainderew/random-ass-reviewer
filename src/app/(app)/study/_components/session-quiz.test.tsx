@@ -51,7 +51,6 @@ function mockRoutes(quiz = QUIZ) {
             : body.optionIndex === 1;
         answered += 1;
         if (correct) correctSoFar += 1;
-        const multiplier = correctSoFar === 2 ? 2 : 1;
         return respond({
           cardId: body.cardId,
           correctAnswer: body.cardId === 'c1' ? 'right1' : 'right2',
@@ -62,13 +61,10 @@ function mockRoutes(quiz = QUIZ) {
           correctSoFar,
           answered,
           total: 2,
-          multiplier,
         });
       }
       if (path === '/api/review/session-quiz')
         return respond({
-          multiplier: correctSoFar === 2 ? 2 : 1,
-          insightAwarded: correctSoFar * 3,
           correct: correctSoFar,
           total: 2,
         });
@@ -86,7 +82,7 @@ const wrapper = ({ children }: { children: ReactNode }) => (
 );
 
 describe('SessionQuiz', () => {
-  it('skips straight to the reward when there is nothing to ask', async () => {
+  it('skips straight to the session result when there is nothing to ask', async () => {
     mockRoutes({ ...QUIZ, questions: [] });
     const onSkip = jest.fn();
     render(
@@ -111,17 +107,13 @@ describe('SessionQuiz', () => {
       />,
       { wrapper },
     );
-    expect(
-      await screen.findByText(/^Optional\. Skipping keeps what you earned/),
-    ).toBeInTheDocument();
+    expect(await screen.findByText(/^Optional\. Practice/)).toBeInTheDocument();
     expect(screen.getByText('1 of 2')).toBeInTheDocument();
-    await userEvent.click(
-      screen.getByRole('button', { name: 'Skip, keep my Focus as is' }),
-    );
+    await userEvent.click(screen.getByRole('button', { name: 'Skip quiz' }));
     expect(onSkip).toHaveBeenCalledTimes(1);
   });
 
-  it('never shows the multiplier below ×1.0 and raises it as answers land', async () => {
+  it('shows corrective feedback and saves the score', async () => {
     mockRoutes();
     const onFinished = jest.fn();
     render(
@@ -133,21 +125,19 @@ describe('SessionQuiz', () => {
       { wrapper },
     );
     await screen.findByText('Q1?');
-    expect(screen.getByLabelText('Bonus multiplier 1.0')).toBeInTheDocument();
 
     await userEvent.click(screen.getByRole('button', { name: 'wrong' }));
     expect(await screen.findByRole('status')).toHaveTextContent('Not quite');
-    expect(screen.getByLabelText('Bonus multiplier 1.0')).toBeInTheDocument();
     await userEvent.click(screen.getByRole('button', { name: 'Next' }));
 
     await screen.findByText('Q2?');
     expect(screen.queryByRole('status')).not.toBeInTheDocument();
     await userEvent.click(screen.getByRole('button', { name: 'right2' }));
     expect(await screen.findByRole('status')).toHaveTextContent('Correct!');
-    await userEvent.click(screen.getByRole('button', { name: 'See my bonus' }));
+    await userEvent.click(screen.getByRole('button', { name: 'See results' }));
     await waitFor(() =>
       expect(onFinished).toHaveBeenCalledWith(
-        expect.objectContaining({ correct: 1, total: 2, multiplier: 1 }),
+        expect.objectContaining({ correct: 1, total: 2 }),
       ),
     );
   });

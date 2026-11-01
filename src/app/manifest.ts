@@ -8,7 +8,7 @@ export default function manifest(): MetadataRoute.Manifest {
     name: 'Aloft',
     short_name: 'Aloft',
     description:
-      'Study. Earn. Build. Verified focus and real recall pay for a floating island.',
+      'Study with Toast. Turn your notes into cards, focus, and track your learning.',
     start_url: '/study',
     scope: '/',
     display: 'standalone',
