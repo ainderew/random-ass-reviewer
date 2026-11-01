@@ -1,13 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
-import { CheckIcon, ChevronRightIcon } from '@/components/icons';
-import {
-  milestoneInsight,
-  STREAK_MILESTONES,
-  type StreakSummary,
-} from '@/domain/economy/streak';
+import { ChevronRightIcon } from '@/components/icons';
+import { milestoneInsight, type StreakSummary } from '@/domain/economy/streak';
 import styles from './streak-tracker.module.css';
 
 function Flame() {
@@ -29,9 +24,7 @@ function Flame() {
 }
 
 export function StreakTracker({ streak }: { streak: StreakSummary }) {
-  const [selected, setSelected] = useState<number | null>(null);
-  const target = selected ?? streak.nextMilestone ?? 100;
-  const reached = streak.days >= target;
+  const target = streak.nextMilestone;
   return (
     <details className={styles.tracker}>
       <summary className={styles.trigger}>
@@ -49,87 +42,49 @@ export function StreakTracker({ streak }: { streak: StreakSummary }) {
           </strong>
           <small>
             {streak.todayDone
-              ? 'Today is complete'
-              : `One ${streak.minimumMinutes}-minute session counts`}
+              ? 'Done today'
+              : `${streak.minimumMinutes} min to count today`}
           </small>
         </span>
         <ChevronRightIcon size={18} className={styles.chevron} />
       </summary>
       <div className={styles.body}>
-        <div className={styles.goal}>
-          <span
-            className={styles.goalCheck}
-            data-done={streak.todayDone || undefined}
-          >
-            {streak.todayDone ? <CheckIcon size={18} /> : <Flame />}
-          </span>
-          <span>
-            <b>
-              {streak.todayDone
-                ? 'You showed up today'
-                : 'A small goal for today'}
-            </b>
-            <small>
-              {streak.todayDone
-                ? 'Your next day starts tomorrow.'
-                : `Finish a focus or reading session of ${streak.minimumMinutes}+ minutes.`}
-            </small>
-          </span>
-        </div>
-        <div className={styles.milestoneHeading}>
-          <h3>Milestones for this streak</h3>
-          <span>Tap to explore</span>
-        </div>
-        <div
-          className={styles.path}
-          role="group"
-          aria-label="Streak milestones"
-        >
-          {STREAK_MILESTONES.map((n) => (
-            <button
-              type="button"
-              key={n}
-              aria-pressed={target === n}
-              aria-label={`${n} days${streak.days >= n ? ', reached' : ''}, ${milestoneInsight(n)} Insight bonus`}
-              data-earned={streak.days >= n || undefined}
-              onClick={() => setSelected(n)}
-            >
+        {target ? (
+          <div className={styles.milestone}>
+            <p>
+              <b>Next: {target} days</b>
               <span>
-                {streak.days >= n && <CheckIcon size={12} />}
-                {n}
+                {streak.days}/{target}
               </span>
-            </button>
-          ))}
-        </div>
-        <div className={styles.milestone} aria-live="polite">
+            </p>
+            <progress
+              max={target}
+              value={streak.days}
+              aria-label={`Progress to ${target} days`}
+            />
+            <small>+{milestoneInsight(target)} Insight for your island</small>
+          </div>
+        ) : (
+          <p className={styles.protection}>All streak milestones reached.</p>
+        )}
+        <details className={styles.help}>
+          <summary>How it works</summary>
           <p>
-            <b>{target} days</b>
-            <span>
-              {reached
-                ? 'Reached in this streak'
-                : `${target - streak.days} more ${target - streak.days === 1 ? 'day' : 'days'}`}
-            </span>
+            One {streak.minimumMinutes}+ minute focus or reading session counts
+            each day.
           </p>
-          <progress
-            max={target}
-            value={Math.min(streak.days, target)}
-            aria-label={`Progress to ${target} days`}
-          />
-          <small>
-            {reached ? 'Milestone bonus' : 'Milestone reward'}:{' '}
-            {milestoneInsight(target)} Insight
-          </small>
-        </div>
-        <p className={styles.protection}>
-          {streak.freezePending
-            ? 'A rest day is covered when you return.'
-            : `${streak.freezesRemaining} ${streak.freezesRemaining === 1 ? 'freeze' : 'freezes'} available this month.`}
-        </p>
-        <p className={styles.explain}>
-          Two freezes refresh each month. One freeze bridges a single missed day
-          automatically when you return. Reviews grow your learning progress;
-          focus and reading sessions grow this streak.
-        </p>
+          <p>
+            Milestones give bonus Insight to spend on{' '}
+            <Link href="/island">island items</Link>.
+          </p>
+          <p>
+            {streak.freezesRemaining} freezes available. A freeze covers one
+            missed day when you return. Two refresh monthly.
+          </p>
+          {streak.freezePending && (
+            <p>Your missed day will be covered when you return.</p>
+          )}
+        </details>
         {!streak.todayDone && (
           <Link href="/focus" className={styles.action}>
             Start focusing <ChevronRightIcon size={18} />

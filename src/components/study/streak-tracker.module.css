@@ -16,7 +16,7 @@
   display: none;
 }
 .trigger:focus-visible,
-.path button:focus-visible,
+.help summary:focus-visible,
 .action:focus-visible {
   outline: 2px solid var(--color-focus);
   outline-offset: 4px;
@@ -61,87 +61,9 @@
 .body {
   padding: 0 16px 16px;
 }
-.goal {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  border-top: 1px solid var(--color-hairline);
-  padding: 16px 0;
-}
-.goalCheck {
-  color: var(--color-focus);
-  flex-shrink: 0;
-}
-.goalCheck[data-done] {
-  color: var(--color-done-ink);
-}
-.goal b {
-  display: block;
-  font-size: 0.875rem;
-}
-.goal small {
-  display: block;
-  color: var(--color-ink-2);
-  font-size: 0.75rem;
-  margin-top: 4px;
-}
-.milestoneHeading {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px 12px;
-  align-items: baseline;
-  justify-content: space-between;
-  margin-top: 8px;
-}
-.milestoneHeading h3 {
-  font-weight: 700;
-  font-size: 0.875rem;
-}
-.milestoneHeading > span {
-  color: var(--color-ink-2);
-  font-size: 0.75rem;
-}
-.path {
-  display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
-  gap: 4px;
-  margin: 12px 0;
-}
-.path button {
-  display: grid;
-  min-height: 48px;
-  place-items: center;
-  border-radius: 12px;
-  background: var(--color-ground-3);
-  border: 1px solid transparent;
-  font-size: 0.875rem;
-  font-weight: 700;
-  color: var(--color-ink-2);
-  cursor: pointer;
-}
-.path button span {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  align-items: center;
-  gap: 2px;
-}
-.path button[data-earned] {
-  color: var(--color-focus-deep);
-  background: var(--color-ground-3);
-}
-.path button[aria-pressed='true'] {
-  border-color: var(--color-focus);
-  color: var(--color-focus-deep);
-}
-.path button:hover {
-  background: var(--color-ground);
-}
-.path button:active {
-  transform: scale(0.96);
-}
 .milestone {
-  padding: 4px 0 12px;
+  border-top: 1px solid var(--color-hairline);
+  padding: 16px 0 4px;
 }
 .milestone p {
   display: flex;
@@ -185,11 +107,23 @@
   font-weight: 600;
   margin-top: 4px;
 }
-.explain {
+.help summary {
+  min-height: 44px;
+  display: list-item;
+  align-content: center;
+  cursor: pointer;
   color: var(--color-ink-2);
   font-size: 0.75rem;
-  line-height: 1.6;
-  margin-top: 6px;
+}
+.help p {
+  font-size: 0.875rem;
+  color: var(--color-ink-2);
+  line-height: 1.5;
+  margin-bottom: 8px;
+}
+.help a {
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 .action {
   display: flex;
@@ -201,7 +135,7 @@
   background: var(--color-focus);
   color: white;
   font-weight: 700;
-  margin-top: 16px;
+  margin-top: 8px;
 }
 .action:hover {
   background: var(--color-focus-deep);
@@ -210,13 +144,5 @@
   .chevron,
   .milestone progress::-webkit-progress-value {
     transition: none;
-  }
-  .path button:active {
-    transform: none;
-  }
-}
-@media (max-width: 360px) {
-  .path {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
