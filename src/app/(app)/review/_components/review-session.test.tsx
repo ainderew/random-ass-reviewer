@@ -191,6 +191,7 @@ describe('practice modes', () => {
   it('preserves written recall beside the revealed answer without auto-grading', async () => {
     const user = userEvent.setup();
     renderSession();
+    await user.click(screen.getByText('Answer mode', { selector: 'summary' }));
     await user.click(screen.getByRole('radio', { name: /^Write/ }));
     await user.type(
       screen.getByLabelText('Your answer'),
@@ -203,11 +204,12 @@ describe('practice modes', () => {
     expect(screen.getByLabelText('Your answer')).toHaveValue(
       'My remembered explanation',
     );
-    expect(screen.getByText(/not automatically graded/)).toBeInTheDocument();
+    expect(screen.getByText(/Not automatically graded/)).toBeInTheDocument();
   });
   it('locks the first choice, explains an error, and only accepts Again', async () => {
     const user = userEvent.setup();
     renderSession([quizCard]);
+    await user.click(screen.getByText('Answer mode', { selector: 'summary' }));
     await user.click(screen.getByRole('radio', { name: /^Choices/ }));
     await user.keyboard(' ');
     expect(
@@ -217,6 +219,7 @@ describe('practice modes', () => {
     expect(
       screen.getByText('Alternative 1 does not match the source.'),
     ).toBeInTheDocument();
+    await user.click(screen.getByText('Source', { selector: 'summary' }));
     expect(screen.getByRole('region', { name: 'Source' })).toBeVisible();
     expect(
       screen.getByRole('button', { name: /Alternative 2/ }),
@@ -229,9 +232,7 @@ describe('practice modes', () => {
       '/api/review/answer',
       expect.anything(),
     );
-    await user.click(
-      screen.getByRole('button', { name: /Again · review this sooner/ }),
-    );
+    await user.click(screen.getByRole('button', { name: /Try again later/ }));
     await waitFor(() =>
       expect(
         screen.getByText(/0 of 1 correct on the first choice/),
@@ -273,4 +274,16 @@ describe('practice modes', () => {
       screen.queryByRole('button', { name: /Show answer/ }),
     ).not.toBeInTheDocument();
   });
+});
+
+it('does not reveal the answer when Space is pressed on a disclosure', async () => {
+  global.fetch = jest.fn(async (input: RequestInfo | URL) =>
+    routeResponse(input),
+  ) as unknown as typeof fetch;
+  renderSession();
+  screen.getByText('Answer mode', { selector: 'summary' }).focus();
+  await userEvent.keyboard(' ');
+  expect(
+    screen.queryByRole('region', { name: 'Answer' }),
+  ).not.toBeInTheDocument();
 });

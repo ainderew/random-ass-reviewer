@@ -71,15 +71,17 @@ export default async function ReviewPage({
               <ReviewSession minutes={minutes} subject={subject} />
             </div>
           )}
-          <details className="border-t border-hairline pt-3">
-            <summary className="min-h-11 cursor-pointer content-center font-medium">
-              Your schedule and subject progress
-            </summary>
-            <div className="mt-4 space-y-5">
-              <ReviewStatsPanel />
-              <StudyPlanPanel />
-            </div>
-          </details>
+          {shelf && (
+            <details className="border-t border-hairline pt-3">
+              <summary className="min-h-11 cursor-pointer content-center font-medium">
+                Your schedule and subject progress
+              </summary>
+              <div className="mt-4 space-y-5">
+                <ReviewStatsPanel />
+                <StudyPlanPanel />
+              </div>
+            </details>
+          )}
         </div>
       </div>
     </HydrationBoundary>

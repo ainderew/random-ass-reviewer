@@ -7,12 +7,6 @@ const LABELS: Record<Rating, string> = {
   3: 'Good',
   4: 'Easy',
 };
-const MEANING: Record<Rating, string> = {
-  1: 'I forgot',
-  2: 'With effort',
-  3: 'I remembered',
-  4: 'Immediately',
-};
 export const RatingButtons = ({
   card,
   disabled,
@@ -25,7 +19,7 @@ export const RatingButtons = ({
   <div
     role="group"
     aria-label="Rate your recall"
-    className="grid grid-cols-2 gap-3 sm:grid-cols-4"
+    className="grid grid-cols-4 gap-2"
   >
     {([1, 2, 3, 4] as const).map((rating) => (
       <button
@@ -40,10 +34,6 @@ export const RatingButtons = ({
         <span className="flex w-full items-center justify-between gap-2">
           <span className="font-semibold">{LABELS[rating]}</span>
           <kbd className="hidden text-xs text-muted sm:inline">{rating}</kbd>
-        </span>
-        <span className="text-sm text-ink-2">{MEANING[rating]}</span>
-        <span className="mt-2 text-xs text-muted">
-          Next: {formatInterval(card.intervals[rating])}
         </span>
       </button>
     ))}

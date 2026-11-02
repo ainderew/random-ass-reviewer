@@ -776,8 +776,9 @@ select.study-field {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  min-height: 102px;
-  padding: 0.8rem 1rem;
+  min-height: 52px;
+  justify-content: center;
+  padding: 0.75rem 0.5rem;
   background: var(--color-ground-2);
   border: 1px solid #b5a2af;
   border-radius: 12px;
@@ -823,7 +824,8 @@ select.study-field {
     width: 68px;
   }
   .recall-choice {
-    padding: 0.75rem;
+    padding: 0.5rem 0.25rem;
+    font-size: 0.875rem;
   }
 }
 

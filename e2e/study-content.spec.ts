@@ -55,6 +55,7 @@ test('notes become cards with quotes, and reviews are saved', async ({
 
   await page.goto('/review?subject=all');
   const reveal = page.getByRole('button', { name: /Show answer/ });
+  await page.getByText('Answer mode', { exact: true }).click();
   await page.getByRole('radio', { name: /^Flashcard/ }).check();
   await expect(reveal).toBeVisible();
   let answered = 0;

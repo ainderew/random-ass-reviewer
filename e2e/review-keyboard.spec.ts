@@ -16,6 +16,7 @@ test.describe('review by keyboard only', () => {
       'nothing due for the smoke user right now',
     );
 
+    await page.getByText('Answer mode', { exact: true }).click();
     await page.getByRole('radio', { name: /^Flashcard/ }).check();
     const counter = region.getByText(/^Card \d+ of/);
     const before = await counter.textContent();

@@ -40,7 +40,7 @@ export function useReviewStats() {
   });
 }
 
-// Money is never optimistic. The HUD updates from the server's number.
+// Refresh study statistics after a saved answer.
 export function useSubmitAnswer() {
   const queryClient = useQueryClient();
   return useMutation({

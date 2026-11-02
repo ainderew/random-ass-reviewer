@@ -157,6 +157,11 @@ export const ReviewSession = ({
       )
         return;
       if (event.key === ' ' || event.key === 'Spacebar') {
+        if (
+          event.target instanceof Element &&
+          event.target.closest('summary, button, a, [role="button"]')
+        )
+          return;
         if (mode === 'choice') return;
         event.preventDefault();
         if (card && !revealed) {
@@ -249,15 +254,19 @@ export const ReviewSession = ({
         <p className="text-ink-2">
           Card {index + 1} of {cards.length}
         </p>
-        {run >= 2 && <p className="text-ink-2">{run} in a row</p>}
       </div>
-      <AnswerTypePicker
-        mode={mode}
-        suggested={suggested}
-        hasChoices={cardHasChoices}
-        locked={revealed || busy}
-        onSelect={setSelection}
-      />
+      <details className="text-sm text-muted">
+        <summary className="min-h-11 cursor-pointer content-center">
+          Answer mode
+        </summary>
+        <AnswerTypePicker
+          mode={mode}
+          suggested={suggested}
+          hasChoices={cardHasChoices}
+          locked={revealed || busy}
+          onSelect={setSelection}
+        />
+      </details>
 
       {card ? (
         <Flashcard card={card} revealed={revealed}>
@@ -304,9 +313,6 @@ export const ReviewSession = ({
       ) : null}
       {card && revealed ? (
         <div className="space-y-3">
-          <h2 className="text-base font-semibold">
-            How well did you remember?
-          </h2>
           {mode === 'choice' && choiceCorrect === false ? (
             <Button
               block
@@ -314,7 +320,7 @@ export const ReviewSession = ({
               disabled={busy}
               onClick={() => void rate(1)}
             >
-              Again · review this sooner
+              Try again later
             </Button>
           ) : (
             <RatingButtons
@@ -337,14 +343,6 @@ export const ReviewSession = ({
           {error}
         </p>
       ) : null}
-      <p className="text-xs text-muted">
-        Rate what you remembered. Again brings this card back sooner.
-      </p>
-      <p className="hidden text-xs text-muted sm:block">
-        {mode === 'choice'
-          ? 'Choose an option, then rate your recall.'
-          : 'Space to reveal, 1 to 4 to rate.'}
-      </p>
     </section>
   );
 };

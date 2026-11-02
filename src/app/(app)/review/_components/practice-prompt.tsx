@@ -72,8 +72,8 @@ export function PracticePrompt({
         />
         <p className="text-sm text-ink-2">
           {revealed
-            ? 'Compare the meaning, not the exact wording. This answer is not automatically graded.'
-            : 'A few key points are enough. Your writing stays on this card and is cleared when you move on.'}
+            ? 'Compare with the answer below. Not automatically graded.'
+            : ''}
         </p>
       </div>
     );
@@ -83,8 +83,7 @@ export function PracticePrompt({
   return (
     <div className="mt-5 space-y-3">
       <fieldset disabled={revealed} className="space-y-2.5">
-        <legend className="card-section-label mb-1">Choose an answer</legend>
-        <p className="pb-1 text-sm text-ink-2">{PRACTICE_MODES.choice.hint}</p>
+        <legend className="sr-only">Choose an answer</legend>
         {options.map((option, i) => (
           <ChoiceButton
             key={i}
@@ -107,21 +106,15 @@ export function PracticePrompt({
       </fieldset>
       {picked && (
         <AnswerVerdict correct={picked.correct}>
-          {picked.explanation && (
-            <p className="text-sm leading-relaxed text-ink-2">
-              {picked.explanation}
-            </p>
+          {(picked.explanation || card.quiz?.explanation) && (
+            <details className="text-sm text-ink-2">
+              <summary className="min-h-11 cursor-pointer content-center">
+                Why?
+              </summary>
+              <p>{picked.explanation}</p>
+              {!picked.correct && <p>{card.quiz?.explanation}</p>}
+            </details>
           )}
-          {!picked.correct && card.quiz?.explanation && (
-            <p className="text-sm leading-relaxed text-ink-2">
-              {card.quiz.explanation}
-            </p>
-          )}
-          <p className="text-sm text-ink-2">
-            {picked.correct
-              ? 'Guessed? Rate Again so it comes back sooner.'
-              : 'Rate Again and it comes back sooner.'}
-          </p>
         </AnswerVerdict>
       )}
     </div>

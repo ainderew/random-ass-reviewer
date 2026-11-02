@@ -274,3 +274,5 @@ The versioned `public/illustrations/study-cards-v1.png` is decorative. Review di
 Today and Focus default to the orange illustrated cat at a study desk. Separate raster layers animate breathing, head movement, writing, sleepy nods, dozing and waking; tapping or stroking the head triggers a happy reaction. Reduced motion stops animation and the automatic routine. Background tabs pause it. The background remains still.
 
 The browser remembers an explicit character selection. `?cat=3d` retains the earlier clay character, room visuals derived from study milestones and full care animations. The illustrated version currently acknowledges care with expressions and text; its desk does not change with earned room milestones.
+
+Review answering shows one question and its revealed answer. Answer modes and source evidence are collapsed; four compact recall buttons retain their keyboard shortcuts and accessible interval labels. Schedule panels stay on the subject shelf.
