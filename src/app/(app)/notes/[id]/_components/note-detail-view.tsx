@@ -165,6 +165,7 @@ export const NoteDetailView = ({
               className="scroll-mt-20 rounded-xl border border-hairline bg-ground-2 p-5 sm:p-6"
             >
               <CardDetails
+                sourceId={sourceId}
                 card={card}
                 sourceTitle={source.title}
                 source={chunkText.get(card.chunkId) ?? ''}

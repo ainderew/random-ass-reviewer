@@ -1,4 +1,5 @@
 'use client';
+import { CardChoices } from './card-choices';
 import type { Card } from '@/domain/types';
 import { MTLE_SUBJECTS } from '@/domain/study/medtech';
 import { Button } from '@/components/ui/button';
@@ -6,6 +7,7 @@ import { SourceEvidence } from '@/components/study/source-evidence';
 
 export const CardDetails = ({
   card,
+  sourceId,
   source,
   sourceTitle,
   busy,
@@ -13,6 +15,7 @@ export const CardDetails = ({
   onStatus,
 }: {
   card: Card;
+  sourceId: string;
   source: string;
   sourceTitle?: string;
   busy: boolean;
@@ -94,24 +97,7 @@ export const CardDetails = ({
           />
         </div>
       </div>
-      {card.quiz && (
-        <details className="mt-5 border-t border-hairline pt-2 text-sm text-ink-2">
-          <summary className="min-h-11 cursor-pointer content-center font-medium">
-            Multiple-choice practice · check choices
-          </summary>
-          {card.quiz.explanation && (
-            <p className="mt-3">{card.quiz.explanation}</p>
-          )}
-          <ol className="mt-4 list-decimal space-y-3 pl-5">
-            {card.quiz.distractors.map((d, i) => (
-              <li key={i}>
-                <p className="font-medium">{d.text}</p>
-                <p>{d.explanation || 'Your notes do not explain this one.'}</p>
-              </li>
-            ))}
-          </ol>
-        </details>
-      )}
+      <CardChoices sourceId={sourceId} card={card} disabled={busy} />
       <div className="mt-5 flex flex-wrap gap-3 border-t border-hairline pt-5">
         <Button onClick={onEdit} disabled={busy}>
           {approved ? 'Edit card' : 'Edit and approve'}

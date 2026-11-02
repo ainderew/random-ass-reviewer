@@ -2,6 +2,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { ReactNode } from 'react';
+import { initialCardState } from '@/domain/review/scheduler';
 import type { NoteDetail } from '@/domain/types';
 import { NoteDetailView } from './note-detail-view';
 
@@ -73,4 +74,81 @@ describe('NoteDetailView', () => {
       ),
     );
   });
+});
+
+it('generates choices from a note card without approving or changing its answer', async () => {
+  const card = {
+    id: 'card-1',
+    userId: 'u1',
+    chunkId: 'chunk-1',
+    question: 'What carries impulses?',
+    answer: 'Neurons',
+    sourceQuote: 'Neurons carry impulses.',
+    tags: [],
+    nextDueAt: new Date(),
+    fsrsState: initialCardState(0),
+    suspended: false,
+    reviewStatus: 'draft' as const,
+    subject: null,
+    topic: null,
+    quiz: null,
+  };
+  const note = { ...detail, cards: [card] };
+  const quiz = {
+    explanation: 'Neurons carry impulses in the notes.',
+    distractors: [
+      {
+        text: 'Platelets',
+        explanation: 'Platelets are not described as carrying impulses.',
+      },
+      {
+        text: 'Erythrocytes',
+        explanation: 'Erythrocytes are not described as carrying impulses.',
+      },
+      {
+        text: 'Osteocytes',
+        explanation: 'Osteocytes are not described as carrying impulses.',
+      },
+    ],
+  };
+  let resolveChoices!: (value: unknown) => void;
+  const pending = new Promise((resolve) => {
+    resolveChoices = resolve;
+  });
+  const fetchMock = jest.fn(async (input: RequestInfo | URL) => ({
+    ok: true,
+    status: 200,
+    statusText: 'OK',
+    json: async () => ({
+      data: String(input).endsWith('/choices') ? await pending : note,
+    }),
+  }));
+  global.fetch = fetchMock as unknown as typeof fetch;
+  const client = new QueryClient();
+  render(
+    <QueryClientProvider client={client}>
+      <NoteDetailView sourceId={SOURCE_ID} existing={false} />
+    </QueryClientProvider>,
+  );
+  await userEvent.click(
+    await screen.findByRole('button', { name: 'Generate multiple choice' }),
+  );
+  expect(
+    screen.getByRole('button', { name: 'Generating choices…' }),
+  ).toBeDisabled();
+  resolveChoices({ quiz });
+  expect(await screen.findByText('Platelets')).toBeVisible();
+  expect(
+    screen.getByText('Multiple choice · 4 options').closest('details'),
+  ).toHaveAttribute('open');
+  expect(
+    client.getQueryData<NoteDetail>(['notes', SOURCE_ID])?.cards[0],
+  ).toMatchObject({ answer: 'Neurons', reviewStatus: 'draft', quiz });
+  expect(fetchMock).toHaveBeenCalledWith(
+    '/api/cards/card-1/choices',
+    expect.objectContaining({ method: 'POST' }),
+  );
+  expect(
+    fetchMock.mock.calls.some(([url]) => String(url).endsWith('/card-1')),
+  ).toBe(false);
 });

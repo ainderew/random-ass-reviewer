@@ -276,3 +276,5 @@ Today and Focus default to the orange illustrated cat at a study desk. Separate 
 The browser remembers an explicit character selection. `?cat=3d` retains the earlier clay character, room visuals derived from study milestones and full care animations. The illustrated version currently acknowledges care with expressions and text; its desk does not change with earned room milestones.
 
 Review answering shows one question and its revealed answer. Answer modes and source evidence are collapsed; four compact recall buttons retain their keyboard shortcuts and accessible interval labels. Schedule panels stay on the subject shelf.
+
+Notes cards without choices offer “Generate multiple choice.” This uses the existing source-grounded AI endpoint, saves three distractors and explanations alongside the original answer, and opens the four-option preview. Existing options stay behind a disclosure. Generation has inline pending/error feedback and never approves a draft card. Review keeps its question-and-answer focus.
